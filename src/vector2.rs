@@ -1,0 +1,146 @@
+//-------------------------------------------------------------------------
+// @file vector2.rs
+//
+// @date 06/01/20 22:37:02
+// @author Martin Noblia
+// @email mnoblia@disroot.org
+//
+// @brief
+//
+// @detail
+//
+//  Licence:
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or (at
+// your option) any later version.
+//
+// This program is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+//--------------------------------------------------------------------------
+use num_traits::{Float, Zero, Num};
+use std::ops::{Deref, DerefMut};
+
+use std::ops::{Add, Mul};
+// use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
+
+use crate::matrix2x2::*;
+
+//-------------------------------------------------------------------------
+//                        code
+//-------------------------------------------------------------------------
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct V2<T>([T; 2]);
+
+// NOTE(elsuizo:2019-09-08): podemos crear cualquier vector de cualquier type T
+impl<T> V2<T> {
+    pub fn new(input: [T; 2]) -> V2<T> {
+        V2(input)
+    }
+}
+
+impl<T: Num + Copy> V2<T> {
+    pub fn zeros() -> V2<T> {
+        <V2<T> as Zero>::zero()
+    }
+
+}
+
+impl<T: Float> V2<T> {
+    pub fn norm2(&self) -> T {
+        let a = self[0];
+        let b = self[1];
+
+        T::sqrt(a * a + b * b)
+    }
+}
+
+impl<T: Num + Copy> Mul for V2<T> {
+    type Output = T;
+
+    fn mul(self, rhs: Self) -> T {
+        let a1 = self[0];
+        let a2 = self[1];
+
+        let b1 = rhs[0];
+        let b2 = rhs[1];
+
+        a1 * b1 + a2 * b2
+    }
+}
+
+// TODO(elsuizo:2020-05-01): faltaria constant * V2
+/// V2 * constant
+impl<T: Num + Copy> Mul<T> for V2<T> {
+    type Output = V2<T>;
+
+    fn mul(self, rhs: T) -> V2<T> {
+        let a0 = self[0] * rhs;
+        let a1 = self[1] * rhs;
+        V2::new([a0, a1])
+    }
+}
+
+impl<T: Num + Copy> Mul<M22<T>> for V2<T> {
+    type Output = V2<T>;
+
+    fn mul(self, rhs: M22<T>) -> V2<T> {
+        let a1 = rhs[(0, 0)];
+        let b1 = rhs[(0, 1)];
+        let c1 = rhs[(1, 0)];
+        let d1 = rhs[(1, 1)];
+
+        let v1 = self[0];
+        let v2 = self[1];
+        V2::new([v1 * a1 + v2 * c1, v1 * b1 + v2 * d1])
+    }
+}
+
+impl<T: Num + Copy> Add for V2<T> {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+        let a1 = self[0];
+        let a2 = self[1];
+
+        let b1 = rhs[0];
+        let b2 = rhs[1];
+
+        V2::new([a1 + b1, a2 + b2])
+    }
+}
+
+impl<T: Num + Copy> Zero for V2<T> {
+    fn zero() -> V2<T> {
+        V2::new([T::zero(); 2])
+    }
+
+    fn is_zero(&self) -> bool {
+        *self == V2::zero()
+    }
+}
+
+impl<T> Deref for V2<T> {
+    type Target = [T; 2];
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for V2<T> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<T> From<[T; 2]> for V2<T> {
+    fn from(data: [T; 2]) -> V2<T> {
+        V2(data)
+    }
+}

@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------
-// @file vector2.rs
+// @file vector3.rs
 //
-// @date 06/01/20 22:37:02
+// @date 06/02/20 18:50:41
 // @author Martin Noblia
 // @email mnoblia@disroot.org
 //
@@ -22,149 +22,165 @@
 //
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
+// imports
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
 use std::ops::{Add, Mul};
 // use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
-use crate::matrix2x2::*;
-
+use crate::matrix3x3::M33;
 //-------------------------------------------------------------------------
 //                        code
 //-------------------------------------------------------------------------
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct V2<T>([T; 2]);
+pub struct V3<T>([T; 3]);
 
-// NOTE(elsuizo:2019-09-08): podemos crear cualquier vector de cualquier type T
-impl<T> V2<T> {
-    pub fn new(input: [T; 2]) -> V2<T> {
-        V2(input)
+impl<T> V3<T> {
+    pub fn new(input: [T; 3]) -> V3<T> {
+        V3(input)
     }
 }
 
-impl<T: Num + Copy> V2<T> {
-    pub fn zeros() -> V2<T> {
-        <V2<T> as Zero>::zero()
+impl<T: Num + Copy> V3<T> {
+    pub fn zeros() -> V3<T> {
+        <V3<T> as Zero>::zero()
     }
 
 }
 
-impl<T: Float> V2<T> {
+impl<T: Float> V3<T> {
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
-
-        T::sqrt(a * a + b * b)
+        let c = self[2];
+        T::sqrt(a * a + b * b + c * c)
     }
 }
 
-impl<T: Num + Copy> Mul for V2<T> {
+impl<T: Num + Copy> Mul<T> for V3<T> {
+    type Output = V3<T>;
+
+    fn mul(self, rhs: T) -> V3<T> {
+        let a0 = self[0] * rhs;
+        let a1 = self[1] * rhs;
+        let a2 = self[2] * rhs;
+        V3::new([a0, a1, a2])
+    }
+}
+
+impl<T: Num + Copy> Mul for V3<T> {
     type Output = T;
 
     fn mul(self, rhs: Self) -> T {
         let a1 = self[0];
         let a2 = self[1];
+        let a3 = self[2];
 
         let b1 = rhs[0];
         let b2 = rhs[1];
+        let b3 = rhs[2];
 
-        a1 * b1 + a2 * b2
+        a1 * b1 + a2 * b2 + a3 * b3
     }
 }
 
-// TODO(elsuizo:2020-05-01): faltaria constant * V2
-/// V2 * constant
-impl<T: Num + Copy> Mul<T> for V2<T> {
-    type Output = V2<T>;
+impl<T: Num + Copy> Mul<M33<T>> for V3<T> {
+    type Output = V3<T>;
 
-    fn mul(self, rhs: T) -> V2<T> {
-        let a0 = self[0] * rhs;
-        let a1 = self[1] * rhs;
-        V2::new([a0, a1])
-    }
-}
-
-impl<T: Num + Copy> Mul<M22<T>> for V2<T> {
-    type Output = V2<T>;
-
-    fn mul(self, rhs: M22<T>) -> V2<T> {
-        let a1 = rhs[(0, 0)];
-        let b1 = rhs[(0, 1)];
-        let c1 = rhs[(1, 0)];
-        let d1 = rhs[(1, 1)];
+    fn mul(self, rhs: M33<T>) -> V3<T> {
+        let a11 = rhs[(0, 0)];
+        let a12 = rhs[(0, 1)];
+        let a13 = rhs[(0, 2)];
+        let a21 = rhs[(1, 0)];
+        let a22 = rhs[(1, 1)];
+        let a23 = rhs[(1, 2)];
+        let a31 = rhs[(2, 0)];
+        let a32 = rhs[(2, 1)];
+        let a33 = rhs[(2, 2)];
 
         let v1 = self[0];
         let v2 = self[1];
-        V2::new([v1 * a1 + v2 * c1, v1 * b1 + v2 * d1])
+        let v3 = self[2];
+
+        V3::new([
+            a11 * v1 + a12 * v2 + a13 * v3,
+            a21 * v1 + a22 * v2 + a23 * v3,
+            a31 * v1 + a32 * v2 + a33 * v3,
+        ])
     }
 }
 
-impl<T: Num + Copy> Add for V2<T> {
+impl<T: Num + Copy> Add for V3<T> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        let a1 = self[0];
-        let a2 = self[1];
+        let v1 = self[0];
+        let v2 = self[1];
+        let v3 = self[2];
 
-        let b1 = rhs[0];
-        let b2 = rhs[1];
+        let a1 = rhs[0];
+        let a2 = rhs[1];
+        let a3 = rhs[2];
 
-        V2::new([a1 + b1, a2 + b2])
+        V3::new([v1 + a1, v2 + a2, v3 + a3])
     }
 }
 
-impl<T: Num + Copy> Zero for V2<T> {
-    fn zero() -> V2<T> {
-        V2::new([T::zero(); 2])
+impl<T: Num + Copy> Zero for V3<T> {
+    fn zero() -> V3<T> {
+        V3::new([T::zero(); 3])
     }
 
     fn is_zero(&self) -> bool {
-        *self == V2::zero()
+        *self == V3::zero()
     }
 }
 
-impl<T> Deref for V2<T> {
-    type Target = [T; 2];
+impl<T> Deref for V3<T> {
+    type Target = [T; 3];
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl<T> DerefMut for V2<T> {
+impl<T> DerefMut for V3<T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl<T> From<[T; 2]> for V2<T> {
-    fn from(data: [T; 2]) -> V2<T> {
-        V2(data)
+impl<T> From<[T; 3]> for V3<T> {
+    fn from(data: [T; 3]) -> V3<T> {
+        V3(data)
     }
 }
 
-// TODO(elsuizo:2020-06-02): creo que faltan mas tests
+// TODO(elsuizo:2020-06-02): faltaria hacer el fmt de este type
+
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
+// TODO(elsuizo:2020-06-02): faltan tests
 #[cfg(test)]
-mod vector2_test {
+mod vector3_test {
 
-    use crate::vector2::V2;
+    use crate::vector3::V3;
 
     #[test]
-    fn create_vector2_test() {
-        let v = V2::new([1.0, 2.0]);
+    fn create_vector3_test() {
+        let v = V3::new([1.0, 1.0, 1.0]);
         assert_eq!(v[0], 1.0);
-        assert_eq!(v[1], 2.0);
+        assert_eq!(v[1], 1.0);
+        assert_eq!(v[2], 1.0);
     }
 
     #[test]
-    fn zero_vector2_test() {
-        let result: V2<f64> = V2::zeros();
-        let expected = V2::new([0.0, 0.0]);
+    fn zero_vector3_test() {
+        let result: V3<f64> = V3::zeros();
+        let expected = V3::new([0.0, 0.0, 0.0]);
         assert_eq!(
             &result[..],
             &expected[..],
@@ -176,19 +192,19 @@ mod vector2_test {
 
     #[test]
     fn product_test() {
-        let v1 = V2::new([1.0, 2.0]);
-        let v2 = V2::new([3.0, 4.0]);
+        let v1 = V3::new([1.0, 2.0, 3.0]);
+        let v2 = V3::new([4.0, 5.0, 6.0]);
         let result = v1 * v2;
-        let expected = 11.0;
+        let expected = 32.0;
         assert_eq!(result, expected);
     }
 
     #[test]
     fn add_test() {
-        let v1 = V2::new([1.0, 2.0]);
-        let v2 = V2::new([3.0, 4.0]);
+        let v1 = V3::new([1.0, 2.0, 3.0]);
+        let v2 = V3::new([4.0, 5.0, 6.0]);
         let result = v1 + v2;
-        let expected = V2::new([4.0, 6.0]);
+        let expected = V3::new([5.0, 7.0, 9.0]);
         assert_eq!(
             &result[..],
             &expected[..],
@@ -200,8 +216,8 @@ mod vector2_test {
 
     #[test]
     fn norm2_test() {
-        let v1 = V2::new([1.0, 2.0]);
-        let expected = 2.23606797749979;
+        let v1 = V3::new([1.0, 2.0, 3.0]);
+        let expected = 3.7416573867739413;
         let result = v1.norm2();
         assert_eq!(result, expected);
     }

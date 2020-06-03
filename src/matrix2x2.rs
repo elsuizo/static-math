@@ -27,8 +27,7 @@ use std::fmt;
 use std::ops::{Add, Mul};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
-use num_traits::{Float, Zero, One, Num};
-use num_traits::real::Real;
+use num::{Float, Num, Zero, One};
 use crate::vector2::*;
 use crate::traits::LinearAlgebra;
 
@@ -53,7 +52,8 @@ impl<T> M22<T> {
     }
 }
 
-impl<T: Real> LinearAlgebra<T> for M22<T> {
+// TODO(elsuizo:2020-06-02): tendria que impl LinearAlgebra para Real o Num???
+impl<T: Float> LinearAlgebra<T> for M22<T> {
     fn rows(&self) -> usize {
         self.0.len()
     }
@@ -90,7 +90,7 @@ impl<T: Real> LinearAlgebra<T> for M22<T> {
         T::sqrt(a * a + b * b + c * c + d * d)
     }
 
-    fn inverse(&self) -> Option<M22<T>> {
+    fn inverse(&self) -> Option<Self> {
         let a = self[(0, 0)];
         let b = self[(0, 1)];
         let c = self[(1, 0)];
@@ -155,7 +155,7 @@ impl<T: Num + Copy> Add for M22<T> {
 // impl<T: Float> Mul for T {
 //     type Output = M22<T>;
 //
-//     fn mul(self, rhs: M22<T>) -> Matrix2x2<T> {
+//     fn mul(self, rhs: M22<T>) -> M22<T> {
 //         let a_00 = rhs[(0, 0)] * self;
 //         let a_01 = rhs[(0, 1)] * self;
 //         let a_10 = rhs[(1, 0)] * self;
@@ -276,9 +276,10 @@ impl<T: Num + fmt::Display> fmt::Display for M22<T> {
 mod test_matrix2x2 {
     use crate::traits::LinearAlgebra;
     use crate::matrix2x2::M22;
-    // use crate::utils::compare_floats;
-    // use crate::utils::compare_vecs;
+    use crate::utils::compare_vecs;
     use crate::vector2::V2;
+
+    const EPS: f32 = 1e-8;
 
     #[test]
     fn create_m22_floats() {
@@ -330,50 +331,56 @@ mod test_matrix2x2 {
         assert_eq!(result.as_vec(), expected.as_vec());
     }
 
+    // TODO(elsuizo:2020-06-02): no se como hacer para que ande con Ints y Floats
+    // #[test]
+    // #[ignore]
+    // fn test_determinant() {
+    //     let m1 = M22::new([[1, 2], [3, 4]]);
+    //     let result = m1.det();
+    //     let expected = -2;
+    //     assert_eq!(result, expected);
+    // }
+
     #[test]
-    fn test_determinant() {
-        let m1 = M22::new([[1, 2], [3, 4]]);
-        let result = m1.det();
-        let expected = -2;
-        assert_eq!(result, expected);
+    fn product_with_vector2_rhs_test() {
+        let m1 = M22::new([[1.0, 2.0], [3.0, 4.0]]);
+        let v = V2::new([1.0, 2.0]);
+
+        let result = m1 * v;
+        let expected = V2::new([5.0, 11.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 
-    // #[test]
-    // fn product_with_vector2_rhs_test() {
-    //     let m1 = Matrix2x2::new([[1.0, 2.0], [3.0, 4.0]]);
-    //     let v = Vector2::new([1.0, 2.0]);
-    //
-    //     let result = m1 * v;
-    //     let expected = Vector2::new([5.0, 11.0]);
-    //     assert_eq!(
-    //         &result[..],
-    //         &expected[..],
-    //         "\nExpected\n{:?}\nfound\n{:?}",
-    //         &result[..],
-    //         &expected[..]
-    //     );
-    // }
-    //
-    // #[test]
-    // fn product_with_matrix2x2_rhs_test() {
-    //     let v = Vector2::new([1.0, 2.0]);
-    //     let m1 = Matrix2x2::new([[1.0, 2.0], [3.0, 4.0]]);
-    //     let result = v * m1;
-    //     let expected = Vector2::new([7.0, 10.0]);
-    //     assert_eq!(
-    //         &result[..],
-    //         &expected[..],
-    //         "\nExpected\n{:?}\nfound\n{:?}",
-    //         &result[..],
-    //         &expected[..]
-    //     );
-    // }
-    // #[test]
-    // fn inverse_test() {
-    //     let m1 = Matrix2x2::new([[1.0, 2.0], [3.0, 4.0]]);
-    //     let expected = Matrix2x2::new([[-2.0, 1.0], [1.5, -0.5]]);
-    //     if let Ok(result) = m1.inverse() {
-    //         assert!(compare_vecs(&result.as_vec(), &expected.as_vec()));
-    //     }
-    // }
+    #[test]
+    fn product_with_matrix2x2_rhs_test() {
+        let v = V2::new([1.0, 2.0]);
+        let m1 = M22::new([[1.0, 2.0], [3.0, 4.0]]);
+        let result = v * m1;
+        let expected = V2::new([7.0, 10.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn inverse_test() {
+        // NOTE(elsuizo:2020-06-02): no se si conviene asi o poner el numero
+        // directamente
+        use super::test_matrix2x2::EPS;
+        let m1 = M22::new([[1.0, 2.0], [3.0, 4.0]]);
+        let expected = M22::new([[-2.0, 1.0], [1.5, -0.5]]);
+        if let Some(result) = m1.inverse() {
+            assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+        }
+    }
 }

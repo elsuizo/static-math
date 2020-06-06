@@ -151,6 +151,19 @@ impl<T: Num + Copy> Add for M22<T> {
     }
 }
 
+impl<T: Float> M22<T> {
+    pub fn eigenvalues(&self) -> V2<T> {
+        let tau = self.trace();
+        let delta = self.det();
+        // TODO(elsuizo:2020-06-04): esto no me gusta, todo sea por ser generico
+        let two = T::from(2.0).unwrap();
+        let four = T::from(4.0).unwrap();
+        let lambda2 = (tau - T::sqrt(tau.powi(2) - four * delta)) / two;
+        let lambda1 = (tau + T::sqrt(tau.powi(2) - four * delta)) / two;
+        V2::new([lambda1, lambda2])
+    }
+}
+
 // TODO(elsuizo:2020-05-05): no se bien porque no me deja hacer esto parece que no puedo???
 // impl<T: Float> Mul for T {
 //     type Output = M22<T>;
@@ -262,8 +275,8 @@ impl<T> IndexMut<(usize, usize)> for M22<T> {
 impl<T: Num + fmt::Display> fmt::Display for M22<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
         println!("");
-        write!(dest, "|{0:<7.2} {1:>7.2}|\n", self[(0, 0)], self[(0, 1)])?;
-        write!(dest, "|{0:<7.2} {1:>7.2}|\n", self[(1, 0)], self[(1, 1)])
+        write!(dest, "|{0:^3.2} {1:^3.2}|\n", self[(0, 0)], self[(0, 1)])?;
+        write!(dest, "|{0:^3.2} {1:^3.2}|\n", self[(1, 0)], self[(1, 1)])
     }
 }
 

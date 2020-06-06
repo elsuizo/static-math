@@ -16,7 +16,9 @@ Methods:
 
  - `det()`: Determinant of the matrix
  - `inverse()`: Inverse of the matrix
- - `norm2`: norm of the matrix
+ - `norm2()`: norm of the matrix
+ - `transpose()`: transpose of the matrix
+ - `trace()`: trace of the matrix
 
 
 TODOS:

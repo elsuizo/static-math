@@ -8,3 +8,11 @@ edition = "2018"
 
 [dependencies]
 num = "0.2.1"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "bench_inverse"
+harness = false
+

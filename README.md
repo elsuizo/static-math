@@ -8,15 +8,15 @@ stack memory.
 - The determinant of the matrixs are evaluated "in-place" without loops and code
 bifurcations
 
-types:
- - Matrix from 2x2 to 6x6
- - Vector from 2 elements to 6
-
-Methods:
+The matrix types `Mnn` (where `n=2..6`) implements the Methods from the
+`LinearAlgebra` trait:
 
  - `det()`: Determinant of the matrix
  - `inverse()`: Inverse of the matrix
- - `norm2`: norm of the matrix
+ - `norm2()`: norm of the matrix
+ - `transpose()`: transpose of the matrix
+ - `trace()`: trace of the matrix
+ - `shape()`: shape of the matrix
 
 ## Benchmarks
 

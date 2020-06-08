@@ -24,16 +24,13 @@ Using the criterion crate:
 
 https://github.com/bheisler/criterion.rs
 
-this are the results for one operation(6x6 matrix inverse):
+this are the results for one operation(6x6 matrix inverse and printing):
 
 
 ```text
-   inverse 6x6             time:   [295.87 us 301.60 us 308.75 us]
-Found 18 outliers among 100 measurements (18.00%)
-   3 (3.00%) low severe
-   5 (5.00%) low mild
-   2 (2.00%) high mild
-   8 (8.00%) high severe
+inverse 6x6             time:   [108.15 us 113.65 us 120.04 us]
+                        change: [-71.614% -70.047% -68.452%] (p = 0.00 < 0.05)
+                        Performance has improved.
 ```
 
 you can look the bench here: [bench](benches/bench_inverse.rs)

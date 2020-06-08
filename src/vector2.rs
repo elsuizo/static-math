@@ -73,7 +73,7 @@ impl<T: Num + Copy> Mul for V2<T> {
     }
 }
 
-// TODO(elsuizo:2020-05-01): faltaria constant * V2
+// TODO(elsuizo:2020-05-01): missing constant * V2
 /// V2 * constant
 impl<T: Num + Copy> Mul<T> for V2<T> {
     type Output = V2<T>;
@@ -145,7 +145,7 @@ impl<T> From<[T; 2]> for V2<T> {
     }
 }
 
-// TODO(elsuizo:2020-06-02): creo que faltan mas tests
+// TODO(elsuizo:2020-06-02): more tests are missing
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------

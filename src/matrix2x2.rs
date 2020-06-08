@@ -52,7 +52,6 @@ impl<T> M22<T> {
     }
 }
 
-// TODO(elsuizo:2020-06-02): tendria que impl LinearAlgebra para Real o Num???
 impl<T: Float> LinearAlgebra<T> for M22<T> {
     fn rows(&self) -> usize {
         self.0.len()
@@ -155,7 +154,7 @@ impl<T: Float> M22<T> {
     pub fn eigenvalues(&self) -> V2<T> {
         let tau = self.trace();
         let delta = self.det();
-        // TODO(elsuizo:2020-06-04): esto no me gusta, todo sea por ser generico
+        // TODO(elsuizo:2020-06-04): this is uggly
         let two = T::from(2.0).unwrap();
         let four = T::from(4.0).unwrap();
         let lambda2 = (tau - T::sqrt(tau.powi(2) - four * delta)) / two;

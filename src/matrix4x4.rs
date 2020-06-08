@@ -154,7 +154,7 @@ impl<T: Float> LinearAlgebra<T> for M44<T> {
             - a16 * a3 * a6 * a9
     }
 
-    // TODO(elsuizo:2020-06-02): aca tendriamos que usar la funcion nearly_equals
+    // TODO(elsuizo:2020-06-02): here could we use utils::nearly_equal()???
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if det.abs() > T::epsilon() {

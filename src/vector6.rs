@@ -212,9 +212,9 @@ impl<T> From<[T; 6]> for V6<T> {
 }
 
 
-// TODO(elsuizo:2020-06-02): falto impl fmt para este type
+// TODO(elsuizo:2020-06-02): impl fmt for this type
 
-// TODO(elsuizo:2020-06-02): me parece que faltan tests
+// TODO(elsuizo:2020-06-02): more tests
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------

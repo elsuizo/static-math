@@ -24,8 +24,6 @@
 //--------------------------------------------------------------------------
 use std::error;
 use std::fmt;
-// TODO(elsuizo:2020-06-01): creo que cuando no hay inversa no seria un error
-// sino que un None
 /// Errors for Linear Algebra operations
 #[derive(Debug)]
 pub enum LinAlgebraError {

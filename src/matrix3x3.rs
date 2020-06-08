@@ -78,7 +78,7 @@ impl<T: Float> LinearAlgebra<T> for M33<T> {
             + self[(0, 2)] * (self[(1, 0)] * self[(2, 1)] - self[(1, 1)] * self[(2, 0)])
     }
 
-    // TODO(elsuizo:2020-06-02): aca hay que usar la funcion de comparacion de utils
+    // TODO(elsuizo:2020-06-02): use here utils::nearly_equal()
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if det.abs() > T::epsilon() {

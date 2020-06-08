@@ -91,7 +91,7 @@ impl<T: Num + Copy> Mul<T> for V5<T> {
         V5::new([a0, a1, a2, a3, a4])
     }
 }
-// TODO(elsuizo:2020-04-22): faltaria M55 * V5
+// TODO(elsuizo:2020-04-22): missing M55 * V5
 impl<T: Num + Copy> Mul<M55<T>> for V5<T> {
     type Output = V5<T>;
 
@@ -188,7 +188,7 @@ impl<T> From<[T; 5]> for V5<T> {
     }
 }
 
-// TODO(elsuizo:2020-06-02): implementar fmt para este type
+// TODO(elsuizo:2020-06-02): missing impl fmt for this type
 
 //-------------------------------------------------------------------------
 //                        tests

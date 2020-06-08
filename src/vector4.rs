@@ -77,7 +77,7 @@ impl<T: Num + Copy> Mul for V4<T> {
     }
 }
 
-// TODO(elsuizo:2020-05-01): faltaria constant * V4
+// TODO(elsuizo:2020-05-01): missing constant * V4
 /// V4 * constant
 impl<T: Num + Copy> Mul<T> for V4<T> {
     type Output = V4<T>;
@@ -175,7 +175,7 @@ impl<T> From<[T; 4]> for V4<T> {
     }
 }
 
-// TODO(elsuizo:2020-06-02): implementar el fmt para este type
+// TODO(elsuizo:2020-06-02): impl fmt for this type
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------

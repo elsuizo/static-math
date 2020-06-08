@@ -685,7 +685,6 @@ mod test_matrix5x5 {
     use crate::utils::nearly_equal;
     use crate::utils::compare_vecs;
 
-    // TODO(elsuizo:2020-06-02): hay que ver porque con EPS mas chicos falla inverse()
     const EPS: f32 = 1e-7;
 
     #[test]

@@ -1229,12 +1229,15 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
         <M66<T> as Zero>::zero()
     }
 
+    // TODO(elsuizo:2020-06-07): you have to replace this Vec with an array so it can work on no-std
     pub fn as_vec(&self) -> Vec<T> {
         let result: Vec<T> = self.iter().flatten().cloned().collect();
         return result;
     }
 
-    // TODO(elsuizo:2020-04-28): esta funcion no deberia ser pub
+    // TODO(elsuizo:2020-06-02): this could be optimize
+
+    // TODO(elsuizo:2020-06-07): you have to replace this Vec with an array so it can work on no-std
     /// get the a submatrix from discard row `i` and column `j`
     ///
     fn get_submatrix(&self, selected: (usize, usize)) -> M55<T> {

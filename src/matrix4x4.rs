@@ -218,9 +218,9 @@ impl<T: Num + Copy> M44<T> {
         return result;
     }
 
-    // TODO(elsuizo:2020-06-02): hay que ver como optimizar esta funcion
+    // TODO(elsuizo:2020-06-02): this could be optimize
 
-    // TODO(elsuizo:2020-03-24): tendria que verificar que la tupla que ingresan es valida
+    // TODO(elsuizo:2020-06-07): you have to replace this Vec with an array so it can work on no-std
     pub fn get_submatrix(&self, selected: (usize, usize)) -> M33<T> {
         let mut values: Vec<T> = Vec::new();
         let mut result: M33<T> = M33::zeros();

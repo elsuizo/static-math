@@ -542,21 +542,26 @@ impl<T: Num + Copy> One for M55<T> {
 
 // NOTE(elsuizo:2020-04-26): poniendo ese Trait anda el norm2 funcional
 impl<T: Num + Copy + std::iter::Sum> M55<T> {
+    /// get the identity matrix
     pub fn identity() -> M55<T> {
         <M55<T> as One>::one()
     }
 
+    /// get the matrix of all zeros
     pub fn zeros() -> M55<T> {
         <M55<T> as Zero>::zero()
     }
 
+    // TODO(elsuizo:2020-06-07): you have to replace this Vec with an array so it can work on no-std
     pub fn as_vec(&self) -> Vec<T> {
         let result: Vec<T> = self.iter().flatten().cloned().collect();
         return result;
     }
 
+    // TODO(elsuizo:2020-06-02): this could be optimize
+
+    // TODO(elsuizo:2020-06-07): you have to replace this Vec with an array so it can work on no-std
     /// get the a submatrix from discard row `i` and column `j`
-    ///
     fn get_submatrix(&self, selected: (usize, usize)) -> M44<T> {
         let mut values: Vec<T> = Vec::new();
         let mut result: M44<T> = M44::zeros();

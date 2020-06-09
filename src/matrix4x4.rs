@@ -220,20 +220,20 @@ impl<T: Num + Copy> M44<T> {
 
     // TODO(elsuizo:2020-06-02): this could be optimize
 
-    // TODO(elsuizo:2020-06-07): you have to replace this Vec with an array so it can work on no-std
     pub fn get_submatrix(&self, selected: (usize, usize)) -> M33<T> {
-        let mut values: Vec<T> = Vec::new();
+        let mut values: [T; 9] = [T::zero(); 9];
         let mut result: M33<T> = M33::zeros();
+        let mut index: usize = 0;
         for i in 0..self.rows() {
             for j in 0..self.cols() {
                 if !(i == selected.0 || j == selected.1) {
                     // get the values from the M33
-                    values.push(self[(i, j)]);
+                    values[index] = self[(i, j)];
+                    index += 1;
                 }
             }
         }
-
-        let mut i = 0;
+        let mut i: usize = 0;
         for r in 0..result.rows() {
             for c in 0..result.cols() {
                 result[(r, c)] = values[i];

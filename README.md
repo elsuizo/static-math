@@ -8,6 +8,8 @@ stack memory.
 - The determinant of the matrixs are evaluated "in-place" without loops and code
 bifurcations
 
+- The use cases can be: Robotics, Game programming, Simulations ...etc.
+
 The matrix types `Mnn` (where `n=2..6`) implements the Methods from the
 `LinearAlgebra` trait:
 
@@ -28,8 +30,8 @@ this are the results for one operation(6x6 matrix inverse and printing):
 
 
 ```text
-inverse 6x6             time:   [108.15 us 113.65 us 120.04 us]
-                        change: [-71.614% -70.047% -68.452%] (p = 0.00 < 0.05)
+inverse 6x6             time:   [77.093 us 78.229 us 79.497 us]
+                        change: [-34.439% -31.456% -28.412%] (p = 0.00 < 0.05)
                         Performance has improved.
 ```
 
@@ -60,3 +62,5 @@ BenchmarkTools.Trial:
  - [ ] `expm()`: Exponential matrix implementation
  - [ ] QR decomposition
  - [ ] `Quaternion` type and methods
+
+

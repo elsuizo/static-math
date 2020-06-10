@@ -150,16 +150,22 @@ impl<T: Num + Copy> Add for M22<T> {
     }
 }
 
+// NOTE(elsuizo:2020-06-10): maybe an error here is better
 impl<T: Float> M22<T> {
-    pub fn eigenvalues(&self) -> V2<T> {
+    pub fn real_eigenvals(&self) -> Option<V2<T>> {
         let tau = self.trace();
         let delta = self.det();
-        // TODO(elsuizo:2020-06-04): this is uggly
-        let two = T::from(2.0).unwrap();
+        let tau_2 = tau * tau;
         let four = T::from(4.0).unwrap();
-        let lambda2 = (tau - T::sqrt(tau.powi(2) - four * delta)) / two;
-        let lambda1 = (tau + T::sqrt(tau.powi(2) - four * delta)) / two;
-        V2::new([lambda1, lambda2])
+        let discr = tau_2 - four * delta;
+        if discr < T::zero() {
+            None
+        } else {
+            let two = T::from(2.0).unwrap();
+            let lambda2 = (tau - T::sqrt(discr)) / two;
+            let lambda1 = (tau + T::sqrt(discr)) / two;
+            Some(V2::new([lambda1, lambda2]))
+        }
     }
 }
 

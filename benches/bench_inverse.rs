@@ -38,8 +38,7 @@ fn inverse_test() {
         [3.0, 8.0, 1.0, 4.0, 1.0, 5.0],
     ]);
 
-    if let Some(result) = m.inverse() {
-        println!("m: {}", result);
+    if let Some(_result) = m.inverse() {
     }
 }
 
@@ -49,15 +48,3 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
 criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);
-
-
-//-------------------------------------------------------------------------
-//                        benches
-//-------------------------------------------------------------------------
-// inverse 6x6             time:   [295.87 us 301.60 us 308.75 us]
-// Found 18 outliers among 100 measurements (18.00%)
-//   3 (3.00%) low severe
-//   5 (5.00%) low mild
-//   2 (2.00%) high mild
-//   8 (8.00%) high severe
-//

@@ -22,6 +22,7 @@
 //
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
+use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
@@ -188,7 +189,15 @@ impl<T> From<[T; 5]> for V5<T> {
     }
 }
 
-// TODO(elsuizo:2020-06-02): missing impl fmt for this type
+//-------------------------------------------------------------------------
+//                        Display impl
+//-------------------------------------------------------------------------
+impl<T: Num + fmt::Display> fmt::Display for V5<T> {
+    fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
+        println!("");
+        write!(dest, "[{0:^3.2} {1:^3.2} {2:^3.2} {3:^3.2} {4:^3.2}]\n", self[0], self[1], self[2], self[3], self[4])
+    }
+}
 
 //-------------------------------------------------------------------------
 //                        tests

@@ -22,6 +22,7 @@
 //
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
+use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
@@ -142,6 +143,16 @@ impl<T> DerefMut for V2<T> {
 impl<T> From<[T; 2]> for V2<T> {
     fn from(data: [T; 2]) -> V2<T> {
         V2(data)
+    }
+}
+
+//-------------------------------------------------------------------------
+//                        Display impl
+//-------------------------------------------------------------------------
+impl<T: Num + fmt::Display> fmt::Display for V2<T> {
+    fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
+        println!("");
+        write!(dest, "[{0:^3.2} {1:^3.2}]\n", self[0], self[1])
     }
 }
 

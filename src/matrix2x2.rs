@@ -43,6 +43,10 @@ impl<T> M22<T> {
         Self(data_input)
     }
 
+    pub fn create(a: T, b: T, c: T, d: T) -> Self {
+        Self::new([[a, b], [c, d]])
+    }
+
     pub fn rows(&self) -> usize {
         self.0.len()
     }
@@ -275,6 +279,16 @@ impl<T> IndexMut<(usize, usize)> for M22<T> {
 }
 
 //-------------------------------------------------------------------------
+//                        macros
+//-------------------------------------------------------------------------
+#[macro_export]
+macro_rules! m22_new {
+    ($($first_row:expr),* ; $($second_row:expr),*) => {
+        M22::new([[$($first_row),*], [$($second_row),*]])
+    }
+}
+
+//-------------------------------------------------------------------------
 //                        Display for M22
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M22<T> {
@@ -305,6 +319,17 @@ mod test_matrix2x2 {
         assert_eq!(matrix[(0, 1)], 1.0);
         assert_eq!(matrix[(1, 0)], 2.0);
         assert_eq!(matrix[(1, 1)], 3.0);
+    }
+
+    #[test]
+    fn create_m22_test() {
+        let m = m22_new!(0.0, 1.0;
+                         2.0, 3.0);
+
+        assert_eq!(m[(0, 0)], 0.0);
+        assert_eq!(m[(0, 1)], 1.0);
+        assert_eq!(m[(1, 0)], 2.0);
+        assert_eq!(m[(1, 1)], 3.0);
     }
 
     #[test]

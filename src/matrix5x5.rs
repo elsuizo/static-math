@@ -673,6 +673,24 @@ impl<T: Num + fmt::Display> fmt::Display for M55<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        macros
+//-------------------------------------------------------------------------
+#[macro_export]
+macro_rules! m55_new {
+    ($($first_row:expr),*;
+     $($second_row:expr),*;
+     $($third_row:expr),*;
+     $($fourth_row:expr),*;
+     $($fifth_row:expr),*
+     ) => {
+        M55::new([[$($first_row),*],
+                 [$($second_row),*],
+                 [$($third_row),*],
+                 [$($fourth_row),*],
+                 [$($fifth_row),*]])
+    }
+}
 
 //-------------------------------------------------------------------------
 //                        tests

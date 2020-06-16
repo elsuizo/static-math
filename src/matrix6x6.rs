@@ -1392,6 +1392,26 @@ impl<T: Num + fmt::Display> fmt::Display for M66<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        macros
+//-------------------------------------------------------------------------
+#[macro_export]
+macro_rules! m66_new {
+    ($($first_row:expr),*;
+     $($second_row:expr),*;
+     $($third_row:expr),*;
+     $($fourth_row:expr),*;
+     $($fifth_row:expr),*;
+     $($sixth_row:expr),*
+     ) => {
+        M66::new([[$($first_row),*],
+                 [$($second_row),*],
+                 [$($third_row),*],
+                 [$($fourth_row),*],
+                 [$($fifth_row),*],
+                 [$($sixth_row),*]])
+    }
+}
 
 //-------------------------------------------------------------------------
 //                        tests

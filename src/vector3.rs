@@ -29,6 +29,7 @@ use std::ops::{Deref, DerefMut};
 use std::ops::{Add, Mul};
 // use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
+use crate::errors::VectorErrors;
 use crate::matrix3x3::M33;
 //-------------------------------------------------------------------------
 //                        code
@@ -59,12 +60,16 @@ impl<T: Float> V3<T> {
 }
 
 impl<T: Float> V3<T> {
-    pub fn normalize(&mut self) -> Self {
+    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
-        for i in 0..3 {
-            self[i] = self[i] / n;
+        if n != T::zero() {
+            for i in 0..3 {
+                self[i] = self[i] / n;
+            }
+            Ok(*self)
+        } else {
+            Err(VectorErrors::Norm2IsZero)
         }
-        *self
     }
 }
 
@@ -242,7 +247,7 @@ mod vector3_test {
 
     #[test]
     fn normalize_test() {
-        let result = V3::new([1.0, 1.0, 1.0]).normalize();
+        let result = V3::new([1.0, 1.0, 1.0]).normalize().unwrap();
         let expected = V3::new([0.5773502691896258, 0.5773502691896258, 0.5773502691896258]);
         assert_eq!(
             &result[..],

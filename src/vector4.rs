@@ -28,6 +28,7 @@ use std::ops::{Deref, DerefMut};
 
 use std::ops::{Add, Mul};
 
+use crate::errors::VectorErrors;
 use crate::matrix4x4::M44;
 
 //-------------------------------------------------------------------------
@@ -60,12 +61,16 @@ impl<T: Float> V4<T> {
 }
 
 impl<T: Float> V4<T> {
-    pub fn normalize(&mut self) -> Self {
+    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
-        for i in 0..4 {
-            self[i] = self[i] / n;
+        if n != T::zero() {
+            for i in 0..4 {
+                self[i] = self[i] / n;
+            }
+            Ok(*self)
+        } else {
+            Err(VectorErrors::Norm2IsZero)
         }
-        *self
     }
 }
 
@@ -283,7 +288,7 @@ mod vector4_test {
 
     #[test]
     fn normalize_test() {
-        let result = V4::new([1.0, 1.0, 1.0, 1.0]).normalize();
+        let result = V4::new([1.0, 1.0, 1.0, 1.0]).normalize().unwrap();
         let expected = V4::new([0.5, 0.5, 0.5, 0.5]);
         assert_eq!(
             &result[..],

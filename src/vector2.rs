@@ -29,6 +29,7 @@ use std::ops::{Deref, DerefMut};
 use std::ops::{Add, Mul};
 // use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
+use crate::errors::VectorErrors;
 use crate::matrix2x2::*;
 
 //-------------------------------------------------------------------------
@@ -52,12 +53,16 @@ impl<T: Num + Copy> V2<T> {
 }
 
 impl<T: Float> V2<T> {
-    pub fn normalize(&mut self) -> Self {
+    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
-        for i in 0..2 {
-            self[i] = self[i] / n;
+        if n != T::zero() {
+            for i in 0..2 {
+                self[i] = self[i] / n;
+            }
+            Ok(*self)
+        } else {
+            Err(VectorErrors::Norm2IsZero)
         }
-        *self
     }
 }
 
@@ -229,7 +234,7 @@ mod vector2_test {
 
     #[test]
     fn normalize_test() {
-        let result = V2::new([1.0, 1.0]).normalize();
+        let result = V2::new([1.0, 1.0]).normalize().unwrap();
         let expected = V2::new([0.7071067811865475, 0.7071067811865475]);
         assert_eq!(
             &result[..],

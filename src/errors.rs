@@ -22,11 +22,19 @@
 //
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
-use std::error;
+//use std::error;
 use std::fmt;
-/// Errors for Linear Algebra operations
+/// Errors from Vectors
 #[derive(Debug)]
-pub enum LinAlgebraError {
+pub enum VectorErrors {
+    /// the norm cannot be zero
+    Norm2IsZero,
+}
 
-    DeterminantZero,
+impl fmt::Display for VectorErrors {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            VectorErrors::Norm2IsZero => write!(f, "The array has zero norm2"),
+        }
+    }
 }

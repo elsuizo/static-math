@@ -28,6 +28,7 @@ use std::ops::{Deref, DerefMut};
 
 use std::ops::{Add, Mul};
 
+use crate::errors::VectorErrors;
 use crate::matrix5x5::M55;
 //-------------------------------------------------------------------------
 //                        code
@@ -59,12 +60,16 @@ impl<T: Float> V5<T> {
 }
 
 impl<T: Float> V5<T> {
-    pub fn normalize(&mut self) -> Self {
+    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
-        for i in 0..5 {
-            self[i] = self[i] / n;
+        if n != T::zero() {
+            for i in 0..5 {
+                self[i] = self[i] / n;
+            }
+            Ok(*self)
+        } else {
+            Err(VectorErrors::Norm2IsZero)
         }
-        *self
     }
 }
 
@@ -297,7 +302,7 @@ mod vector5_test {
 
     #[test]
     fn normalize_test() {
-        let result = V5::new([1.0, 1.0, 1.0, 1.0, 1.0]).normalize();
+        let result = V5::new([1.0, 1.0, 1.0, 1.0, 1.0]).normalize().unwrap();
         let expected = V5::new([0.4472135954999579, 0.4472135954999579, 0.4472135954999579, 0.4472135954999579, 0.4472135954999579]);
         assert_eq!(
             &result[..],

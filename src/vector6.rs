@@ -28,6 +28,7 @@ use std::ops::{Deref, DerefMut};
 
 use std::ops::{Add, Mul};
 
+use crate::errors::VectorErrors;
 use crate::matrix6x6::M66;
 
 //-------------------------------------------------------------------------
@@ -62,12 +63,16 @@ impl<T: Float> V6<T> {
 }
 
 impl<T: Float> V6<T> {
-    pub fn normalize(&mut self) -> Self {
+    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
-        for i in 0..6 {
-            self[i] = self[i] / n;
+        if n != T::zero() {
+            for i in 0..6 {
+                self[i] = self[i] / n;
+            }
+            Ok(*self)
+        } else {
+            Err(VectorErrors::Norm2IsZero)
         }
-        *self
     }
 }
 
@@ -298,7 +303,7 @@ mod vector6_tests {
 
     #[test]
     fn normalize_test() {
-        let result = V6::new([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).normalize();
+        let result = V6::new([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).normalize().unwrap();
         let expected = V6::new([0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631]);
         assert_eq!(
             &result[..],

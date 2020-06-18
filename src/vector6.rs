@@ -61,6 +61,16 @@ impl<T: Float> V6<T> {
     }
 }
 
+impl<T: Float> V6<T> {
+    pub fn normalize(&mut self) -> Self {
+        let n = self.norm2();
+        for i in 0..6 {
+            self[i] = self[i] / n;
+        }
+        *self
+    }
+}
+
 // TODO(elsuizo:2021-05-03): faltaria constant * V6
 /// V6 * constant
 impl<T: Num + Copy> Mul<T> for V6<T> {
@@ -277,6 +287,19 @@ mod vector6_tests {
         ]);
         let result = v * m;
         let expected = V6::new([420.0, 441.0, 462.0, 483.0, 504.0, 525.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn normalize_test() {
+        let result = V6::new([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).normalize();
+        let expected = V6::new([0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631]);
         assert_eq!(
             &result[..],
             &expected[..],

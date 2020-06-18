@@ -59,6 +59,16 @@ impl<T: Float> V4<T> {
     }
 }
 
+impl<T: Float> V4<T> {
+    pub fn normalize(&mut self) -> Self {
+        let n = self.norm2();
+        for i in 0..4 {
+            self[i] = self[i] / n;
+        }
+        *self
+    }
+}
+
 impl<T: Num + Copy> Mul for V4<T> {
     type Output = T;
 
@@ -262,6 +272,19 @@ mod vector4_test {
         let v1 = V4::new([1.0, 2.0, 3.0, 4.0]);
         let result = v1 * m;
         let expected = V4::new([90.0, 100.0, 110.0, 120.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn normalize_test() {
+        let result = V4::new([1.0, 1.0, 1.0, 1.0]).normalize();
+        let expected = V4::new([0.5, 0.5, 0.5, 0.5]);
         assert_eq!(
             &result[..],
             &expected[..],

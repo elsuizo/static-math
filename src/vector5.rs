@@ -58,6 +58,16 @@ impl<T: Float> V5<T> {
     }
 }
 
+impl<T: Float> V5<T> {
+    pub fn normalize(&mut self) -> Self {
+        let n = self.norm2();
+        for i in 0..5 {
+            self[i] = self[i] / n;
+        }
+        *self
+    }
+}
+
 impl<T: Num + Copy> Mul for V5<T> {
     type Output = T;
 
@@ -276,6 +286,19 @@ mod vector5_test {
         ]);
         let result = v1 * m;
         let expected = V5::new([58.0, 88.0, 105.0, 112.0, 76.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn normalize_test() {
+        let result = V5::new([1.0, 1.0, 1.0, 1.0, 1.0]).normalize();
+        let expected = V5::new([0.4472135954999579, 0.4472135954999579, 0.4472135954999579, 0.4472135954999579, 0.4472135954999579]);
         assert_eq!(
             &result[..],
             &expected[..],

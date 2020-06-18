@@ -58,6 +58,16 @@ impl<T: Float> V3<T> {
     }
 }
 
+impl<T: Float> V3<T> {
+    pub fn normalize(&mut self) -> Self {
+        let n = self.norm2();
+        for i in 0..3 {
+            self[i] = self[i] / n;
+        }
+        *self
+    }
+}
+
 impl<T: Num + Copy> Mul<T> for V3<T> {
     type Output = V3<T>;
 
@@ -228,5 +238,18 @@ mod vector3_test {
         let expected = 3.7416573867739413;
         let result = v1.norm2();
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn normalize_test() {
+        let result = V3::new([1.0, 1.0, 1.0]).normalize();
+        let expected = V3::new([0.5773502691896258, 0.5773502691896258, 0.5773502691896258]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 }

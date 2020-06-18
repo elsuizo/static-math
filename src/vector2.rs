@@ -52,6 +52,16 @@ impl<T: Num + Copy> V2<T> {
 }
 
 impl<T: Float> V2<T> {
+    pub fn normalize(&mut self) -> Self {
+        let n = self.norm2();
+        for i in 0..2 {
+            self[i] = self[i] / n;
+        }
+        *self
+    }
+}
+
+impl<T: Float> V2<T> {
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -215,5 +225,18 @@ mod vector2_test {
         let expected = 2.23606797749979;
         let result = v1.norm2();
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn normalize_test() {
+        let result = V2::new([1.0, 1.0]).normalize();
+        let expected = V2::new([0.7071067811865475, 0.7071067811865475]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 }

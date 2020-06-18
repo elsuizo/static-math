@@ -33,7 +33,7 @@ use crate::traits::LinearAlgebra;
 
 // code
 
-/// A static Matrix of 2x2 elements
+/// A static Matrix of 2x2 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M22<T>([[T; 2]; 2]);
 
@@ -108,17 +108,25 @@ impl<T: Float> LinearAlgebra<T> for M22<T> {
 }
 
 impl<T: Num + Copy> M22<T> {
+    /// contruct identity matrix
     pub fn identity() -> M22<T> {
         <M22<T> as One>::one()
     }
 
+    /// construct the matrix with all zeros
     pub fn zeros() -> M22<T> {
         <M22<T> as Zero>::zero()
     }
 
-    pub fn as_vec(&self) -> Vec<T> {
-        let result: Vec<T> = self.iter().flatten().cloned().collect();
-        return result;
+    /// transform the matrix to a flatten vector
+    pub fn as_vec(&self) -> [T; 4] {
+        let mut result = [T::zero(); 4];
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[i] = self[(i, j)];
+            }
+        }
+        result
     }
 }
 

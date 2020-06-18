@@ -33,6 +33,7 @@ use crate::traits::LinearAlgebra;
 //-------------------------------------------------------------------------
 //                        code
 //-------------------------------------------------------------------------
+/// A static Matrix of 4x4 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M44<T>([[T; 4]; 4]);
 
@@ -205,17 +206,25 @@ impl<T> M44<T> {
 }
 
 impl<T: Num + Copy> M44<T> {
+    /// contruct identity matrix
     pub fn identity() -> M44<T> {
         <M44<T> as One>::one()
     }
 
+    /// construct the matrix with all zeros
     pub fn zeros() -> M44<T> {
         <M44<T> as Zero>::zero()
     }
 
-    pub fn as_vec(&self) -> Vec<T> {
-        let result: Vec<T> = self.iter().flatten().cloned().collect();
-        return result;
+    /// transform the matrix to a flatten vector
+    pub fn as_vec(&self) -> [T; 16] {
+        let mut result = [T::zero(); 16];
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[i] = self[(i, j)];
+            }
+        }
+        result
     }
 
     // TODO(elsuizo:2020-06-02): this could be optimize

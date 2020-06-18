@@ -33,7 +33,7 @@ use crate::matrix4x4::M44;
 //-------------------------------------------------------------------------
 //                        code
 //-------------------------------------------------------------------------
-
+/// A static Matrix of 5x5 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M55<T>([[T; 5]; 5]);
 
@@ -542,20 +542,25 @@ impl<T: Num + Copy> One for M55<T> {
 
 // NOTE(elsuizo:2020-04-26): poniendo ese Trait anda el norm2 funcional
 impl<T: Num + Copy + std::iter::Sum> M55<T> {
-    /// get the identity matrix
+    /// contruct identity matrix
     pub fn identity() -> M55<T> {
         <M55<T> as One>::one()
     }
 
-    /// get the matrix of all zeros
+    /// construct the matrix with all zeros
     pub fn zeros() -> M55<T> {
         <M55<T> as Zero>::zero()
     }
 
-    // TODO(elsuizo:2020-06-07): you have to replace this Vec with an array so it can work on no-std
-    pub fn as_vec(&self) -> Vec<T> {
-        let result: Vec<T> = self.iter().flatten().cloned().collect();
-        return result;
+    /// transform the matrix to a flatten vector
+    pub fn as_vec(&self) -> [T; 25] {
+        let mut result = [T::zero(); 25];
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[i] = self[(i, j)];
+            }
+        }
+        result
     }
 
     // TODO(elsuizo:2020-06-02): this could be optimize

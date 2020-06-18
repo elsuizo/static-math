@@ -34,6 +34,7 @@ use crate::vector3::*;
 //                        code
 //-------------------------------------------------------------------------
 
+/// A static matrix of 3x3 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M33<T>([[T; 3]; 3]);
 
@@ -113,17 +114,25 @@ impl<T> M33<T> {
 }
 
 impl<T: Num + Copy> M33<T> {
+    /// contruct identity matrix
     pub fn identity() -> M33<T> {
         <M33<T> as One>::one()
     }
 
+    /// construct the matrix with all zeros
     pub fn zeros() -> M33<T> {
         <M33<T> as Zero>::zero()
     }
 
-    pub fn as_vec(&self) -> Vec<T> {
-        let result: Vec<T> = self.iter().flatten().cloned().collect();
-        return result;
+    /// transform the matrix to a flatten vector
+    pub fn as_vec(&self) -> [T; 9] {
+        let mut result = [T::zero(); 9];
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[i] = self[(i, j)];
+            }
+        }
+        result
     }
 }
 

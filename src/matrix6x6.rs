@@ -33,6 +33,7 @@ use crate::traits::LinearAlgebra;
 //-------------------------------------------------------------------------
 //                        code
 //-------------------------------------------------------------------------
+/// A static Matrix of 6x6 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M66<T>([[T; 6]; 6]);
 
@@ -873,9 +874,12 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
     }
     ///
     /// Calculate the inverse of the M66 via tha Adjoint Matrix:
-    /// A^(-1) = 1/det Adj
-    /// where Adj = Cofactor.Transpose()
-    /// Cofactor = (-1)^(i+j) M(i, j).det()
+    ///
+    /// A^(-1) = (1/det) * Adj
+    ///
+    /// where: Adj = Cofactor.Transpose()
+    ///
+    /// Cofactor = (-1)^(i+j) * M(i, j).det()
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if det.abs() > T::epsilon() {
@@ -1221,18 +1225,25 @@ impl<T: Num + Copy> Mul for M66<T> {
 }
 
 impl<T: Num + Copy + std::iter::Sum> M66<T> {
+    /// contruct identity matrix
     pub fn identity() -> M66<T> {
         <M66<T> as One>::one()
     }
 
+    /// construct the matrix with all zeros
     pub fn zeros() -> M66<T> {
         <M66<T> as Zero>::zero()
     }
 
-    // TODO(elsuizo:2020-06-07): you have to replace this Vec with an array so it can work on no-std
-    pub fn as_vec(&self) -> Vec<T> {
-        let result: Vec<T> = self.iter().flatten().cloned().collect();
-        return result;
+    /// transform the matrix to a flatten vector
+    pub fn as_vec(&self) -> [T; 36] {
+        let mut result = [T::zero(); 36];
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[i] = self[(i, j)];
+            }
+        }
+        result
     }
 
     // TODO(elsuizo:2020-06-02): this could be optimize

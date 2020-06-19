@@ -37,4 +37,5 @@ pub mod vector5;
 pub mod vector6;
 pub mod utils;
 pub mod errors;
+pub mod slices_algorithms;
 

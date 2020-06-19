@@ -26,7 +26,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 // use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 use crate::errors::VectorErrors;
@@ -57,9 +57,7 @@ impl<T: Float> V3<T> {
         let c = self[2];
         T::sqrt(a * a + b * b + c * c)
     }
-}
 
-impl<T: Float> V3<T> {
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
@@ -73,10 +71,15 @@ impl<T: Float> V3<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        maths basic operations
+//-------------------------------------------------------------------------
+
+// V3 * const
 impl<T: Num + Copy> Mul<T> for V3<T> {
     type Output = V3<T>;
 
-    fn mul(self, rhs: T) -> V3<T> {
+    fn mul(self, rhs: T) -> Self::Output {
         let a0 = self[0] * rhs;
         let a1 = self[1] * rhs;
         let a2 = self[2] * rhs;
@@ -84,6 +87,19 @@ impl<T: Num + Copy> Mul<T> for V3<T> {
     }
 }
 
+// FIXME(elsuizo:2020-06-19): this is a hack
+impl Mul<V3<f32>> for f32 {
+    type Output = V3<f32>;
+
+    fn mul(self, rhs: V3<f32>) -> Self::Output {
+        let a0 = rhs[0] * self;
+        let a1 = rhs[1] * self;
+        let a2 = rhs[2] * self;
+        V3::new([a0, a1, a2])
+    }
+}
+
+// V3 * V3
 impl<T: Num + Copy> Mul for V3<T> {
     type Output = T;
 
@@ -99,6 +115,7 @@ impl<T: Num + Copy> Mul for V3<T> {
         a1 * b1 + a2 * b2 + a3 * b3
     }
 }
+
 
 impl<T: Num + Copy> Mul<M33<T>> for V3<T> {
     type Output = V3<T>;
@@ -126,6 +143,24 @@ impl<T: Num + Copy> Mul<M33<T>> for V3<T> {
     }
 }
 
+// V3 - V3
+impl<T: Num + Copy> Sub for V3<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let v0 = self[0];
+        let v1 = self[1];
+        let v2 = self[2];
+
+        let a0 = rhs[0];
+        let a1 = rhs[1];
+        let a2 = rhs[2];
+
+        V3::new([v0 - a0, v1 - a1, v2 - a2])
+    }
+}
+
+// V3 + V3
 impl<T: Num + Copy> Add for V3<T> {
     type Output = Self;
 
@@ -243,6 +278,21 @@ mod vector3_test {
         let expected = 3.7416573867739413;
         let result = v1.norm2();
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn sub_test() {
+        let v1 = V3::new([1.0, 1.0, 1.0]);
+        let v2 = V3::new([2.0, 3.0, 4.0]);
+        let result = v1 - v2;
+        let expected = V3::new([-1.0, -2.0, -3.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 
     #[test]

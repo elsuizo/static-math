@@ -26,7 +26,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 
 use crate::errors::VectorErrors;
 use crate::matrix5x5::M55;
@@ -57,16 +57,16 @@ impl<T: Float> V5<T> {
         let e = self[4];
         T::sqrt(a * a + b * b + c * c + d * d + e * e)
     }
-}
 
-impl<T: Float> V5<T> {
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
-            for i in 0..5 {
-                self[i] = self[i] / n;
+            // this method return a new fresh and clean vector :)
+            let mut result = Self::zeros();
+            for i in 0..self.len() {
+                result[i] = self[i] / n;
             }
-            Ok(*self)
+            Ok(result)
         } else {
             Err(VectorErrors::Norm2IsZero)
         }
@@ -151,6 +151,27 @@ impl<T: Num + Copy> Mul<M55<T>> for V5<T> {
             a_03 * v0 + a_13 * v1 + a_23 * v2 + a_33 * v3 + a_43 * v4,
             a_04 * v0 + a_14 * v1 + a_24 * v2 + a_34 * v3 + a_44 * v4,
         ])
+    }
+}
+
+// V5 - V5
+impl<T: Num + Copy> Sub for V5<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let v0 = self[0];
+        let v1 = self[1];
+        let v2 = self[2];
+        let v3 = self[3];
+        let v4 = self[4];
+
+        let a0 = rhs[0];
+        let a1 = rhs[1];
+        let a2 = rhs[2];
+        let a3 = rhs[3];
+        let a4 = rhs[4];
+
+        V5::new([v0 - a0, v1 - a1, v2 - a2, v3 - a3, v4 - a4])
     }
 }
 
@@ -248,11 +269,26 @@ mod vector5_test {
     }
 
     #[test]
-    fn vector5_sum_test() {
+    fn vector5_add_test() {
         let v1 = V5::new([1.0, 2.0, 3.0, 4.0, 5.0]);
         let v2 = V5::new([6.0, 7.0, 8.0, 9.0, 10.0]);
         let result = v1 + v2;
         let expected = V5::new([7.0, 9.0, 11.0, 13.0, 15.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn sub_test() {
+        let v1 = V5::new([1.0, 2.0, 3.0, 4.0, 5.0]);
+        let v2 = V5::new([6.0, 7.0, 8.0, 9.0, 10.0]);
+        let result = v1 - v2;
+        let expected = V5::new([-5.0, -5.0, -5.0, -5.0, -5.0]);
         assert_eq!(
             &result[..],
             &expected[..],

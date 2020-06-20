@@ -26,8 +26,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul};
-// use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
+use std::ops::{Add, Mul, Sub};
 
 use crate::errors::VectorErrors;
 use crate::matrix2x2::*;
@@ -53,27 +52,29 @@ impl<T: Num + Copy> V2<T> {
 }
 
 impl<T: Float> V2<T> {
-    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
-        let n = self.norm2();
-        if n != T::zero() {
-            for i in 0..2 {
-                self[i] = self[i] / n;
-            }
-            Ok(*self)
-        } else {
-            Err(VectorErrors::Norm2IsZero)
-        }
-    }
-}
 
-impl<T: Float> V2<T> {
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
 
         T::sqrt(a * a + b * b)
     }
+
+    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
+        let n = self.norm2();
+        if n != T::zero() {
+            // this method return a new fresh and clean vector :)
+            let mut result = Self::zeros();
+            for i in 0..self.len() {
+                result[i] = self[i] / n;
+            }
+            Ok(result)
+        } else {
+            Err(VectorErrors::Norm2IsZero)
+        }
+    }
 }
+
 
 impl<T: Num + Copy> Mul for V2<T> {
     type Output = T;
@@ -101,6 +102,27 @@ impl<T: Num + Copy> Mul<T> for V2<T> {
     }
 }
 
+// FIXME(elsuizo:2020-06-19): this code dont compile i dont known why
+//impl<T: Num + Copy> Mul<V2<T>> for T {
+//    type Output = V2<T>;
+//
+//    fn mul(self, rhs: V2<T>) -> V2<T> {
+//        let a0 = self * rhs[0];
+//        let a1 = self * rhs[1];
+//        V2::new([a0, a1])
+//    }
+//}
+
+impl Mul<V2<f32>> for f32 {
+    type Output = V2<f32>;
+
+    fn mul(self, rhs: V2<f32>) -> V2<f32> {
+        let a0 = self * rhs[0];
+        let a1 = self * rhs[1];
+        V2::new([a0, a1])
+    }
+}
+
 impl<T: Num + Copy> Mul<M22<T>> for V2<T> {
     type Output = V2<T>;
 
@@ -113,6 +135,21 @@ impl<T: Num + Copy> Mul<M22<T>> for V2<T> {
         let v1 = self[0];
         let v2 = self[1];
         V2::new([v1 * a1 + v2 * c1, v1 * b1 + v2 * d1])
+    }
+}
+
+// V2 - V2
+impl<T: Num + Copy> Sub for V2<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let v0 = self[0];
+        let v1 = self[1];
+
+        let a0 = rhs[0];
+        let a1 = rhs[1];
+
+        V2::new([v0 - a0, v1 - a1])
     }
 }
 
@@ -224,6 +261,21 @@ mod vector2_test {
         );
     }
 
+    #[test]
+    fn sub_test() {
+        let v1 = V2::new([1.0, 2.0]);
+        let v2 = V2::new([2.0, 3.0]);
+        let expected = V2::new([-1.0, -1.0]);
+        let result = v1 - v2;
+
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
     #[test]
     fn norm2_test() {
         let v1 = V2::new([1.0, 2.0]);

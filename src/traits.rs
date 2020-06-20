@@ -54,5 +54,3 @@ pub trait LinearAlgebra<T> {
     where
         Self: Sized;
 }
-
-

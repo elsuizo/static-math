@@ -58,13 +58,16 @@ impl<T: Float> V3<T> {
         T::sqrt(a * a + b * b + c * c)
     }
 
-    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
+    /// normalize the current vector
+    pub fn normalize(&self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
-            for i in 0..3 {
-                self[i] = self[i] / n;
+            // this method return a new fresh and clean vector :)
+            let mut result = Self::zeros();
+            for i in 0..self.len() {
+                result[i] = self[i] / n;
             }
-            Ok(*self)
+            Ok(result)
         } else {
             Err(VectorErrors::Norm2IsZero)
         }

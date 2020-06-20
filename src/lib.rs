@@ -37,5 +37,6 @@ pub mod vector5;
 pub mod vector6;
 pub mod utils;
 pub mod errors;
-pub mod slices_algorithms;
+// NOTE(elsuizo:2020-06-19): maybe in other iteration this works
+// pub mod slices_algorithms;
 

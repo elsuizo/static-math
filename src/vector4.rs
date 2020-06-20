@@ -26,7 +26,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 
 use crate::errors::VectorErrors;
 use crate::matrix4x4::M44;
@@ -58,16 +58,16 @@ impl<T: Float> V4<T> {
         let d = self[3];
         T::sqrt(a * a + b * b + c * c + d * d)
     }
-}
 
-impl<T: Float> V4<T> {
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
-            for i in 0..4 {
-                self[i] = self[i] / n;
+            // this method return a new fresh and clean vector :)
+            let mut result = Self::zeros();
+            for i in 0..self.len() {
+                result[i] = self[i] / n;
             }
-            Ok(*self)
+            Ok(result)
         } else {
             Err(VectorErrors::Norm2IsZero)
         }
@@ -138,6 +138,25 @@ impl<T: Num + Copy> Mul<M44<T>> for V4<T> {
             v1 * a13 + v2 * a23 + v3 * a33 + v4 * a43,
             v1 * a14 + v2 * a24 + v3 * a34 + v4 * a44,
         ])
+    }
+}
+
+// V4 - V4
+impl<T: Num + Copy> Sub for V4<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let v0 = self[0];
+        let v1 = self[1];
+        let v2 = self[2];
+        let v3 = self[3];
+
+        let a0 = rhs[0];
+        let a1 = rhs[1];
+        let a2 = rhs[2];
+        let a3 = rhs[3];
+
+        V4::new([v0 - a0, v1 - a1, v2 - a2, v3 - a3])
     }
 }
 
@@ -234,11 +253,26 @@ mod vector4_test {
     }
 
     #[test]
-    fn vector4_sum_test() {
+    fn vector4_add_test() {
         let v1 = V4::new([1.0, 2.0, 3.0, 4.0]);
         let v2 = V4::new([5.0, 6.0, 7.0, 8.0]);
         let result = v1 + v2;
         let expected = V4::new([6.0, 8.0, 10.0, 12.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn sub_test() {
+        let v1 = V4::new([1.0, 2.0, 3.0, 4.0]);
+        let v2 = V4::new([5.0, 6.0, 7.0, 8.0]);
+        let result = v1 - v2;
+        let expected = V4::new([-4.0, -4.0, -4.0, -4.0]);
         assert_eq!(
             &result[..],
             &expected[..],

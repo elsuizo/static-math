@@ -26,7 +26,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 
 use crate::errors::VectorErrors;
 use crate::matrix6x6::M66;
@@ -60,16 +60,16 @@ impl<T: Float> V6<T> {
         let f = self[5];
         T::sqrt(a * a + b * b + c * c + d * d + e * e + f * f)
     }
-}
 
-impl<T: Float> V6<T> {
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
-            for i in 0..6 {
-                self[i] = self[i] / n;
+            // this method return a new fresh and clean vector :)
+            let mut result = Self::zeros();
+            for i in 0..self.len() {
+                result[i] = self[i] / n;
             }
-            Ok(*self)
+            Ok(result)
         } else {
             Err(VectorErrors::Norm2IsZero)
         }
@@ -173,6 +173,28 @@ impl<T: Num + Copy> Mul<M66<T>> for V6<T> {
         ])
     }
 }
+// V6 - V6
+impl<T: Num + Copy> Sub for V6<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let v0 = self[0];
+        let v1 = self[1];
+        let v2 = self[2];
+        let v3 = self[3];
+        let v4 = self[4];
+        let v5 = self[5];
+
+        let a0 = rhs[0];
+        let a1 = rhs[1];
+        let a2 = rhs[2];
+        let a3 = rhs[3];
+        let a4 = rhs[4];
+        let a5 = rhs[5];
+
+        V6::new([v0 - a0, v1 - a1, v2 - a2, v3 - a3, v4 - a4, v5 - a5])
+    }
+}
 
 impl<T: Num + Copy> Add for V6<T> {
     type Output = Self;
@@ -258,8 +280,9 @@ mod vector6_tests {
         assert_eq!(v[4], 5.0);
         assert_eq!(v[5], 6.0);
     }
+
     #[test]
-    fn vector6_sum_test() {
+    fn vector6_add_test() {
         let v = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
         let result = v + v;
         let expected = V6::new([2.0, 4.0, 6.0, 8.0, 10.0, 12.0]);
@@ -271,6 +294,21 @@ mod vector6_tests {
             &expected[..]
         );
     }
+
+    #[test]
+    fn sub_test() {
+        let v = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let result = v - v;
+        let expected = V6::new([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
     #[test]
     fn product_test() {
         let v = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);

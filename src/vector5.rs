@@ -93,8 +93,7 @@ impl<T: Num + Copy> Mul for V5<T> {
     }
 }
 
-// TODO(elsuizo:2020-05-03): faltaria constant * V5
-/// V5 * constant
+// V5 * constant
 impl<T: Num + Copy> Mul<T> for V5<T> {
     type Output = V5<T>;
 
@@ -107,7 +106,22 @@ impl<T: Num + Copy> Mul<T> for V5<T> {
         V5::new([a0, a1, a2, a3, a4])
     }
 }
-// TODO(elsuizo:2020-04-22): missing M55 * V5
+
+// f32 * V5<f32>
+impl Mul<V5<f32>> for f32 {
+    type Output = V5<f32>;
+
+    fn mul(self, rhs: V5<f32>) -> V5<f32> {
+        let a0 = self * rhs[0];
+        let a1 = self * rhs[1];
+        let a2 = self * rhs[2];
+        let a3 = self * rhs[3];
+        let a4 = self * rhs[4];
+        V5::new([a0, a1, a2, a3, a4])
+    }
+}
+
+// V5 * M55
 impl<T: Num + Copy> Mul<M55<T>> for V5<T> {
     type Output = V5<T>;
 
@@ -313,6 +327,34 @@ mod vector5_test {
         let result = v1.norm2();
         let expected = 7.416198487095663;
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn mul_const_rhs() {
+        let v = V5::new([1.0, 2.0, 3.0, 4.0, 5.0]);
+        let result = 2.0 * v;
+        let expected = V5::new([2.0, 4.0, 6.0, 8.0, 10.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn mul_const() {
+        let v = V5::new([1.0, 2.0, 3.0, 4.0, 5.0]);
+        let result = v * 2.0;
+        let expected = V5::new([2.0, 4.0, 6.0, 8.0, 10.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 
     #[test]

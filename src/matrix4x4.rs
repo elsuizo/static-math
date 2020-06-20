@@ -29,6 +29,7 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 use num::{Float, One, Zero, Num};
 use crate::matrix3x3::*;
 use crate::traits::LinearAlgebra;
+use crate::vector4::V4;
 
 //-------------------------------------------------------------------------
 //                        code
@@ -250,6 +251,36 @@ impl<T: Num + Copy> M44<T> {
             }
         }
         result
+    }
+
+    pub fn get_cols(self) -> V4<V4<T>> {
+        let mut c0 = V4::zeros();
+        let mut c1 = V4::zeros();
+        let mut c2 = V4::zeros();
+        let mut c3 = V4::zeros();
+
+        for j in 0..self.cols() {
+            c0[j] = self[(0, j)];
+            c1[j] = self[(1, j)];
+            c2[j] = self[(2, j)];
+            c3[j] = self[(3, j)];
+        }
+        V4::new([c0, c1, c2, c3])
+    }
+
+    pub fn get_rows(self) -> V4<V4<T>> {
+        let mut r0 = V4::zeros();
+        let mut r1 = V4::zeros();
+        let mut r2 = V4::zeros();
+        let mut r3 = V4::zeros();
+
+        for i in 0..self.rows() {
+            r0[i] = self[(i, 0)];
+            r1[i] = self[(i, 1)];
+            r2[i] = self[(i, 2)];
+            r3[i] = self[(i, 3)];
+        }
+        V4::new([r0, r1, r2, r3])
     }
 }
 

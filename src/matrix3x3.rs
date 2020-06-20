@@ -136,6 +136,34 @@ impl<T: Num + Copy> M33<T> {
     }
 }
 
+impl<T: Num + Copy> M33<T> {
+    pub fn get_cols(self) -> V3<V3<T>> {
+        let mut c0 = V3::zeros();
+        let mut c1 = V3::zeros();
+        let mut c2 = V3::zeros();
+
+        for j in 0..self.cols() {
+            c0[j] = self[(0, j)];
+            c1[j] = self[(1, j)];
+            c2[j] = self[(2, j)];
+        }
+        V3::new([c0, c1, c2])
+    }
+
+    pub fn get_rows(self) -> V3<V3<T>> {
+        let mut r0 = V3::zeros();
+        let mut r1 = V3::zeros();
+        let mut r2 = V3::zeros();
+
+        for i in 0..self.rows() {
+            r0[i] = self[(i, 0)];
+            r1[i] = self[(i, 1)];
+            r2[i] = self[(i, 2)];
+        }
+        V3::new([r0, r1, r2])
+    }
+}
+
 impl<T: Num + Copy> Add for M33<T> {
     type Output = Self;
 

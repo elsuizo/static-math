@@ -76,8 +76,7 @@ impl<T: Float> V6<T> {
     }
 }
 
-// TODO(elsuizo:2021-05-03): faltaria constant * V6
-/// V6 * constant
+// V6 * constant
 impl<T: Num + Copy> Mul<T> for V6<T> {
     type Output = V6<T>;
 
@@ -88,6 +87,21 @@ impl<T: Num + Copy> Mul<T> for V6<T> {
         let a3 = self[3] * rhs;
         let a4 = self[4] * rhs;
         let a5 = self[5] * rhs;
+        V6::new([a0, a1, a2, a3, a4, a5])
+    }
+}
+
+// f32 * V6<f32>
+impl Mul<V6<f32>> for f32 {
+    type Output = V6<f32>;
+
+    fn mul(self, rhs: V6<f32>) -> V6<f32> {
+        let a0 = self * rhs[0];
+        let a1 = self * rhs[1];
+        let a2 = self * rhs[2];
+        let a3 = self * rhs[3];
+        let a4 = self * rhs[4];
+        let a5 = self * rhs[5];
         V6::new([a0, a1, a2, a3, a4, a5])
     }
 }
@@ -300,6 +314,34 @@ mod vector6_tests {
         let v = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
         let result = v - v;
         let expected = V6::new([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn mul_const_rhs() {
+        let v = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let result = 2.0 * v;
+        let expected = V6::new([2.0, 4.0, 6.0, 8.0, 10.0, 12.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn mul_const() {
+        let v = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let result = v * 2.0;
+        let expected = V6::new([2.0, 4.0, 6.0, 8.0, 10.0, 12.0]);
         assert_eq!(
             &result[..],
             &expected[..],

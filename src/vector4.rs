@@ -92,7 +92,6 @@ impl<T: Num + Copy> Mul for V4<T> {
     }
 }
 
-// TODO(elsuizo:2020-05-01): missing constant * V4
 /// V4 * constant
 impl<T: Num + Copy> Mul<T> for V4<T> {
     type Output = V4<T>;
@@ -102,6 +101,19 @@ impl<T: Num + Copy> Mul<T> for V4<T> {
         let a1 = self[1] * rhs;
         let a2 = self[2] * rhs;
         let a3 = self[3] * rhs;
+        V4::new([a0, a1, a2, a3])
+    }
+}
+
+/// f32 * V4<f32>
+impl Mul<V4<f32>> for f32 {
+    type Output = V4<f32>;
+
+    fn mul(self, rhs: V4<f32>) -> V4<f32> {
+        let a0 = self * rhs[0];
+        let a1 = self * rhs[1];
+        let a2 = self * rhs[2];
+        let a3 = self * rhs[3];
         V4::new([a0, a1, a2, a3])
     }
 }
@@ -297,6 +309,34 @@ mod vector4_test {
         let result = v1.norm2();
         let expected = 5.477225575051661;
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn mul_const_rhs() {
+        let v = V4::new([1.0, 2.0, 3.0, 4.0]);
+        let result = 2.0 * v;
+        let expected = V4::new([2.0, 4.0, 6.0, 8.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn mul_const() {
+        let v = V4::new([1.0, 2.0, 3.0, 4.0]);
+        let result = v * 2.0;
+        let expected = V4::new([2.0, 4.0, 6.0, 8.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 
     #[test]

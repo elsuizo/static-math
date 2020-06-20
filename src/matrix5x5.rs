@@ -29,6 +29,7 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
 use crate::matrix4x4::M44;
+use crate::vector5::V5;
 
 //-------------------------------------------------------------------------
 //                        code
@@ -541,7 +542,7 @@ impl<T: Num + Copy> One for M55<T> {
 }
 
 // NOTE(elsuizo:2020-04-26): poniendo ese Trait anda el norm2 funcional
-impl<T: Num + Copy + std::iter::Sum> M55<T> {
+impl<T: Num + Copy> M55<T> {
     /// contruct identity matrix
     pub fn identity() -> M55<T> {
         <M55<T> as One>::one()
@@ -588,6 +589,41 @@ impl<T: Num + Copy + std::iter::Sum> M55<T> {
         }
         return result;
     }
+
+    pub fn get_cols(self) -> V5<V5<T>> {
+        let mut c0 = V5::zeros();
+        let mut c1 = V5::zeros();
+        let mut c2 = V5::zeros();
+        let mut c3 = V5::zeros();
+        let mut c4 = V5::zeros();
+
+        for j in 0..self.cols() {
+            c0[j] = self[(0, j)];
+            c1[j] = self[(1, j)];
+            c2[j] = self[(2, j)];
+            c3[j] = self[(3, j)];
+            c4[j] = self[(4, j)];
+        }
+        V5::new([c0, c1, c2, c3, c4])
+    }
+
+    pub fn get_rows(self) -> V5<V5<T>> {
+        let mut r0 = V5::zeros();
+        let mut r1 = V5::zeros();
+        let mut r2 = V5::zeros();
+        let mut r3 = V5::zeros();
+        let mut r4 = V5::zeros();
+
+        for i in 0..self.rows() {
+            r0[i] = self[(i, 0)];
+            r1[i] = self[(i, 1)];
+            r2[i] = self[(i, 2)];
+            r3[i] = self[(i, 3)];
+            r4[i] = self[(i, 4)];
+        }
+        V5::new([r0, r1, r2, r3, r4])
+    }
+
 }
 
 impl<T> Deref for M55<T> {

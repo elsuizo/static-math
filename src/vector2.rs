@@ -276,6 +276,36 @@ mod vector2_test {
             &expected[..]
         );
     }
+
+    #[test]
+    fn mul_const_rhs() {
+        let v1 = V2::new([1.0, 2.0]);
+        let result = 2.0 * v1;
+        let expected = V2::new([2.0, 4.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+
+    }
+
+    #[test]
+    fn mul_const() {
+        let v1 = V2::new([1.0, 2.0]);
+        let result = v1 * 10.0;
+        let expected = V2::new([10.0, 20.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
     #[test]
     fn norm2_test() {
         let v1 = V2::new([1.0, 2.0]);

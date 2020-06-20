@@ -26,9 +26,10 @@ use std::fmt;
 use std::ops::{Add, Mul};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
-use crate::matrix5x5::M55;
 use num::{Float, Num, One, Zero};
 
+use crate::matrix5x5::M55;
+use crate::vector6::V6;
 use crate::traits::LinearAlgebra;
 //-------------------------------------------------------------------------
 //                        code
@@ -1271,6 +1272,44 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
             }
         }
         return result;
+    }
+
+    pub fn get_cols(self) -> V6<V6<T>> {
+        let mut c0 = V6::zeros();
+        let mut c1 = V6::zeros();
+        let mut c2 = V6::zeros();
+        let mut c3 = V6::zeros();
+        let mut c4 = V6::zeros();
+        let mut c5 = V6::zeros();
+
+        for j in 0..self.cols() {
+            c0[j] = self[(0, j)];
+            c1[j] = self[(1, j)];
+            c2[j] = self[(2, j)];
+            c3[j] = self[(3, j)];
+            c4[j] = self[(4, j)];
+            c5[j] = self[(5, j)];
+        }
+        V6::new([c0, c1, c2, c3, c4, c5])
+    }
+
+    pub fn get_rows(self) -> V6<V6<T>> {
+        let mut r0 = V6::zeros();
+        let mut r1 = V6::zeros();
+        let mut r2 = V6::zeros();
+        let mut r3 = V6::zeros();
+        let mut r4 = V6::zeros();
+        let mut r5 = V6::zeros();
+
+        for i in 0..self.rows() {
+            r0[i] = self[(i, 0)];
+            r1[i] = self[(i, 1)];
+            r2[i] = self[(i, 2)];
+            r3[i] = self[(i, 3)];
+            r4[i] = self[(i, 4)];
+            r5[i] = self[(i, 5)];
+        }
+        V6::new([r0, r1, r2, r3, r4, r5])
     }
 }
 

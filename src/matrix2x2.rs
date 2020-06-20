@@ -162,6 +162,32 @@ impl<T: Num + Copy> Add for M22<T> {
     }
 }
 
+impl<T: Num + Copy> M22<T> {
+    pub fn get_cols(self) -> V2<V2<T>> {
+        let mut c0 = V2::zeros();
+        let mut c1 = V2::zeros();
+
+        for j in 0..self.cols() {
+            c0[j] = self[(0, j)];
+            c1[j] = self[(1, j)]
+        }
+
+        V2::new([c0, c1])
+    }
+
+    pub fn get_rows(self) -> V2<V2<T>> {
+        let mut r0 = V2::zeros();
+        let mut r1 = V2::zeros();
+
+        for i in 0..self.rows() {
+            r0[i] = self[(i, 0)];
+            r1[i] = self[(i, 1)]
+        }
+
+        V2::new([r0, r1])
+    }
+}
+
 // NOTE(elsuizo:2020-06-10): maybe an error here is better
 impl<T: Float> M22<T> {
     pub fn real_eigenvals(&self) -> Option<V2<T>> {
@@ -181,19 +207,19 @@ impl<T: Float> M22<T> {
     }
 }
 
-// TODO(elsuizo:2020-05-05): no se bien porque no me deja hacer esto parece que no puedo???
-// impl<T: Float> Mul for T {
-//     type Output = M22<T>;
-//
-//     fn mul(self, rhs: M22<T>) -> M22<T> {
-//         let a_00 = rhs[(0, 0)] * self;
-//         let a_01 = rhs[(0, 1)] * self;
-//         let a_10 = rhs[(1, 0)] * self;
-//         let a_11 = rhs[(1, 1)] * self;
-//
-//         M22::new([[a_00, a_01], [a_10, a_11]])
-//     }
-// }
+// FIXME(elsuizo:2020-06-19): this is a hack
+impl Mul<M22<f32>> for f32 {
+    type Output = M22<f32>;
+
+    fn mul(self, rhs: M22<f32>) -> M22<f32> {
+        let a_00 = rhs[(0, 0)] * self;
+        let a_01 = rhs[(0, 1)] * self;
+        let a_10 = rhs[(1, 0)] * self;
+        let a_11 = rhs[(1, 1)] * self;
+
+        M22::new([[a_00, a_01], [a_10, a_11]])
+    }
+}
 
 // NOTE(elsuizo:2020-05-05): parece que el trait es Mul<RHS=Self> lo que significa que no
 // necesitamos hacer explicito que el resultado en este caso es la misma fucking M22

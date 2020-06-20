@@ -284,6 +284,34 @@ mod vector3_test {
     }
 
     #[test]
+    fn mul_const_rhs() {
+        let v = V3::new([1.0, 2.0, 3.0]);
+        let result = 2.0 * v;
+        let expected = V3::new([2.0, 4.0, 6.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn mul_const() {
+        let v = V3::new([1.0, 2.0, 3.0]);
+        let result = v * 2.0;
+        let expected = V3::new([2.0, 4.0, 6.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
     fn sub_test() {
         let v1 = V3::new([1.0, 1.0, 1.0]);
         let v2 = V3::new([2.0, 3.0, 4.0]);

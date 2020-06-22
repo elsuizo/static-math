@@ -137,30 +137,33 @@ impl<T: Num + Copy> M33<T> {
 }
 
 impl<T: Num + Copy> M33<T> {
-    pub fn get_cols(self) -> V3<V3<T>> {
-        let mut c0 = V3::zeros();
-        let mut c1 = V3::zeros();
-        let mut c2 = V3::zeros();
 
-        for j in 0..self.cols() {
-            c0[j] = self[(0, j)];
-            c1[j] = self[(1, j)];
-            c2[j] = self[(2, j)];
-        }
-        V3::new([c0, c1, c2])
-    }
-
+    /// get the rows of the matrix as a vectors
     pub fn get_rows(self) -> V3<V3<T>> {
         let mut r0 = V3::zeros();
         let mut r1 = V3::zeros();
         let mut r2 = V3::zeros();
 
-        for i in 0..self.rows() {
-            r0[i] = self[(i, 0)];
-            r1[i] = self[(i, 1)];
-            r2[i] = self[(i, 2)];
+        for j in 0..self.rows() {
+            r0[j] = self[(0, j)];
+            r1[j] = self[(1, j)];
+            r2[j] = self[(2, j)];
         }
         V3::new([r0, r1, r2])
+    }
+
+    /// get the columns of the matrix as a vectors
+    pub fn get_cols(self) -> V3<V3<T>> {
+        let mut c0 = V3::zeros();
+        let mut c1 = V3::zeros();
+        let mut c2 = V3::zeros();
+
+        for i in 0..self.rows() {
+            c0[i] = self[(i, 0)];
+            c1[i] = self[(i, 1)];
+            c2[i] = self[(i, 2)];
+        }
+        V3::new([c0, c1, c2])
     }
 }
 
@@ -511,6 +514,51 @@ mod test_matrix3x3 {
         let v = V3::new([2.0, 7.0, 6.0]);
         let result = m * v;
         let expected = V3::new([15.0, 26.0, 53.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn get_columns_test() {
+        let m = m33_new!(0.0, 1.0, 2.0;
+                         3.0, 4.0, 5.0;
+                         6.0, 7.0, 8.0);
+
+        let result = m.get_cols();
+
+        let expected0 = V3::new([0.0, 3.0, 6.0]);
+        let expected1 = V3::new([1.0, 4.0, 7.0]);
+        let expected2 = V3::new([2.0, 5.0, 8.0]);
+
+        let expected = V3::new([expected0, expected1, expected2]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn get_rows_test() {
+        let m = m33_new!(0.0, 1.0, 2.0;
+                         3.0, 4.0, 5.0;
+                         6.0, 7.0, 8.0);
+
+        let result = m.get_rows();
+
+        let expected0 = V3::new([0.0, 1.0, 2.0]);
+        let expected1 = V3::new([3.0, 4.0, 5.0]);
+        let expected2 = V3::new([6.0, 7.0, 8.0]);
+
+        let expected = V3::new([expected0, expected1, expected2]);
+
         assert_eq!(
             &result[..],
             &expected[..],

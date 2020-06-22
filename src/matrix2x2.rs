@@ -512,5 +512,23 @@ mod test_matrix2x2 {
             &expected[..]
         );
     }
+
+    #[test]
+    fn get_rows_test() {
+        let m1 = m22_new!(1.0, 2.0;
+                          3.0, 4.0);
+        let result = m1.get_rows();
+
+        let expected1 = V2::new([1.0, 2.0]);
+        let expected2 = V2::new([3.0, 4.0]);
+        let expected = V2::new([expected1, expected2]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
 }
 

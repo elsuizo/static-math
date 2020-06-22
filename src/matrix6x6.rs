@@ -1406,25 +1406,6 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
         return result;
     }
 
-    pub fn get_cols(self) -> V6<V6<T>> {
-        let mut c0 = V6::zeros();
-        let mut c1 = V6::zeros();
-        let mut c2 = V6::zeros();
-        let mut c3 = V6::zeros();
-        let mut c4 = V6::zeros();
-        let mut c5 = V6::zeros();
-
-        for j in 0..self.cols() {
-            c0[j] = self[(0, j)];
-            c1[j] = self[(1, j)];
-            c2[j] = self[(2, j)];
-            c3[j] = self[(3, j)];
-            c4[j] = self[(4, j)];
-            c5[j] = self[(5, j)];
-        }
-        V6::new([c0, c1, c2, c3, c4, c5])
-    }
-
     pub fn get_rows(self) -> V6<V6<T>> {
         let mut r0 = V6::zeros();
         let mut r1 = V6::zeros();
@@ -1433,15 +1414,34 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
         let mut r4 = V6::zeros();
         let mut r5 = V6::zeros();
 
-        for i in 0..self.rows() {
-            r0[i] = self[(i, 0)];
-            r1[i] = self[(i, 1)];
-            r2[i] = self[(i, 2)];
-            r3[i] = self[(i, 3)];
-            r4[i] = self[(i, 4)];
-            r5[i] = self[(i, 5)];
+        for j in 0..self.rows() {
+            r0[j] = self[(0, j)];
+            r1[j] = self[(1, j)];
+            r2[j] = self[(2, j)];
+            r3[j] = self[(3, j)];
+            r4[j] = self[(4, j)];
+            r5[j] = self[(5, j)];
         }
         V6::new([r0, r1, r2, r3, r4, r5])
+    }
+
+    pub fn get_cols(self) -> V6<V6<T>> {
+        let mut c0 = V6::zeros();
+        let mut c1 = V6::zeros();
+        let mut c2 = V6::zeros();
+        let mut c3 = V6::zeros();
+        let mut c4 = V6::zeros();
+        let mut c5 = V6::zeros();
+
+        for i in 0..self.cols() {
+            c0[i] = self[(i, 0)];
+            c1[i] = self[(i, 1)];
+            c2[i] = self[(i, 2)];
+            c3[i] = self[(i, 3)];
+            c4[i] = self[(i, 4)];
+            c5[i] = self[(i, 5)];
+        }
+        V6::new([c0, c1, c2, c3, c4, c5])
     }
 }
 
@@ -1605,6 +1605,7 @@ mod test_matrix6x6 {
     use crate::matrix6x6::M66;
     use crate::utils::nearly_equal;
     use crate::utils::compare_vecs;
+    use crate::vector6::V6;
 
     // TODO(elsuizo:2020-06-02): ver porque tenemos que bajar el EPS para que ande inverse()
     const EPS: f32 = 1e-5;
@@ -1714,14 +1715,13 @@ mod test_matrix6x6 {
 
         use super::test_matrix6x6::EPS;
 
-        let m = M66::new([
-            [0.0, 1.0, 2.0, 3.0, 4.0, 5.0],
-            [6.0, 7.0, 8.0, 9.0, 10.0, 11.0],
-            [12.0, 13.0, 14.0, 15.0, 16.0, 17.0],
-            [18.0, 19.0, 20.0, 21.0, 22.0, 23.0],
-            [24.0, 25.0, 26.0, 27.0, 28.0, 29.0],
-            [30.0, 31.0, 32.0, 33.0, 34.0, 35.0],
-        ]);
+        let m = m66_new!( 0.0,  1.0,  2.0,  3.0,  4.0,  5.0;
+                          6.0,  7.0,  8.0,  9.0, 10.0, 11.0;
+                         12.0, 13.0, 14.0, 15.0, 16.0, 17.0;
+                         18.0, 19.0, 20.0, 21.0, 22.0, 23.0;
+                         24.0, 25.0, 26.0, 27.0, 28.0, 29.0;
+                         30.0, 31.0, 32.0, 33.0, 34.0, 35.0);
+
         let result = m.norm2();
         let expected = 122.10651088291729;
         assert!(nearly_equal(result, expected, EPS));
@@ -1732,30 +1732,77 @@ mod test_matrix6x6 {
 
         use super::test_matrix6x6::EPS;
 
-        let m = M66::new([
-            [1.0, 1.0, 3.0, 4.0, 9.0, 3.0],
-            [10.0, 10.0, 1.0, 2.0, 2.0, 5.0],
-            [2.0, 9.0, 6.0, 10.0, 10.0, 9.0],
-            [10.0, 9.0, 9.0, 7.0, 3.0, 6.0],
-            [7.0, 6.0, 6.0, 2.0, 9.0, 5.0],
-            [3.0, 8.0, 1.0, 4.0, 1.0, 5.0],
-        ]);
+        let m = m66_new!( 1.0,  1.0, 3.0,  4.0,  9.0, 3.0;
+                         10.0, 10.0, 1.0,  2.0,  2.0, 5.0;
+                          2.0,  9.0, 6.0, 10.0, 10.0, 9.0;
+                         10.0,  9.0, 9.0,  7.0,  3.0, 6.0;
+                          7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
+                          3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
 
-        let expected = M66::new([
-            [
-                -0.538814, 0.577934, 0.665342, -0.0837408, -0.169621, -1.18215,
-            ],
-            [2.16076, -1.52751, -2.44071, 0.44132, 0.324572, 3.77017],
-            [0.214548, -0.415037, -0.394254, 0.147922, 0.197433, 0.621027],
-            [
-                0.700183, -0.240526, -0.525978, 0.203545, -0.211797, 0.734719,
-            ],
-            [0.85055, -0.471577, -0.827934, 0.110636, 0.114609, 1.20416],
-            [-3.90709, 2.46699, 4.17115, -0.870416, -0.310513, -6.07579],
-        ]);
+        let expected = m66_new!(-0.538814,  0.577934,  0.665342, -0.0837408, -0.169621, -1.18215;
+                                  2.16076,  -1.52751,  -2.44071,    0.44132,  0.324572,  3.77017;
+                                 0.214548, -0.415037, -0.394254,   0.147922,  0.197433, 0.621027;
+                                 0.700183, -0.240526, -0.525978,   0.203545, -0.211797, 0.734719;
+                                  0.85055, -0.471577, -0.827934,   0.110636,  0.114609,  1.20416;
+                                 -3.90709,   2.46699,   4.17115,  -0.870416, -0.310513, -6.07579);
 
         if let Some(result) = m.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn get_cols_test() {
+        let m = m66_new!( 1.0,  1.0, 3.0,  4.0,  9.0, 3.0;
+                         10.0, 10.0, 1.0,  2.0,  2.0, 5.0;
+                          2.0,  9.0, 6.0, 10.0, 10.0, 9.0;
+                         10.0,  9.0, 9.0,  7.0,  3.0, 6.0;
+                          7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
+                          3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
+
+        let result = m.get_cols();
+        let expected0 = V6::new([1.0, 10.0, 2.0, 10.0, 7.0, 3.0]);
+        let expected1 = V6::new([1.0, 10.0, 9.0, 9.0, 6.0, 8.0]);
+        let expected2 = V6::new([3.0, 1.0, 6.0, 9.0, 6.0, 1.0]);
+        let expected3 = V6::new([4.0, 2.0, 10.0, 7.0, 2.0, 4.0]);
+        let expected4 = V6::new([9.0, 2.0, 10.0, 3.0, 9.0, 1.0]);
+        let expected5 = V6::new([3.0, 5.0, 9.0, 6.0, 5.0, 5.0]);
+
+        let expected = V6::new([expected0, expected1, expected2, expected3, expected4, expected5]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn get_rows_test() {
+        let m = m66_new!( 1.0,  1.0, 3.0,  4.0,  9.0, 3.0;
+                         10.0, 10.0, 1.0,  2.0,  2.0, 5.0;
+                          2.0,  9.0, 6.0, 10.0, 10.0, 9.0;
+                         10.0,  9.0, 9.0,  7.0,  3.0, 6.0;
+                          7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
+                          3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
+
+        let result = m.transpose().get_rows();
+
+        let expected0 = V6::new([1.0, 10.0, 2.0, 10.0, 7.0, 3.0]);
+        let expected1 = V6::new([1.0, 10.0, 9.0, 9.0, 6.0, 8.0]);
+        let expected2 = V6::new([3.0, 1.0, 6.0, 9.0, 6.0, 1.0]);
+        let expected3 = V6::new([4.0, 2.0, 10.0, 7.0, 2.0, 4.0]);
+        let expected4 = V6::new([9.0, 2.0, 10.0, 3.0, 9.0, 1.0]);
+        let expected5 = V6::new([3.0, 5.0, 9.0, 6.0, 5.0, 5.0]);
+
+        let expected = V6::new([expected0, expected1, expected2, expected3, expected4, expected5]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 }

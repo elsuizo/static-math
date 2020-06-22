@@ -686,23 +686,6 @@ impl<T: Num + Copy> M55<T> {
         return result;
     }
 
-    pub fn get_cols(self) -> V5<V5<T>> {
-        let mut c0 = V5::zeros();
-        let mut c1 = V5::zeros();
-        let mut c2 = V5::zeros();
-        let mut c3 = V5::zeros();
-        let mut c4 = V5::zeros();
-
-        for j in 0..self.cols() {
-            c0[j] = self[(0, j)];
-            c1[j] = self[(1, j)];
-            c2[j] = self[(2, j)];
-            c3[j] = self[(3, j)];
-            c4[j] = self[(4, j)];
-        }
-        V5::new([c0, c1, c2, c3, c4])
-    }
-
     pub fn get_rows(self) -> V5<V5<T>> {
         let mut r0 = V5::zeros();
         let mut r1 = V5::zeros();
@@ -710,14 +693,31 @@ impl<T: Num + Copy> M55<T> {
         let mut r3 = V5::zeros();
         let mut r4 = V5::zeros();
 
-        for i in 0..self.rows() {
-            r0[i] = self[(i, 0)];
-            r1[i] = self[(i, 1)];
-            r2[i] = self[(i, 2)];
-            r3[i] = self[(i, 3)];
-            r4[i] = self[(i, 4)];
+        for j in 0..self.rows() {
+            r0[j] = self[(0, j)];
+            r1[j] = self[(1, j)];
+            r2[j] = self[(2, j)];
+            r3[j] = self[(3, j)];
+            r4[j] = self[(4, j)];
         }
         V5::new([r0, r1, r2, r3, r4])
+    }
+
+    pub fn get_cols(self) -> V5<V5<T>> {
+        let mut c0 = V5::zeros();
+        let mut c1 = V5::zeros();
+        let mut c2 = V5::zeros();
+        let mut c3 = V5::zeros();
+        let mut c4 = V5::zeros();
+
+        for i in 0..self.cols() {
+            c0[i] = self[(i, 0)];
+            c1[i] = self[(i, 1)];
+            c2[i] = self[(i, 2)];
+            c3[i] = self[(i, 3)];
+            c4[i] = self[(i, 4)];
+        }
+        V5::new([c0, c1, c2, c3, c4])
     }
 
 }
@@ -840,6 +840,7 @@ mod test_matrix5x5 {
     use crate::traits::LinearAlgebra;
     use crate::utils::nearly_equal;
     use crate::utils::compare_vecs;
+    use crate::vector5::V5;
 
     const EPS: f32 = 1e-7;
 
@@ -998,5 +999,57 @@ mod test_matrix5x5 {
         if let Some(result) = m.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn get_cols_test() {
+        let m1 = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                           2.0, 4.0, 8.0,  3.0,  2.0;
+                           5.0, 1.0, 2.0,  9.0, 10.0;
+                           6.0, 9.0, 9.0,  7.0,  3.0;
+                           1.0, 8.0, 8.0, 10.0,  5.0);
+
+        let result = m1.get_cols();
+
+        let expected0 = V5::new([10.0, 2.0, 5.0, 6.0, 1.0]);
+        let expected1 = V5::new([1.0, 4.0, 1.0, 9.0, 8.0]);
+        let expected2 = V5::new([7.0, 8.0, 2.0, 9.0, 8.0]);
+        let expected3 = V5::new([1.0, 3.0, 9.0, 7.0, 10.0]);
+        let expected4 = V5::new([5.0, 2.0, 10.0, 3.0, 5.0]);
+
+        let expected = V5::new([expected0, expected1, expected2, expected3, expected4]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn get_rows_test() {
+        let m1 = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                           2.0, 4.0, 8.0,  3.0,  2.0;
+                           5.0, 1.0, 2.0,  9.0, 10.0;
+                           6.0, 9.0, 9.0,  7.0,  3.0;
+                           1.0, 8.0, 8.0, 10.0,  5.0);
+
+        let result = m1.transpose().get_rows();
+
+        let expected0 = V5::new([10.0, 2.0, 5.0, 6.0, 1.0]);
+        let expected1 = V5::new([1.0, 4.0, 1.0, 9.0, 8.0]);
+        let expected2 = V5::new([7.0, 8.0, 2.0, 9.0, 8.0]);
+        let expected3 = V5::new([1.0, 3.0, 9.0, 7.0, 10.0]);
+        let expected4 = V5::new([5.0, 2.0, 10.0, 3.0, 5.0]);
+
+        let expected = V5::new([expected0, expected1, expected2, expected3, expected4]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 }

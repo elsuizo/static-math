@@ -253,34 +253,34 @@ impl<T: Num + Copy> M44<T> {
         result
     }
 
-    pub fn get_cols(self) -> V4<V4<T>> {
-        let mut c0 = V4::zeros();
-        let mut c1 = V4::zeros();
-        let mut c2 = V4::zeros();
-        let mut c3 = V4::zeros();
-
-        for j in 0..self.cols() {
-            c0[j] = self[(0, j)];
-            c1[j] = self[(1, j)];
-            c2[j] = self[(2, j)];
-            c3[j] = self[(3, j)];
-        }
-        V4::new([c0, c1, c2, c3])
-    }
-
     pub fn get_rows(self) -> V4<V4<T>> {
         let mut r0 = V4::zeros();
         let mut r1 = V4::zeros();
         let mut r2 = V4::zeros();
         let mut r3 = V4::zeros();
 
-        for i in 0..self.rows() {
-            r0[i] = self[(i, 0)];
-            r1[i] = self[(i, 1)];
-            r2[i] = self[(i, 2)];
-            r3[i] = self[(i, 3)];
+        for j in 0..self.rows() {
+            r0[j] = self[(0, j)];
+            r1[j] = self[(1, j)];
+            r2[j] = self[(2, j)];
+            r3[j] = self[(3, j)];
         }
         V4::new([r0, r1, r2, r3])
+    }
+
+    pub fn get_cols(self) -> V4<V4<T>> {
+        let mut c0 = V4::zeros();
+        let mut c1 = V4::zeros();
+        let mut c2 = V4::zeros();
+        let mut c3 = V4::zeros();
+
+        for i in 0..self.cols() {
+            c0[i] = self[(i, 0)];
+            c1[i] = self[(i, 1)];
+            c2[i] = self[(i, 2)];
+            c3[i] = self[(i, 3)];
+        }
+        V4::new([c0, c1, c2, c3])
     }
 }
 
@@ -600,6 +600,7 @@ mod test_matrix4x4 {
     use crate::traits::LinearAlgebra;
     use crate::matrix3x3::M33;
     use crate::matrix4x4::M44;
+    use crate::vector4::V4;
     use crate::utils::nearly_equal;
     use crate::utils::compare_vecs;
 
@@ -832,5 +833,55 @@ mod test_matrix4x4 {
         if let Some(result) = m.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn get_cols_test() {
+        let m = m44_new!( 0.0,  1.0,  2.0,  3.0;
+                          4.0,  5.0,  6.0,  7.0;
+                          8.0,  9.0, 10.0, 11.0;
+                         12.0, 13.0, 14.0, 15.0);
+        let result = m.get_cols();
+
+        let expected0 = V4::new([0.0, 4.0, 8.0, 12.0]);
+        let expected1 = V4::new([1.0, 5.0, 9.0, 13.0]);
+        let expected2 = V4::new([2.0, 6.0, 10.0, 14.0]);
+        let expected3 = V4::new([3.0, 7.0, 11.0, 15.0]);
+
+        let expected = V4::new([expected0, expected1, expected2, expected3]);
+
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+
+    }
+
+    #[test]
+    fn get_rows_test() {
+        let m = m44_new!( 0.0,  1.0,  2.0,  3.0;
+                          4.0,  5.0,  6.0,  7.0;
+                          8.0,  9.0, 10.0, 11.0;
+                         12.0, 13.0, 14.0, 15.0);
+        let result = m.get_rows();
+
+        let expected0 = V4::new([0.0, 1.0, 2.0, 3.0]);
+        let expected1 = V4::new([4.0, 5.0, 6.0, 7.0]);
+        let expected2 = V4::new([8.0, 9.0, 10.0, 11.0]);
+        let expected3 = V4::new([12.0, 13.0, 14.0, 15.0]);
+
+        let expected = V4::new([expected0, expected1, expected2, expected3]);
+
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+
     }
 }

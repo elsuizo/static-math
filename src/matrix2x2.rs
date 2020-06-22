@@ -24,7 +24,7 @@
 //--------------------------------------------------------------------------
 // imports
 use std::fmt;
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use num::{Float, Num, Zero, One};
@@ -129,7 +129,7 @@ impl<T: Num + Copy> M22<T> {
         result
     }
 }
-
+// M22 * V2
 impl<T: Num + Copy> Mul<V2<T>> for M22<T> {
     type Output = V2<T>;
 
@@ -145,6 +145,7 @@ impl<T: Num + Copy> Mul<V2<T>> for M22<T> {
     }
 }
 
+// M22 + M22
 impl<T: Num + Copy> Add for M22<T> {
     type Output = Self;
 
@@ -162,34 +163,55 @@ impl<T: Num + Copy> Add for M22<T> {
     }
 }
 
-impl<T: Num + Copy> M22<T> {
-    pub fn get_cols(self) -> V2<V2<T>> {
-        let mut c0 = V2::zeros();
-        let mut c1 = V2::zeros();
+// M22 - M22
+impl<T: Num + Copy> Sub for M22<T> {
+    type Output = Self;
 
-        for j in 0..self.cols() {
-            c0[j] = self[(0, j)];
-            c1[j] = self[(1, j)]
-        }
+    fn sub(self, rhs: Self) -> Self {
+        let a1 = self[(0, 0)];
+        let b1 = self[(0, 1)];
+        let c1 = self[(1, 0)];
+        let d1 = self[(1, 1)];
 
-        V2::new([c0, c1])
+        let a2 = rhs[(0, 0)];
+        let b2 = rhs[(0, 1)];
+        let c2 = rhs[(1, 0)];
+        let d2 = rhs[(1, 1)];
+        M22::new([[a1 - a2, b1 - b2], [c1 - c2, d1 - d2]])
     }
+}
 
+impl<T: Num + Copy> M22<T> {
+    /// get the rows of the matrix as a vectors
     pub fn get_rows(self) -> V2<V2<T>> {
         let mut r0 = V2::zeros();
         let mut r1 = V2::zeros();
 
-        for i in 0..self.rows() {
-            r0[i] = self[(i, 0)];
-            r1[i] = self[(i, 1)]
+        for j in 0..self.rows() {
+            r0[j] = self[(0, j)];
+            r1[j] = self[(1, j)]
         }
 
         V2::new([r0, r1])
+    }
+
+    /// get the columns of the matrix as a vectors
+    pub fn get_cols(self) -> V2<V2<T>> {
+        let mut c0 = V2::zeros();
+        let mut c1 = V2::zeros();
+
+        for i in 0..self.cols() {
+            c0[i] = self[(i, 0)];
+            c1[i] = self[(i, 1)]
+        }
+
+        V2::new([c0, c1])
     }
 }
 
 // NOTE(elsuizo:2020-06-10): maybe an error here is better
 impl<T: Float> M22<T> {
+    /// calculate the real eigen values for the matrix
     pub fn real_eigenvals(&self) -> Option<V2<T>> {
         let tau = self.trace();
         let delta = self.det();
@@ -208,6 +230,7 @@ impl<T: Float> M22<T> {
 }
 
 // FIXME(elsuizo:2020-06-19): this is a hack
+// f32 * M22<f32>
 impl Mul<M22<f32>> for f32 {
     type Output = M22<f32>;
 
@@ -221,8 +244,7 @@ impl Mul<M22<f32>> for f32 {
     }
 }
 
-// NOTE(elsuizo:2020-05-05): parece que el trait es Mul<RHS=Self> lo que significa que no
-// necesitamos hacer explicito que el resultado en este caso es la misma fucking M22
+// M22 * constant
 impl<T: Num + Copy> Mul<T> for M22<T> {
     type Output = M22<T>;
 
@@ -236,6 +258,7 @@ impl<T: Num + Copy> Mul<T> for M22<T> {
     }
 }
 
+// M22 * M22
 impl<T: Num + Copy> Mul for M22<T> {
     type Output = Self;
 
@@ -399,6 +422,18 @@ mod test_matrix2x2 {
     }
 
     #[test]
+    fn sub_test() {
+        let m1 = m22_new!(1.0, 2.0;
+                          3.0, 4.0);
+        let m2 = m22_new!(5.0, 6.0;
+                          7.0, 8.0);
+        let expected = m22_new!( -4.0,  -4.0;
+                                 -4.0,  -4.0);
+        let result = m1 - m2;
+        assert_eq!(result.as_vec(), expected.as_vec());
+    }
+
+    #[test]
     fn add_m22_ints() {
         let m1 = M22::new([[1, 2], [3, 4]]);
         let m2 = M22::new([[5, 6], [7, 8]]);
@@ -458,6 +493,24 @@ mod test_matrix2x2 {
         if let Some(result) = m1.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn get_columns_test() {
+        let m1 = m22_new!(1.0, 2.0;
+                          3.0, 4.0);
+        let result = m1.get_cols();
+
+        let expected1 = V2::new([1.0, 3.0]);
+        let expected2 = V2::new([2.0, 4.0]);
+        let expected = V2::new([expected1, expected2]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 }
 

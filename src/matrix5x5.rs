@@ -24,7 +24,7 @@
 //--------------------------------------------------------------------------
 use num::{Float, One, Zero, Num};
 use std::fmt;
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
@@ -378,8 +378,104 @@ impl<T: Num + Copy> Add for M55<T> {
     }
 }
 
-// NOTE(elsuizo:2020-04-27): primero a pedal
-// despues si anda con for loops o como sea
+// M55 - M55
+impl<T: Num + Copy> Sub for M55<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let a_00 = self[(0, 0)];
+        let a_01 = self[(0, 1)];
+        let a_02 = self[(0, 2)];
+        let a_03 = self[(0, 3)];
+        let a_04 = self[(0, 4)];
+        let a_10 = self[(1, 0)];
+        let a_11 = self[(1, 1)];
+        let a_12 = self[(1, 2)];
+        let a_13 = self[(1, 3)];
+        let a_14 = self[(1, 4)];
+        let a_20 = self[(2, 0)];
+        let a_21 = self[(2, 1)];
+        let a_22 = self[(2, 2)];
+        let a_23 = self[(2, 3)];
+        let a_24 = self[(2, 4)];
+        let a_30 = self[(3, 0)];
+        let a_31 = self[(3, 1)];
+        let a_32 = self[(3, 2)];
+        let a_33 = self[(3, 3)];
+        let a_34 = self[(3, 4)];
+        let a_40 = self[(4, 0)];
+        let a_41 = self[(4, 1)];
+        let a_42 = self[(4, 2)];
+        let a_43 = self[(4, 3)];
+        let a_44 = self[(4, 4)];
+
+        let b_00 = rhs[(0, 0)];
+        let b_01 = rhs[(0, 1)];
+        let b_02 = rhs[(0, 2)];
+        let b_03 = rhs[(0, 3)];
+        let b_04 = rhs[(0, 4)];
+        let b_10 = rhs[(1, 0)];
+        let b_11 = rhs[(1, 1)];
+        let b_12 = rhs[(1, 2)];
+        let b_13 = rhs[(1, 3)];
+        let b_14 = rhs[(1, 4)];
+        let b_20 = rhs[(2, 0)];
+        let b_21 = rhs[(2, 1)];
+        let b_22 = rhs[(2, 2)];
+        let b_23 = rhs[(2, 3)];
+        let b_24 = rhs[(2, 4)];
+        let b_30 = rhs[(3, 0)];
+        let b_31 = rhs[(3, 1)];
+        let b_32 = rhs[(3, 2)];
+        let b_33 = rhs[(3, 3)];
+        let b_34 = rhs[(3, 4)];
+        let b_40 = rhs[(4, 0)];
+        let b_41 = rhs[(4, 1)];
+        let b_42 = rhs[(4, 2)];
+        let b_43 = rhs[(4, 3)];
+        let b_44 = rhs[(4, 4)];
+
+        M55::new([
+            [
+                a_00 - b_00,
+                a_01 - b_01,
+                a_02 - b_02,
+                a_03 - b_03,
+                a_04 - b_04,
+            ],
+            [
+                a_10 - b_10,
+                a_11 - b_11,
+                a_12 - b_12,
+                a_13 - b_13,
+                a_14 - b_14,
+            ],
+            [
+                a_20 - b_20,
+                a_21 - b_21,
+                a_22 - b_22,
+                a_23 - b_23,
+                a_24 - b_24,
+            ],
+            [
+                a_30 - b_30,
+                a_31 - b_31,
+                a_32 - b_32,
+                a_33 - b_33,
+                a_34 - b_34,
+            ],
+            [
+                a_40 - b_40,
+                a_41 - b_41,
+                a_42 - b_42,
+                a_43 - b_43,
+                a_44 - b_44,
+            ],
+        ])
+    }
+}
+
+// M55 * constant
 impl<T: Num + Copy> Mul<T> for M55<T> {
     type Output = M55<T>;
 
@@ -763,6 +859,7 @@ mod test_matrix5x5 {
         let expected = 49.99999999999798;
         assert!(nearly_equal(result, expected, EPS));
     }
+
     #[test]
     fn matrix5x5_sum_test() {
 
@@ -787,6 +884,33 @@ mod test_matrix5x5 {
 
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
+
+    #[test]
+    fn sub_test() {
+        use super::test_matrix5x5::EPS;
+
+        let m1 = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                           2.0, 4.0, 8.0,  3.0,  2.0;
+                           5.0, 1.0, 2.0,  9.0, 10.0;
+                           6.0, 9.0, 9.0,  7.0,  3.0;
+                           1.0, 8.0, 8.0, 10.0,  5.0);
+
+        let m2 = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                           2.0, 4.0, 8.0,  3.0,  2.0;
+                           5.0, 1.0, 2.0,  9.0, 10.0;
+                           6.0, 9.0, 9.0,  7.0,  3.0;
+                           1.0, 8.0, 8.0, 10.0,  5.0);
+
+        let result = m1 - m2;
+        let expected = m55_new!( 0.0, 0.0, 0.0,  0.0,  0.0;
+                                 0.0, 0.0, 0.0,  0.0,  0.0;
+                                 0.0, 0.0, 0.0,  0.0,  0.0;
+                                 0.0, 0.0, 0.0,  0.0,  0.0;
+                                 0.0, 0.0, 0.0,  0.0,  0.0);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
     #[test]
     fn matrix5x5_product_test() {
 

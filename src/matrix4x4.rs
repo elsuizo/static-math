@@ -23,7 +23,7 @@
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
 use std::fmt;
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use num::{Float, One, Zero, Num};
@@ -329,6 +329,54 @@ impl<T: Num + Copy> Add for M44<T> {
     }
 }
 
+// M44 - M44
+impl<T: Num + Copy> Sub for M44<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        let a1  = self[(0, 0)];
+        let a2  = self[(0, 1)];
+        let a3  = self[(0, 2)];
+        let a4  = self[(0, 3)];
+        let a5  = self[(1, 0)];
+        let a6  = self[(1, 1)];
+        let a7  = self[(1, 2)];
+        let a8  = self[(1, 3)];
+        let a9  = self[(2, 0)];
+        let a10 = self[(2, 1)];
+        let a11 = self[(2, 2)];
+        let a12 = self[(2, 3)];
+        let a13 = self[(3, 0)];
+        let a14 = self[(3, 1)];
+        let a15 = self[(3, 2)];
+        let a16 = self[(3, 3)];
+
+        let b1 = rhs[(0, 0)];
+        let b2 = rhs[(0, 1)];
+        let b3 = rhs[(0, 2)];
+        let b4 = rhs[(0, 3)];
+        let b5 = rhs[(1, 0)];
+        let b6 = rhs[(1, 1)];
+        let b7 = rhs[(1, 2)];
+        let b8 = rhs[(1, 3)];
+        let b9 = rhs[(2, 0)];
+        let b10 = rhs[(2, 1)];
+        let b11 = rhs[(2, 2)];
+        let b12 = rhs[(2, 3)];
+        let b13 = rhs[(3, 0)];
+        let b14 = rhs[(3, 1)];
+        let b15 = rhs[(3, 2)];
+        let b16 = rhs[(3, 3)];
+        M44::new([
+            [a1 - b1, a2 - b2, a3 - b3, a4 - b4],
+            [a5 - b5, a6 - b6, a7 - b7, a8 - b8],
+            [a9 - b9, a10 - b10, a11 - b11, a12 - b12],
+            [a13 - b13, a14 - b14, a15 - b15, a16 - b16],
+        ])
+    }
+}
+
+// M44 * constant
 impl<T: Num + Copy> Mul<T> for M44<T> {
     type Output = M44<T>;
 
@@ -585,7 +633,7 @@ mod test_matrix4x4 {
     }
 
     #[test]
-    fn matrix4x4_sum_test() {
+    fn matrix4x4_add_test() {
 
         use super::test_matrix4x4::EPS;
 
@@ -610,6 +658,27 @@ mod test_matrix4x4 {
             [26.0, 28.0, 30.0, 32.0],
         ]);
         let result = m1 + m2;
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn sub_test() {
+        use super::test_matrix4x4::EPS;
+
+        let m1 = m44_new!( 1.0,  2.0,  3.0,  4.0;
+                           5.0,  6.0,  7.0,  8.0;
+                           9.0, 10.0, 11.0, 12.0;
+                          13.0, 14.0, 15.0, 16.0);
+
+        let m2 = m44_new!( 1.0,  2.0,  3.0,  4.0;
+                           5.0,  6.0,  7.0,  8.0;
+                           9.0, 10.0, 11.0, 12.0;
+                          13.0, 14.0, 15.0, 16.0);
+        let result = m1 - m2;
+        let expected = m44_new!( 0.0,  0.0,  0.0,  0.0;
+                                 0.0,  0.0,  0.0,  0.0;
+                                 0.0,  0.0,  0.0,  0.0;
+                                 0.0,  0.0,  0.0,  0.0);
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 

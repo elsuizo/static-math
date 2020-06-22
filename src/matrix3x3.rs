@@ -23,7 +23,7 @@
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
 use std::fmt;
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
@@ -188,6 +188,30 @@ impl<T: Num + Copy> Add for M33<T> {
     }
 }
 
+// M33 - M33
+impl<T: Num + Copy> Sub for M33<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        M33::new([
+            [
+                self[(0, 0)] - rhs[(0, 0)],
+                self[(0, 1)] - rhs[(0, 1)],
+                self[(0, 2)] - rhs[(0, 2)],
+            ],
+            [
+                self[(1, 0)] - rhs[(1, 0)],
+                self[(1, 1)] - rhs[(1, 1)],
+                self[(1, 2)] - rhs[(1, 2)],
+            ],
+            [
+                self[(2, 0)] - rhs[(2, 0)],
+                self[(2, 1)] - rhs[(2, 1)],
+                self[(2, 2)] - rhs[(2, 2)],
+            ],
+        ])
+    }
+}
 // M3 * V3
 impl<T: Num + Copy> Mul<V3<T>> for M33<T> {
     type Output = V3<T>;
@@ -401,6 +425,25 @@ mod test_matrix3x3 {
 
         let expected = M33::new([[0.0, 2.0, 4.0], [6.0, 8.0, 10.0], [12.0, 14.0, 16.0]]);
         let result = m1 + m2;
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn sub_test() {
+        use super::test_matrix3x3::EPS;
+        let m1 = m33_new!(0.0, 1.0, 2.0;
+                          3.0, 4.0, 5.0;
+                          6.0, 7.0, 8.0);
+
+        let m2 = m33_new!(0.0, 1.0, 2.0;
+                          3.0, 4.0, 5.0;
+                          6.0, 7.0, 8.0);
+
+        let expected = m33_new!(0.0, 0.0, 0.0;
+                          0.0, 0.0, 0.0;
+                          0.0, 0.0, 0.0);
+
+        let result = m1 - m2;
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 

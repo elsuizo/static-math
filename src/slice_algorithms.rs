@@ -74,7 +74,10 @@ pub fn norm2<T: Num + Copy + Float>(slice: &[T]) -> T {
 pub fn normalize<T: Num + Copy + Float>(slice: &mut [T]) -> Result<(), VectorErrors> {
     let n = norm2(slice);
     if n != T::zero() {
-        slice.iter_mut().map(|element| element / n);
+        //slice.iter_mut().map(|element| element / n);
+        for i in 0..slice.len() {
+            slice[i] = slice[i] / n;
+        }
         Ok(())
     } else {
         Err(VectorErrors::Norm2IsZero)

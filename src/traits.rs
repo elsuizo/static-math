@@ -43,7 +43,7 @@ pub trait LinearAlgebra<T> {
 
     // FIXME(elsuizo:2020-06-01): me parece que no se puede hacer generica porque
     // su implementacion lleva sqrt
-    /// compute the euclidiad norm of the matrix
+    /// compute the euclidean norm of the matrix
     fn norm2(&self) -> T;
 
     /// compute the determinant of the matrix

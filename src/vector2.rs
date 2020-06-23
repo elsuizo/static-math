@@ -75,7 +75,6 @@ impl<T: Float> V2<T> {
     }
 }
 
-
 impl<T: Num + Copy> Mul for V2<T> {
     type Output = T;
 

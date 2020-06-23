@@ -61,37 +61,20 @@ pub fn find_max_min<T: std::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
 }
 
 /// dot product between two slices
-pub fn dot<T: Num + Copy>(slice1: &[T], slice2: &[T]) -> T {
-    let mut result = T::zero();
-    for i in 0..slice1.len() {
-        result = result + slice1[i] * slice2[i];
-    }
-    result
+fn dot<T: Num + Copy + std::iter::Sum>(slice1: &[T], slice2: &[T]) -> T {
+    slice1.iter().zip(slice2).map(|(&a, &b)| a * b).sum()
 }
 
 pub fn norm2<T: Num + Copy + Float>(slice: &[T]) -> T {
-    let mut result = T::zero();
-    for element in 0..slice.len() {
-        result = result + slice[element] * slice[element];
-    }
-    T::sqrt(result)
+    slice.iter().fold(T::one(), |n, &i| (i * i) + n).sqrt()
 }
 
+// TODO(elsuizo:2020-06-22): faltaria esta solamente
 /// normalize a slice
-pub fn normalize<T: Num + Copy + Float>(slice: &[T]) -> Result<(), VectorErrors> {
+pub fn normalize<T: Num + Copy + Float>(slice: &mut [T]) -> Result<(), VectorErrors> {
     let n = norm2(slice);
-    let result = match slice.norm() {
-        2 => V2::zeros(),
-        3 => V3::zeros(),
-        4 => V4::zeros(),
-        5 => V5::zeros(),
-        6 => V6::zeros()
-    }
-
     if n != T::zero() {
-        for i in 0..3 {
-            slice[i] = slice[i] / n;
-        }
+        slice.iter_mut().map(|element| element / n);
         Ok(())
     } else {
         Err(VectorErrors::Norm2IsZero)

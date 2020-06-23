@@ -23,22 +23,6 @@
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
 use num::{Float, Num};
-use crate::errors::VectorErrors;
-use crate::vector2::V2;
-use crate::vector3::V3;
-use crate::vector4::V4;
-use crate::vector5::V5;
-use crate::vector6::V6;
-
-enum VectorTypes {
-    Vector2(V2),
-    Vector3(V3),
-    Vector4(V4),
-    Vector5(V5),
-    Vector6(V6)
-}
-
-impl VectorTypes
 
 /// Max and Min values in a slice
 #[derive(Copy, Clone, Debug)]
@@ -82,4 +66,9 @@ pub fn normalize<T: Num + Copy + Float>(slice: &mut [T]) -> Result<(), VectorErr
     } else {
         Err(VectorErrors::Norm2IsZero)
     }
+}
+
+/// orthogonal projection of slice `x` over the slide `y`
+fn projection_x_over_y<T: Num + Copy + std::iter::Sum>(x: &[T], y: &[T]) -> T {
+    dot(x, y) / dot(y, y)
 }

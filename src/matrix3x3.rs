@@ -105,9 +105,11 @@ impl<T> M33<T> {
     pub fn new(data_input: [[T; 3]; 3]) -> M33<T> {
         M33(data_input)
     }
+
     pub fn rows(&self) -> usize {
         self.0.len()
     }
+
     pub fn cols(&self) -> usize {
         self.rows()
     }
@@ -131,6 +133,18 @@ impl<T: Num + Copy> M33<T> {
             for j in 0..self.cols() {
                 result[i] = self[(i, j)];
             }
+        }
+        result
+    }
+
+    /// construct the matrix from columns-vectors
+    pub fn new_from_vecs(cols: V3<V3<T>>) -> Self {
+        let mut result = Self::zeros();
+
+        for i in 0..result.cols() {
+            result[(i, 0)] = cols[0][i];
+            result[(i, 1)] = cols[1][i];
+            result[(i, 2)] = cols[2][i];
         }
         result
     }
@@ -567,4 +581,18 @@ mod test_matrix3x3 {
             &expected[..]
         );
     }
+
+    #[test]
+    fn new_from_vecs_test() {
+        let expected = m33_new!(0.0, 1.0, 2.0;
+                                3.0, 4.0, 5.0;
+                                6.0, 7.0, 8.0);
+
+        let cols = expected.get_cols();
+
+        let result = M33::new_from_vecs(cols);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
 }

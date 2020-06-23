@@ -228,6 +228,18 @@ impl<T: Num + Copy> M44<T> {
         result
     }
 
+    pub fn new_from_vecs(cols: V4<V4<T>>) -> Self {
+        let mut result = Self::zeros();
+
+        for i in 0..result.cols() {
+            result[(i, 0)] = cols[0][i];
+            result[(i, 1)] = cols[1][i];
+            result[(i, 2)] = cols[2][i];
+            result[(i, 3)] = cols[3][i];
+        }
+        result
+    }
+
     // TODO(elsuizo:2020-06-02): this could be optimize
 
     pub fn get_submatrix(&self, selected: (usize, usize)) -> M33<T> {
@@ -883,5 +895,19 @@ mod test_matrix4x4 {
             &expected[..]
         );
 
+    }
+
+    #[test]
+    fn new_from_vecs_test() {
+        let expected = m44_new!( 0.0,  1.0,  2.0,  3.0;
+                          4.0,  5.0,  6.0,  7.0;
+                          8.0,  9.0, 10.0, 11.0;
+                         12.0, 13.0, 14.0, 15.0);
+
+        let cols = expected.get_cols();
+
+        let result = M44::new_from_vecs(cols);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 }

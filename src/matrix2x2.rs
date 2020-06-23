@@ -128,6 +128,17 @@ impl<T: Num + Copy> M22<T> {
         }
         result
     }
+
+    /// construct the matrix from columns-vectors
+    pub fn new_from_vecs(cols: V2<V2<T>>) -> Self {
+        let mut result = Self::zeros();
+
+        for i in 0..result.cols() {
+            result[(i, 0)] = cols[0][i];
+            result[(i, 1)] = cols[1][i];
+        }
+        result
+    }
 }
 // M22 * V2
 impl<T: Num + Copy> Mul<V2<T>> for M22<T> {
@@ -530,5 +541,16 @@ mod test_matrix2x2 {
             &expected[..]
         );
     }
-}
 
+    #[test]
+    fn new_from_vecs_test() {
+        let expected = m22_new!(1.0, 2.0;
+                                3.0, 4.0);
+
+        let cols = expected.get_cols();
+
+        let result = M22::new_from_vecs(cols);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+}

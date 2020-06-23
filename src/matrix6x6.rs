@@ -1379,6 +1379,20 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
         result
     }
 
+    pub fn new_from_vecs(cols: V6<V6<T>>) -> Self {
+        let mut result = Self::zeros();
+
+        for i in 0..result.cols() {
+            result[(i, 0)] = cols[0][i];
+            result[(i, 1)] = cols[1][i];
+            result[(i, 2)] = cols[2][i];
+            result[(i, 3)] = cols[3][i];
+            result[(i, 4)] = cols[4][i];
+            result[(i, 5)] = cols[5][i];
+        }
+        result
+    }
+
     // TODO(elsuizo:2020-06-02): this could be optimize
 
     /// get the a submatrix from discard row `i` and column `j`
@@ -1804,5 +1818,22 @@ mod test_matrix6x6 {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn new_from_vecs_test() {
+        let expected = m66_new!( 1.0,  1.0, 3.0,  4.0,  9.0, 3.0;
+                                10.0, 10.0, 1.0,  2.0,  2.0, 5.0;
+                                 2.0,  9.0, 6.0, 10.0, 10.0, 9.0;
+                                10.0,  9.0, 9.0,  7.0,  3.0, 6.0;
+                                 7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
+                                 3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
+
+
+        let cols = expected.get_cols();
+
+        let result = M66::new_from_vecs(cols);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 }

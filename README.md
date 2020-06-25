@@ -15,6 +15,7 @@ The matrix types `Mnn` (where `n=2..6`) implements the Methods from the
 
  - `det()`: Determinant of the matrix
  - `inverse()`: Inverse of the matrix
+ - `qr()`: QR decomposition of the matrix
  - `norm2()`: norm of the matrix
  - `transpose()`: transpose of the matrix
  - `trace()`: trace of the matrix
@@ -59,7 +60,7 @@ BenchmarkTools.Trial:
 
  - [ ] Eigenvalues and Eigenvectors
  - [ ] `expm()`: Exponential matrix implementation
- - [ ] QR decomposition
+ - [X] QR decomposition
  - [ ] `Quaternion` type and methods
 
 

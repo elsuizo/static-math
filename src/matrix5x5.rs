@@ -27,6 +27,7 @@ use std::fmt;
 use std::ops::{Add, Mul, Sub};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
+use crate::slices_methods::*;
 use crate::traits::LinearAlgebra;
 use crate::matrix4x4::M44;
 use crate::vector5::V5;
@@ -264,6 +265,37 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
                 }
             }
             Some(cofactors.transpose() * (T::one() / det))
+        } else {
+            None
+        }
+    }
+
+    fn qr(&self) -> Option<(Self, Self)> {
+        let det = self.det();
+        if det.abs() > T::epsilon() {
+            let cols = self.get_cols();
+            // this are the columns of the matrix
+            let v2 = cols[1];
+            let v3 = cols[2];
+            let v4 = cols[3];
+            let v5 = cols[4];
+
+            let mut u1 = cols[0];
+            let mut u2 = v2 - u1 * project_x_over_y(&*v2, &*u1);
+            let mut u3 = v3 - u1 * project_x_over_y(&*v3, &*u1) - u2 * project_x_over_y(&*v3, &*u2);
+            let mut u4 = v4 - u1 * project_x_over_y(&*v4, &*u1) - u2 * project_x_over_y(&*v4, &*u2) - u3 * project_x_over_y(&*v4, &*u3);
+            let mut u5 = v5 - u1 * project_x_over_y(&*v5, &*u1) - u2 * project_x_over_y(&*v5, &*u2) - u3 * project_x_over_y(&*v5, &*u3) - u4 * project_x_over_y(&*v5, &*u4);
+
+            normalize(&mut *u1);
+            normalize(&mut *u2);
+            normalize(&mut *u3);
+            normalize(&mut *u4);
+            normalize(&mut *u5);
+
+            let basis = V5::new([u1, u2, u3, u4, u5]);
+            let q     = Self::new_from_vecs(basis);
+            let r     = q.transpose() * (*self);
+            Some((q, r))
         } else {
             None
         }

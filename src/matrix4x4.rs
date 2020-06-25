@@ -28,6 +28,7 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use num::{Float, One, Zero, Num};
 use crate::matrix3x3::*;
+use crate::slices_methods::*;
 use crate::traits::LinearAlgebra;
 use crate::vector4::V4;
 
@@ -38,7 +39,7 @@ use crate::vector4::V4;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M44<T>([[T; 4]; 4]);
 
-impl<T: Float> LinearAlgebra<T> for M44<T> {
+impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     fn rows(&self) -> usize {
         self.0.len()
     }
@@ -190,6 +191,35 @@ impl<T: Float> LinearAlgebra<T> for M44<T> {
             None
         }
     }
+
+    fn qr(&self) -> Option<(Self, Self)> {
+        let det = self.det();
+        if det.abs() > T::epsilon() {
+            let cols = self.get_cols();
+            // this are the columns of the matrix
+            let v2 = cols[1];
+            let v3 = cols[2];
+            let v4 = cols[3];
+
+            let mut u1 = cols[0];
+            let mut u2 = v2 - u1 * project_x_over_y(&*v2, &*u1);
+            let mut u3 = v3 - u1 * project_x_over_y(&*v3, &*u1) - u2 * project_x_over_y(&*v3, &*u2);
+            let mut u4 = v4 - u1 * project_x_over_y(&*v4, &*u1) - u2 * project_x_over_y(&*v4, &*u2) - u3 * project_x_over_y(&*v4, &*u3);
+
+            normalize(&mut *u1);
+            normalize(&mut *u2);
+            normalize(&mut *u3);
+            normalize(&mut *u4);
+
+            let basis = V4::new([u1, u2, u3, u4]);
+            let q     = M44::new_from_vecs(basis);
+            let r     = q.transpose() * (*self);
+            Some((q, r))
+        } else {
+            None
+        }
+    }
+
 }
 
 impl<T> M44<T> {

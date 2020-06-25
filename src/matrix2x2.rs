@@ -30,6 +30,7 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 use num::{Float, Num, Zero, One};
 use crate::vector2::*;
 use crate::traits::LinearAlgebra;
+use crate::slices_methods::*;
 
 // code
 
@@ -56,7 +57,7 @@ impl<T> M22<T> {
     }
 }
 
-impl<T: Float> LinearAlgebra<T> for M22<T> {
+impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
     fn rows(&self) -> usize {
         self.0.len()
     }
@@ -101,6 +102,26 @@ impl<T: Float> LinearAlgebra<T> for M22<T> {
         let det = self.det();
         if det.abs() > T::epsilon() {
             Some(M22::new([[d / det, -b / det], [-c / det, a / det]]))
+        } else {
+            None
+        }
+    }
+
+    fn qr(&self) -> Option<(Self, Self)> {
+        let det = self.det();
+        if det.abs() > T::epsilon() {
+            let cols = self.get_cols();
+            let v2   = cols[1];
+            let mut u1 = cols[0];
+            let mut u2 = v2 - u1 * project_x_over_y(&*v2, &*u1);
+
+            normalize(&mut *u1);
+            normalize(&mut *u2);
+
+            let basis = V2::new([u1, u2]);
+            let q     = Self::new_from_vecs(basis);
+            let r     = q.transpose() * (*self);
+            Some((q, r))
         } else {
             None
         }
@@ -221,7 +242,7 @@ impl<T: Num + Copy> M22<T> {
 }
 
 // NOTE(elsuizo:2020-06-10): maybe an error here is better
-impl<T: Float> M22<T> {
+impl<T: Float + std::iter::Sum> M22<T> {
     /// calculate the real eigen values for the matrix
     pub fn real_eigenvals(&self) -> Option<V2<T>> {
         let tau = self.trace();

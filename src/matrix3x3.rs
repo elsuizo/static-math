@@ -29,6 +29,7 @@ use std::ops::{Deref, DerefMut, Index, IndexMut};
 use crate::traits::LinearAlgebra;
 use num::{Float, One, Zero, Num};
 
+use crate::slices_methods::*;
 use crate::vector3::*;
 //-------------------------------------------------------------------------
 //                        code
@@ -38,7 +39,7 @@ use crate::vector3::*;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M33<T>([[T; 3]; 3]);
 
-impl<T: Float> LinearAlgebra<T> for M33<T> {
+impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     fn rows(&self) -> usize {
         self.0.len()
     }
@@ -95,6 +96,29 @@ impl<T: Float> LinearAlgebra<T> for M33<T> {
             res[(2, 1)] = (self[(2, 0)] * self[(0, 1)] - self[(0, 0)] * self[(2, 1)]) * invdet;
             res[(2, 2)] = (self[(0, 0)] * self[(1, 1)] - self[(1, 0)] * self[(0, 1)]) * invdet;
             Some(res)
+        } else {
+            None
+        }
+    }
+
+    fn qr(&self) -> Option<(Self, Self)> {
+        let det = self.det();
+        if det.abs() > T::epsilon() {
+            let cols = self.get_cols();
+            let v2 = cols[1];
+            let v3 = cols[2];
+
+            let mut u1 = cols[0];
+            let mut u2 = v2 - u1 * project_x_over_y(&*v2, &*u1);
+            let mut u3 = v3 - u1 * project_x_over_y(&*v3, &*u1) - u2 * project_x_over_y(&*v3, &*u2);
+            normalize(&mut *u1);
+            normalize(&mut *u2);
+            normalize(&mut *u3);
+
+            let basis = V3::new([u1, u2, u3]);
+            let q     = Self::new_from_vecs(basis);
+            let r     = q.transpose() * (*self);
+            Some((q, r))
         } else {
             None
         }

@@ -41,8 +41,6 @@ pub trait LinearAlgebra<T> {
     /// get the trace of the matrix
     fn trace(&self) -> T;
 
-    // FIXME(elsuizo:2020-06-01): me parece que no se puede hacer generica porque
-    // su implementacion lleva sqrt
     /// compute the euclidean norm of the matrix
     fn norm2(&self) -> T;
 
@@ -51,6 +49,11 @@ pub trait LinearAlgebra<T> {
 
     /// compute the inverse of the matrix
     fn inverse(&self) -> Option<Self>
+    where
+        Self: Sized;
+
+    /// compute the QR factorization of the matrix(if has inverse)
+    fn qr(&self) -> Option<(Self, Self)>
     where
         Self: Sized;
 }

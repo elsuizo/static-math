@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------
-// @file lib.rs
+// @file slices_methods.rs
 //
-// @date 06/18/20 11:26:55
+// @date 06/24/20 21:48:21
 // @author Martin Noblia
 // @email mnoblia@disroot.org
 //
@@ -22,20 +22,27 @@
 //
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
-extern crate num;
+use num::{Num, Float};
 
-pub mod traits;
-pub mod matrix2x2;
-pub mod matrix3x3;
-pub mod matrix4x4;
-pub mod matrix5x5;
-pub mod matrix6x6;
-pub mod vector2;
-pub mod vector3;
-pub mod vector4;
-pub mod vector5;
-pub mod vector6;
-pub mod utils;
-pub mod errors;
-pub mod slices_methods;
+/// calculate the euclidean norm of the slice
+pub fn norm2<T: Num + Copy + Float>(slice: &[T]) -> T {
+    slice.iter().fold(T::zero(), |n, &i| (i * i) + n).sqrt()
+}
 
+/// calculate the dot product of two slices
+pub fn dot<T: Num + Copy + std::iter::Sum>(slice1: &[T], slice2: &[T]) -> T {
+    slice1.iter().zip(slice2).map(|(&a, &b)| a * b).sum()
+}
+
+/// normalize the slice
+pub fn normalize<T: Float>(slice: &mut [T]) {
+    let n = norm2(slice);
+    for element in slice.iter_mut() {
+        *element = *element / n;
+    }
+}
+
+/// project x in the direction of y
+pub fn project_x_over_y<T: Float + std::iter::Sum>(x: &[T], y: &[T]) -> T {
+    dot(x, y) / dot(y, y)
+}

@@ -115,6 +115,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
         )
     }
 
+    #[inline]
     fn det(&self) -> T {
         let a_00 = self[(0, 0)];
         let a_01 = self[(0, 1)];

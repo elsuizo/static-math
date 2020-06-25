@@ -31,9 +31,9 @@ this are the results for one operation(6x6 matrix inverse):
 
 
 ```text
-inverse 6x6             time:   [21.265 us 21.298 us 21.337 us]
-                        change: [+0.1553% +0.6749% +1.1497%] (p = 0.01 < 0.05)
-                        Change within noise threshold.
+inverse 6x6             time:   [19.912 us 20.047 us 20.193 us]
+                        change: [-32.374% -30.094% -28.425%] (p = 0.00 < 0.05)
+                        Performance has improved.
 ```
 
 you can look the bench here: [bench](benches/bench_inverse.rs)

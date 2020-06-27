@@ -449,6 +449,7 @@ impl<T: Num + Copy> Mul<T> for M44<T> {
     }
 }
 
+// M44 * M44
 impl<T: Num + Copy> Mul for M44<T> {
     type Output = Self;
 
@@ -512,6 +513,22 @@ impl<T: Num + Copy> Mul for M44<T> {
             ],
         ])
     }
+}
+
+// M44 * V4
+impl<T: Num + Copy + std::iter::Sum> Mul<V4<T>> for M44<T> {
+    type Output = V4<T>;
+
+    fn mul(self, rhs: V4<T>) -> V4<T> {
+
+        let rows = self.get_rows();
+        let v0 = dot(&*rows[0], &*rhs);
+        let v1 = dot(&*rows[1], &*rhs);
+        let v2 = dot(&*rows[2], &*rhs);
+        let v3 = dot(&*rows[3], &*rhs);
+        V4::new([v0, v1, v2, v3])
+    }
+
 }
 
 impl<T: Num + Copy> Zero for M44<T> {
@@ -702,6 +719,27 @@ mod test_matrix4x4 {
         ]);
         let result = m1 + m2;
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn mul_vector_rhs() {
+        let m = m44_new!(1.0,  2.0,  3.0,  4.0;
+                         5.0,  6.0,  7.0,  8.0;
+                         9.0, 10.0, 11.0, 12.0;
+                        13.0, 14.0, 15.0, 16.0);
+
+        let v = V4::new([0.0, 1.0, 2.0, 3.0]);
+
+        let result = m * v;
+        let expected = V4::new([20.0, 44.0, 68.0, 92.0]);
+
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 
     #[test]

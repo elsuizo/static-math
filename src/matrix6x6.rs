@@ -1263,6 +1263,24 @@ impl<T: Num + Copy> Mul<T> for M66<T> {
     }
 }
 
+// M66 * V6
+impl<T: Num + Copy + std::iter::Sum> Mul<V6<T>> for M66<T> {
+    type Output = V6<T>;
+
+    fn mul(self, rhs: V6<T>) -> V6<T> {
+
+        let rows = self.get_rows();
+        let v0 = dot(&*rows[0], &*rhs);
+        let v1 = dot(&*rows[1], &*rhs);
+        let v2 = dot(&*rows[2], &*rhs);
+        let v3 = dot(&*rows[3], &*rhs);
+        let v4 = dot(&*rows[4], &*rhs);
+        let v5 = dot(&*rows[5], &*rhs);
+        V6::new([v0, v1, v2, v3, v4, v5])
+    }
+
+}
+
 impl<T: Num + Copy> Mul for M66<T> {
     type Output = Self;
 
@@ -1800,6 +1818,31 @@ mod test_matrix6x6 {
         if let Some(result) = m.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn mul_vec_rhs() {
+        let m = m66_new!( 1.0,  1.0, 3.0,  4.0,  9.0, 3.0;
+                         10.0, 10.0, 1.0,  2.0,  2.0, 5.0;
+                          2.0,  9.0, 6.0, 10.0, 10.0, 9.0;
+                         10.0,  9.0, 9.0,  7.0,  3.0, 6.0;
+                          7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
+                          3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
+
+        let v = V6::new([0.0, 1.0, 2.0, 3.0, 4.0, 5.0]);
+        let result = m * v;
+
+        let expected = V6::new([70.0, 51.0, 136.0, 90.0, 85.0, 51.0]);
+
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+
+
     }
 
     #[test]

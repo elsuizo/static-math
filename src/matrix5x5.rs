@@ -548,6 +548,24 @@ impl<T: Num + Copy> Mul<T> for M55<T> {
     }
 }
 
+
+// M55 * V5
+impl<T: Num + Copy + std::iter::Sum> Mul<V5<T>> for M55<T> {
+    type Output = V5<T>;
+
+    fn mul(self, rhs: V5<T>) -> V5<T> {
+
+        let rows = self.get_rows();
+        let v0 = dot(&*rows[0], &*rhs);
+        let v1 = dot(&*rows[1], &*rhs);
+        let v2 = dot(&*rows[2], &*rhs);
+        let v3 = dot(&*rows[3], &*rhs);
+        let v4 = dot(&*rows[4], &*rhs);
+        V5::new([v0, v1, v2, v3, v4])
+    }
+
+}
+
 impl<T: Num + Copy> Mul for M55<T> {
     type Output = Self;
 
@@ -1063,6 +1081,27 @@ mod test_matrix5x5 {
         let expected4 = V5::new([5.0, 2.0, 10.0, 3.0, 5.0]);
 
         let expected = V5::new([expected0, expected1, expected2, expected3, expected4]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn mul_vector_rhs() {
+        let m = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                          2.0, 4.0, 8.0,  3.0,  2.0;
+                          5.0, 1.0, 2.0,  9.0, 10.0;
+                          6.0, 9.0, 9.0,  7.0,  3.0;
+                          1.0, 8.0, 8.0, 10.0,  5.0);
+
+        let v = V5::new([0.0, 1.0, 2.0, 3.0, 4.0]);
+        let result = m * v;
+        let expected = V5::new([38.0, 37.0, 72.0, 60.0, 74.0]);
+
         assert_eq!(
             &result[..],
             &expected[..],

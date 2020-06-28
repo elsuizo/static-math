@@ -1,3 +1,5 @@
+![MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+
 # Static Math in Rust programming language
 
 - This crate take advantage of the static arrays in Rust for fast operations in

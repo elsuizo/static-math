@@ -3,6 +3,11 @@ name = "static-math"
 version = "0.1.0"
 authors = ["elsuizo <mnoblia@disroot.org>"]
 edition = "2018"
+description = "Fast mathematical operations with static arrays"
+repository = "https://github.com/elsuizo/static-math"
+license = "MIT""
+keywords = ["linear algebra",  "matrix operations", "vector operations", "gamedev", "simulations"]
+categories = ["sciencie"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

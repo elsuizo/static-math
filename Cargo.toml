@@ -5,7 +5,7 @@ authors = ["elsuizo <mnoblia@disroot.org>"]
 edition = "2018"
 description = "Fast mathematical operations with static arrays"
 repository = "https://github.com/elsuizo/static-math"
-license = "MIT""
+license = "MIT"
 keywords = ["linear algebra",  "matrix operations", "vector operations", "gamedev", "simulations"]
 categories = ["sciencie"]
 

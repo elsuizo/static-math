@@ -48,9 +48,20 @@ impl<T: Num + Copy> V3<T> {
         <V3<T> as Zero>::zero()
     }
 
+    pub fn cross(&self, rhs: Self) -> Self {
+        let u_x = rhs[0];
+        let u_y = rhs[1];
+        let u_z = rhs[2];
+
+        V3::new([u_y * self[2] - u_z * self[1],
+                 u_z * self[0] - u_x * self[2],
+                 u_x * self[1] - u_y * self[0]])
+    }
+
 }
 
 impl<T: Float> V3<T> {
+    /// calculate the euclidean norm of the vector
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -119,7 +130,7 @@ impl<T: Num + Copy> Mul for V3<T> {
     }
 }
 
-
+// V3 * M33
 impl<T: Num + Copy> Mul<M33<T>> for V3<T> {
     type Output = V3<T>;
 
@@ -180,6 +191,7 @@ impl<T: Num + Copy> Add for V3<T> {
     }
 }
 
+// impl the Zero trait
 impl<T: Num + Copy> Zero for V3<T> {
     fn zero() -> V3<T> {
         V3::new([T::zero(); 3])
@@ -330,6 +342,23 @@ mod vector3_test {
     fn normalize_test() {
         let result = V3::new([1.0, 1.0, 1.0]).normalize().unwrap();
         let expected = V3::new([0.5773502691896258, 0.5773502691896258, 0.5773502691896258]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn cross_test() {
+        let x = V3::new([1.0, 0.0, 0.0]);
+        let y = V3::new([0.0, 1.0, 0.0]);
+
+        let result = y.cross(x);
+        // z
+        let expected = V3::new([0.0, 0.0, 1.0]);
         assert_eq!(
             &result[..],
             &expected[..],

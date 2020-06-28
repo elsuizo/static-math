@@ -37,13 +37,15 @@ use crate::matrix2x2::*;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct V2<T>([T; 2]);
 
-// NOTE(elsuizo:2019-09-08): podemos crear cualquier vector de cualquier type T
+// NOTE(elsuizo:2020-06-27): whit this definition you could create a new vector
+// of any types
 impl<T> V2<T> {
     pub fn new(input: [T; 2]) -> V2<T> {
         V2(input)
     }
 }
 
+/// create a vector of all elements zeros
 impl<T: Num + Copy> V2<T> {
     pub fn zeros() -> V2<T> {
         <V2<T> as Zero>::zero()
@@ -51,8 +53,11 @@ impl<T: Num + Copy> V2<T> {
 
 }
 
+// NOTE(elsuizo:2020-06-27): this impl must be whith the Float trait because
+// the use of the sqrt method
 impl<T: Float> V2<T> {
 
+    /// calculate the euclidean norm of the vector
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -60,7 +65,8 @@ impl<T: Float> V2<T> {
         T::sqrt(a * a + b * b)
     }
 
-    pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
+    /// normalize the current vector and return a new one
+    pub fn normalize(&self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
             // this method return a new fresh and clean vector :)
@@ -90,7 +96,7 @@ impl<T: Num + Copy> Mul for V2<T> {
 }
 
 // TODO(elsuizo:2020-05-01): missing constant * V2
-/// V2 * constant
+// V2 * constant
 impl<T: Num + Copy> Mul<T> for V2<T> {
     type Output = V2<T>;
 
@@ -122,6 +128,7 @@ impl Mul<V2<f32>> for f32 {
     }
 }
 
+// V2 * M22
 impl<T: Num + Copy> Mul<M22<T>> for V2<T> {
     type Output = V2<T>;
 
@@ -152,6 +159,7 @@ impl<T: Num + Copy> Sub for V2<T> {
     }
 }
 
+// V2 + V2
 impl<T: Num + Copy> Add for V2<T> {
     type Output = Self;
 
@@ -166,6 +174,7 @@ impl<T: Num + Copy> Add for V2<T> {
     }
 }
 
+// Zero trait
 impl<T: Num + Copy> Zero for V2<T> {
     fn zero() -> V2<T> {
         V2::new([T::zero(); 2])

@@ -1,10 +1,11 @@
 [package]
 name = "static-math"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["elsuizo <mnoblia@disroot.org>"]
 edition = "2018"
 description = "Fast mathematical operations with static arrays"
 repository = "https://github.com/elsuizo/static-math"
+documentation = "https://docs.rs/static-math/"
 license = "MIT"
 keywords = ["linear-algebra",  "matrix-operations", "vector-operations", "gamedev", "simulations"]
 categories = ["science"]

@@ -8,6 +8,7 @@ repository = "https://github.com/elsuizo/static-math"
 license = "MIT"
 keywords = ["linear algebra",  "matrix operations", "vector operations", "gamedev", "simulations"]
 categories = ["sciencie"]
+exclude = ["benches/*"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

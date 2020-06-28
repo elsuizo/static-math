@@ -51,6 +51,7 @@ impl<T: Num + Copy> V4<T> {
 }
 
 impl<T: Float> V4<T> {
+    /// calculate the euclidean norm of the vector
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -59,6 +60,7 @@ impl<T: Float> V4<T> {
         T::sqrt(a * a + b * b + c * c + d * d)
     }
 
+    /// normalize the current vector and return a new one
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
@@ -74,6 +76,7 @@ impl<T: Float> V4<T> {
     }
 }
 
+// V4 * V4
 impl<T: Num + Copy> Mul for V4<T> {
     type Output = T;
 
@@ -92,7 +95,7 @@ impl<T: Num + Copy> Mul for V4<T> {
     }
 }
 
-/// V4 * constant
+// V4 * constant
 impl<T: Num + Copy> Mul<T> for V4<T> {
     type Output = V4<T>;
 
@@ -105,7 +108,7 @@ impl<T: Num + Copy> Mul<T> for V4<T> {
     }
 }
 
-/// f32 * V4<f32>
+// f32 * V4<f32>
 impl Mul<V4<f32>> for f32 {
     type Output = V4<f32>;
 
@@ -118,6 +121,7 @@ impl Mul<V4<f32>> for f32 {
     }
 }
 
+// V4 * M44
 impl<T: Num + Copy> Mul<M44<T>> for V4<T> {
     type Output = V4<T>;
 
@@ -172,6 +176,7 @@ impl<T: Num + Copy> Sub for V4<T> {
     }
 }
 
+// V4 + V4
 impl<T: Num + Copy> Add for V4<T> {
     type Output = Self;
 
@@ -232,11 +237,9 @@ impl<T: Num + fmt::Display> fmt::Display for V4<T> {
     }
 }
 
-// TODO(elsuizo:2020-06-02): impl fmt for this type
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
-
 #[cfg(test)]
 mod vector4_test {
     use crate::matrix4x4::M44;

@@ -49,6 +49,7 @@ impl<T: Num + Copy> V5<T> {
 }
 
 impl<T: Float> V5<T> {
+    /// calculate the euclidean norm of the vector
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -58,6 +59,7 @@ impl<T: Float> V5<T> {
         T::sqrt(a * a + b * b + c * c + d * d + e * e)
     }
 
+    /// normalize the current vector and return a new one
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
@@ -73,6 +75,7 @@ impl<T: Float> V5<T> {
     }
 }
 
+// V5 * V5
 impl<T: Num + Copy> Mul for V5<T> {
     type Output = T;
 
@@ -189,6 +192,7 @@ impl<T: Num + Copy> Sub for V5<T> {
     }
 }
 
+// V5 + V5
 impl<T: Num + Copy> Add for V5<T> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
@@ -252,7 +256,6 @@ impl<T: Num + fmt::Display> fmt::Display for V5<T> {
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
-
 #[cfg(test)]
 mod vector5_test {
 

@@ -161,6 +161,7 @@ impl<T: Num + Copy> M22<T> {
         result
     }
 }
+
 // M22 * V2
 impl<T: Num + Copy> Mul<V2<T>> for M22<T> {
     type Output = V2<T>;

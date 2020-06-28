@@ -48,12 +48,13 @@ impl<T: Num + Copy> V3<T> {
         <V3<T> as Zero>::zero()
     }
 
+    /// calculate the cross product
     pub fn cross(&self, rhs: Self) -> Self {
         let u_x = rhs[0];
         let u_y = rhs[1];
         let u_z = rhs[2];
 
-        V3::new([u_y * self[2] - u_z * self[1],
+        Self::new([u_y * self[2] - u_z * self[1],
                  u_z * self[0] - u_x * self[2],
                  u_x * self[1] - u_y * self[0]])
     }
@@ -236,7 +237,6 @@ impl<T: Num + fmt::Display> fmt::Display for V3<T> {
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
-// TODO(elsuizo:2020-06-02): faltan tests
 #[cfg(test)]
 mod vector3_test {
 

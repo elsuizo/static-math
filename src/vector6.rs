@@ -51,6 +51,7 @@ impl<T: Num + Copy> V6<T> {
 }
 
 impl<T: Float> V6<T> {
+    /// calculate the euclidean norm of the vector
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -61,6 +62,7 @@ impl<T: Float> V6<T> {
         T::sqrt(a * a + b * b + c * c + d * d + e * e + f * f)
     }
 
+    /// normalize the current vector and return a new one
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
@@ -106,6 +108,7 @@ impl Mul<V6<f32>> for f32 {
     }
 }
 
+// V6 * V6
 impl<T: Num + Copy> Mul for V6<T> {
     type Output = T;
 
@@ -128,7 +131,7 @@ impl<T: Num + Copy> Mul for V6<T> {
     }
 }
 
-// TODO(elsuizo:2020-04-22): faltaria M66 * V6
+// V6 * M66
 impl<T: Num + Copy> Mul<M66<T>> for V6<T> {
     type Output = V6<T>;
 
@@ -187,6 +190,7 @@ impl<T: Num + Copy> Mul<M66<T>> for V6<T> {
         ])
     }
 }
+
 // V6 - V6
 impl<T: Num + Copy> Sub for V6<T> {
     type Output = Self;
@@ -210,6 +214,7 @@ impl<T: Num + Copy> Sub for V6<T> {
     }
 }
 
+// V6 + V6
 impl<T: Num + Copy> Add for V6<T> {
     type Output = Self;
 
@@ -232,6 +237,7 @@ impl<T: Num + Copy> Add for V6<T> {
     }
 }
 
+// impl Zero trait
 impl<T: Num + Copy> Zero for V6<T> {
     fn zero() -> V6<T> {
         V6::new([T::zero(); 6])
@@ -273,11 +279,9 @@ impl<T: Num + fmt::Display> fmt::Display for V6<T> {
     }
 }
 
-// TODO(elsuizo:2020-06-02): more tests
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
-
 #[cfg(test)]
 mod vector6_tests {
 

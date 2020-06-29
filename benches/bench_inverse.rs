@@ -28,12 +28,13 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //--------------------------------------------------------------------------
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 use static_math::traits::LinearAlgebra;
 use static_math::matrix6x6::M66;
+use static_math::matrix4x4::M44;
 
-fn inverse_test() {
+fn inverse6x6_test() {
 
     let m = M66::new([
         [1.0, 1.0, 3.0, 4.0, 9.0, 3.0],
@@ -48,8 +49,22 @@ fn inverse_test() {
     }
 }
 
+fn inverse4x4_test() {
+
+    let m = M44::new([
+        [1.0, 1.0, 1.0, -1.0],
+        [1.0, 1.0, -1.0, 1.0],
+        [1.0, -1.0, 1.0, 1.0],
+        [-1.0, 1.0, 1.0, 1.0],
+    ]);
+
+    if let Some(_result) = m.inverse() {
+    }
+}
+
 pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("inverse 6x6", |b| b.iter(|| inverse_test()));
+    c.bench_function("inverse 6x6", |b| b.iter(|| inverse6x6_test()));
+    c.bench_function("inverse 4x4", |b| b.iter(|| inverse4x4_test()));
 }
 
 criterion_group!(benches, criterion_benchmark);

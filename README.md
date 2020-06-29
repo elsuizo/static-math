@@ -37,6 +37,10 @@ this are the results for one operation(6x6 matrix inverse):
 inverse 6x6             time:   [19.912 us 20.047 us 20.193 us]
                         change: [-32.374% -30.094% -28.425%] (p = 0.00 < 0.05)
                         Performance has improved.
+
+inverse 4x4             time:   [135.43 ns 135.74 ns 136.09 ns]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high severe
 ```
 
 you can look the bench here: [bench](benches/bench_inverse.rs)

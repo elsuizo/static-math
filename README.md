@@ -1,4 +1,5 @@
 ![MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+[![Documentation](https://docs.rs/static-math/badge.svg)](https://docs.rs/static-math)
 
 # Static Math in Rust programming language
 

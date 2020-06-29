@@ -255,12 +255,12 @@ impl<T: Float + std::iter::Sum> M22<T> {
         let tau = self.trace();
         let delta = self.det();
         let tau_2 = tau * tau;
-        let four = T::from(4.0).unwrap();
+        let four = T::from(4)?;
         let discr = tau_2 - four * delta;
         if discr < T::zero() {
             None
         } else {
-            let two = T::from(2.0).unwrap();
+            let two = T::from(2)?;
             let lambda2 = (tau - T::sqrt(discr)) / two;
             let lambda1 = (tau + T::sqrt(discr)) / two;
             Some(V2::new([lambda1, lambda2]))

@@ -62,9 +62,9 @@ pub fn dot<T: Num + Copy + std::iter::Sum>(slice1: &[T], slice2: &[T]) -> T {
 /// normalize the slice
 pub fn normalize<T: Float>(slice: &mut [T]) {
     let n = norm2(slice);
-    for element in slice.iter_mut() {
+    slice.iter_mut().for_each(|element| {
         *element = *element / n;
-    }
+    })
 }
 
 /// project x in the direction of y
@@ -91,5 +91,32 @@ mod test_slides_methods {
 
         assert_eq!(result, expected);
 
+    }
+
+    #[test]
+    fn dot_tests() {
+       let v1 = V3::new([1, 1, 1]);
+       let v2 = V3::new([1, 1, 3]);
+
+       let result = dot(&*v1, &*v2);
+       let expected = 5;
+
+       assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn normalize_test() {
+        let mut v1 = V3::new([1.0, 1.0, 1.0]);
+        normalize(&mut *v1);
+
+        let expected = V3::new([0.5773502691896258, 0.5773502691896258, 0.5773502691896258]);
+
+        assert_eq!(
+            &v1[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &v1[..],
+            &expected[..]
+        );
     }
 }

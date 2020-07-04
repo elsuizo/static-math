@@ -46,14 +46,17 @@ use crate::traits::LinearAlgebra;
 pub struct M66<T>([[T; 6]; 6]);
 
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
+    #[inline]
     fn rows(&self) -> usize {
         self.0.len()
     }
 
+    #[inline]
     fn cols(&self) -> usize {
         self.rows()
     }
 
+    #[inline]
     fn transpose(&self) -> Self {
         let a_00 = self[(0, 0)];
         let a_01 = self[(0, 1)];
@@ -102,6 +105,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
         ])
     }
 
+    #[inline]
     fn trace(&self) -> T {
         return self[(0, 0)]
             + self[(1, 1)]

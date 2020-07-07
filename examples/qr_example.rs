@@ -59,39 +59,39 @@ fn main() {
                         7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
                         3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
 
-    if let Some(qr) = m22.qr() {
-        println!("q: {}", qr.0);
-        println!("r: {}", qr.1);
-        println!("m44: {}", qr.0 * qr.1);
-        println!("q.det(): {}", qr.0.det());
+    if let Some((q, r)) = m22.qr() {
+        println!("q: {}", q);
+        println!("r: {}", r);
+        println!("m22: {}", q * r);
+        println!("q.det(): {}", q.det());
     }
 
-    if let Some(qr) = m33.qr() {
-        println!("q: {}", qr.0);
-        println!("r: {}", qr.1);
-        println!("m44: {}", qr.0 * qr.1);
-        println!("q.det(): {}", qr.0.det());
+    if let Some((q, r)) = m33.qr() {
+        println!("q: {}", q);
+        println!("r: {}", r);
+        println!("m33: {}", q * r);
+        println!("q.det(): {}", q.det());
     }
 
-    if let Some(qr) = m44.qr() {
-        println!("q: {}", qr.0);
-        println!("r: {}", qr.1);
-        println!("m44: {}", qr.0 * qr.1);
-        println!("q.det(): {}", qr.0.det());
+    if let Some((q, r)) = m44.qr() {
+        println!("q: {}", q);
+        println!("r: {}", r);
+        println!("m44: {}", q * r);
+        println!("q.det(): {}", q.det());
     }
 
-    if let Some(qr) = m55.qr() {
-        println!("q: {}", qr.0);
-        println!("r: {}", qr.1);
-        println!("m55: {}", qr.0 * qr.1);
-        println!("q.det(): {}", qr.0.det());
+    if let Some((q, r)) = m55.qr() {
+        println!("q: {}", q);
+        println!("r: {}", r);
+        println!("m55: {}", q * r);
+        println!("q.det(): {}", q.det());
     }
 
-    if let Some(qr) = m66.qr() {
-        println!("q: {}", qr.0);
-        println!("r: {}", qr.1);
-        println!("m66: {}", qr.0 * qr.1);
-        println!("q.det(): {}", qr.0.det());
+    if let Some((q, r)) = m66.qr() {
+        println!("q: {}", q);
+        println!("r: {}", r);
+        println!("m66: {}", q * r);
+        println!("q.det(): {}", q.det());
     }
 
 }

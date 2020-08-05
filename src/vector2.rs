@@ -32,7 +32,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
 
 use crate::errors::VectorErrors;
 use crate::matrix2x2::*;
@@ -165,6 +165,13 @@ impl<T: Num + Copy> Sub for V2<T> {
     }
 }
 
+// V2 -= V2
+impl<T: Num + Copy> SubAssign for V2<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
+    }
+}
+
 // V2 + V2
 impl<T: Num + Copy> Add for V2<T> {
     type Output = Self;
@@ -177,6 +184,13 @@ impl<T: Num + Copy> Add for V2<T> {
         let b2 = rhs[1];
 
         V2::new([a1 + b1, a2 + b2])
+    }
+}
+
+// V2 += V2
+impl<T: Num + Copy> AddAssign for V2<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
     }
 }
 
@@ -331,6 +345,36 @@ mod vector2_test {
     fn normalize_test() {
         let result = V2::new([1.0, 1.0]).normalize().unwrap();
         let expected = V2::new([0.7071067811865475, 0.7071067811865475]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn sub_assigment_test() {
+        let mut result = V2::new([1.0, 3.0]);
+        let v2 = V2::new([3.0, 3.0]);
+        let expected = V2::new([-2.0, 0.0]);
+        result -= v2;
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn add_assigment_test() {
+        let mut result = V2::new([1.0, 3.0]);
+        let v2 = V2::new([3.0, 3.0]);
+        let expected = V2::new([4.0, 6.0]);
+        result += v2;
         assert_eq!(
             &result[..],
             &expected[..],

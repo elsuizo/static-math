@@ -32,7 +32,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
 // use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 use crate::errors::VectorErrors;
@@ -181,6 +181,13 @@ impl<T: Num + Copy> Sub for V3<T> {
     }
 }
 
+// V3 -= V3
+impl<T: Num + Copy> SubAssign for V3<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
+    }
+}
+
 // V3 + V3
 impl<T: Num + Copy> Add for V3<T> {
     type Output = Self;
@@ -195,6 +202,13 @@ impl<T: Num + Copy> Add for V3<T> {
         let a3 = rhs[2];
 
         V3::new([v1 + a1, v2 + a2, v3 + a3])
+    }
+}
+
+// V3 += V3
+impl<T: Num + Copy> AddAssign for V3<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
     }
 }
 
@@ -365,6 +379,36 @@ mod vector3_test {
         let result = y.cross(x);
         // z
         let expected = V3::new([0.0, 0.0, 1.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn sub_assigment_test() {
+        let mut result = V3::new([1.0, 2.0, 3.0]);
+        let v = V3::new([4.0, 5.0, 6.0]);
+        let expected = V3::new([-3.0, -3.0, -3.0]);
+        result -= v;
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn add_assigment_test() {
+        let mut result = V3::new([1.0, 2.0, 3.0]);
+        let v = V3::new([4.0, 5.0, 6.0]);
+        let expected = V3::new([5.0, 7.0, 9.0]);
+        result += v;
         assert_eq!(
             &result[..],
             &expected[..],

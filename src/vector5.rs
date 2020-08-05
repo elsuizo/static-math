@@ -32,7 +32,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
 
 use crate::errors::VectorErrors;
 use crate::matrix5x5::M55;
@@ -198,6 +198,13 @@ impl<T: Num + Copy> Sub for V5<T> {
     }
 }
 
+// V5 -= V5
+impl<T: Num + Copy> SubAssign for V5<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
+    }
+}
+
 // V5 + V5
 impl<T: Num + Copy> Add for V5<T> {
     type Output = Self;
@@ -215,6 +222,13 @@ impl<T: Num + Copy> Add for V5<T> {
         let a4 = rhs[4];
 
         V5::new([v0 + a0, v1 + a1, v2 + a2, v3 + a3, v4 + a4])
+    }
+}
+
+// V5 += V5
+impl<T: Num + Copy> AddAssign for V5<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
     }
 }
 
@@ -391,6 +405,36 @@ mod vector5_test {
     fn normalize_test() {
         let result = V5::new([1.0, 1.0, 1.0, 1.0, 1.0]).normalize().unwrap();
         let expected = V5::new([0.4472135954999579, 0.4472135954999579, 0.4472135954999579, 0.4472135954999579, 0.4472135954999579]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn sub_assigment_test() {
+        let mut result = V5::new([1.0, 2.0, 3.0, 4.0, 5.0]);
+        let v = V5::new([0.0, 1.0, 2.0, 3.0, 4.0]);
+        let expected = V5::new([1.0, 1.0, 1.0, 1.0, 1.0]);
+        result -= v;
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn add_assigment_test() {
+        let mut result = V5::new([1.0, 2.0, 3.0, 4.0, 5.0]);
+        let v = V5::new([0.0, 1.0, 2.0, 3.0, 4.0]);
+        let expected = V5::new([1.0, 3.0, 5.0, 7.0, 9.0]);
+        result += v;
         assert_eq!(
             &result[..],
             &expected[..],

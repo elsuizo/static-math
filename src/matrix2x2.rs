@@ -117,15 +117,17 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
         let det = self.det();
         if det.abs() > T::epsilon() {
             let cols = self.get_cols();
-            let v2   = cols[1];
-            let mut u1 = cols[0];
-            let mut u2 = v2 - u1 * project_x_over_y(&*v2, &*u1);
-
-            normalize(&mut *u1);
-            normalize(&mut *u2);
-
-            let basis = V2::new([u1, u2]);
-            let q     = Self::new_from_vecs(basis);
+            let mut q: [V2<T>; 2] = *M22::zeros().get_cols();
+            for i in 0..q.len() {
+                let mut q_tilde = cols[i];
+                for k in 0..i {
+                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                }
+                normalize(&mut *q_tilde);
+                q[i] = q_tilde;
+            }
+            let basis = V2::new([q[0], q[1]]);
+            let q     = M22::new_from_vecs(basis);
             let r     = q.transpose() * (*self);
             Some((q, r))
         } else {
@@ -403,10 +405,10 @@ impl<T: Num + fmt::Display> fmt::Display for M22<T> {
 mod test_matrix2x2 {
     use crate::traits::LinearAlgebra;
     use crate::matrix2x2::M22;
-    use crate::utils::compare_vecs;
+    use crate::utils::{compare_vecs, nearly_equal};
     use crate::vector2::V2;
 
-    const EPS: f32 = 1e-8;
+    const EPS: f32 = 1e-7;
 
     #[test]
     fn create_m22_floats() {
@@ -580,5 +582,16 @@ mod test_matrix2x2 {
         let result = M22::new_from_vecs(cols);
 
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn qr_test() {
+        let expected = m22_new!(10.0, 2.0;
+                                3.0, -4.0);
+        if let Some((q, r)) = expected.qr() {
+            let result = q * r;
+            assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+            assert!(nearly_equal(q.det().abs(), 1.0, EPS));
+        }
     }
 }

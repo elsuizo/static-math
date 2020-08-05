@@ -32,7 +32,7 @@ use std::fmt;
 use num::{Float, Zero, Num};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
 
 use crate::errors::VectorErrors;
 use crate::matrix6x6::M66;
@@ -220,6 +220,13 @@ impl<T: Num + Copy> Sub for V6<T> {
     }
 }
 
+// V6 -= V6
+impl<T: Num + Copy> SubAssign for V6<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
+    }
+}
+
 // V6 + V6
 impl<T: Num + Copy> Add for V6<T> {
     type Output = Self;
@@ -240,6 +247,13 @@ impl<T: Num + Copy> Add for V6<T> {
         let a5 = rhs[5];
 
         V6::new([v0 + a0, v1 + a1, v2 + a2, v3 + a3, v4 + a4, v5 + a5])
+    }
+}
+
+// V6 += V6
+impl<T: Num + Copy> AddAssign for V6<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
     }
 }
 
@@ -395,6 +409,36 @@ mod vector6_tests {
     fn normalize_test() {
         let result = V6::new([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).normalize().unwrap();
         let expected = V6::new([0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631, 0.4082482904638631]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn sub_assigment_test() {
+        let mut result = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let v = V6::new([0.0, 1.0, 2.0, 3.0, 4.0, 5.0]);
+        let expected = V6::new([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
+        result -= v;
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn add_assigment_test() {
+        let mut result = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let v = V6::new([0.0, 1.0, 2.0, 3.0, 4.0, 5.0]);
+        let expected = V6::new([1.0, 3.0, 5.0, 7.0, 9.0, 11.0]);
+        result += v;
         assert_eq!(
             &result[..],
             &expected[..],

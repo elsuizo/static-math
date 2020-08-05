@@ -280,26 +280,18 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
         let det = self.det();
         if det.abs() > T::epsilon() {
             let cols = self.get_cols();
-            // this are the columns of the matrix
-            let v2 = cols[1];
-            let v3 = cols[2];
-            let v4 = cols[3];
-            let v5 = cols[4];
-
-            let mut u1 = cols[0];
-            let mut u2 = v2 - u1 * project_x_over_y(&*v2, &*u1);
-            let mut u3 = v3 - u1 * project_x_over_y(&*v3, &*u1) - u2 * project_x_over_y(&*v3, &*u2);
-            let mut u4 = v4 - u1 * project_x_over_y(&*v4, &*u1) - u2 * project_x_over_y(&*v4, &*u2) - u3 * project_x_over_y(&*v4, &*u3);
-            let mut u5 = v5 - u1 * project_x_over_y(&*v5, &*u1) - u2 * project_x_over_y(&*v5, &*u2) - u3 * project_x_over_y(&*v5, &*u3) - u4 * project_x_over_y(&*v5, &*u4);
-
-            normalize(&mut *u1);
-            normalize(&mut *u2);
-            normalize(&mut *u3);
-            normalize(&mut *u4);
-            normalize(&mut *u5);
-
-            let basis = V5::new([u1, u2, u3, u4, u5]);
-            let q     = Self::new_from_vecs(basis);
+            let mut q: [V5<T>; 5] = *M55::zeros().get_cols();
+            for i in 0..q.len() {
+                let mut q_tilde = cols[i];
+                for k in 0..i {
+                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                }
+                normalize(&mut *q_tilde);
+                q[i] = q_tilde;
+            }
+            // TODO(elsuizo:2020-08-05): do this with a another for loop
+            let basis = V5::new([q[0], q[1], q[2], q[3], q[4]]);
+            let q     = M55::new_from_vecs(basis);
             let r     = q.transpose() * (*self);
             Some((q, r))
         } else {
@@ -911,7 +903,7 @@ mod test_matrix5x5 {
     use crate::utils::compare_vecs;
     use crate::vector5::V5;
 
-    const EPS: f32 = 1e-7;
+    const EPS: f32 = 1e-6;
 
     #[test]
     fn matrix5x5_det_test() {
@@ -1156,5 +1148,19 @@ mod test_matrix5x5 {
         let result = M55::new_from_vecs(cols);
 
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn qr_test() {
+        let expected = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                                 2.0, 1.0, 8.0,  3.0,  2.0;
+                                 5.0, 1.0, 1.0,  9.0, 10.0;
+                                 6.0, 9.0, 9.0,  1.0,  3.0;
+                                 1.0, 8.0, 8.0, 10.0,  5.0);
+        if let Some((q, r)) = expected.qr() {
+            let result = q * r;
+            assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+            assert!(nearly_equal(q.det().abs(), 1.0, EPS));
+        }
     }
 }

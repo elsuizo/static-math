@@ -111,18 +111,17 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
         let det = self.det();
         if det.abs() > T::epsilon() {
             let cols = self.get_cols();
-            let v2 = cols[1];
-            let v3 = cols[2];
-
-            let mut u1 = cols[0];
-            let mut u2 = v2 - u1 * project_x_over_y(&*v2, &*u1);
-            let mut u3 = v3 - u1 * project_x_over_y(&*v3, &*u1) - u2 * project_x_over_y(&*v3, &*u2);
-            normalize(&mut *u1);
-            normalize(&mut *u2);
-            normalize(&mut *u3);
-
-            let basis = V3::new([u1, u2, u3]);
-            let q     = Self::new_from_vecs(basis);
+            let mut q: [V3<T>; 3] = *M33::zeros().get_cols();
+            for i in 0..q.len() {
+                let mut q_tilde = cols[i];
+                for k in 0..i {
+                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                }
+                normalize(&mut *q_tilde);
+                q[i] = q_tilde;
+            }
+            let basis = V3::new([q[0], q[1], q[2]]);
+            let q     = M33::new_from_vecs(basis);
             let r     = q.transpose() * (*self);
             Some((q, r))
         } else {
@@ -625,4 +624,15 @@ mod test_matrix3x3 {
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 
+    #[test]
+    fn qr_test() {
+        let expected = m33_new!(0.0, 1.0, 2.0;
+                                3.0, 4.0, 5.0;
+                                6.0, 7.0, 8.0);
+        if let Some((q, r)) = expected.qr() {
+            let result = q * r;
+            assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+            assert!(nearly_equal(q.det().abs(), 1.0, EPS));
+        }
+    }
 }

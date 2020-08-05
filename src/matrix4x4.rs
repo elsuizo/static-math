@@ -202,22 +202,16 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
         let det = self.det();
         if det.abs() > T::epsilon() {
             let cols = self.get_cols();
-            // this are the columns of the matrix
-            let v2 = cols[1];
-            let v3 = cols[2];
-            let v4 = cols[3];
-
-            let mut u1 = cols[0];
-            let mut u2 = v2 - u1 * project_x_over_y(&*v2, &*u1);
-            let mut u3 = v3 - u1 * project_x_over_y(&*v3, &*u1) - u2 * project_x_over_y(&*v3, &*u2);
-            let mut u4 = v4 - u1 * project_x_over_y(&*v4, &*u1) - u2 * project_x_over_y(&*v4, &*u2) - u3 * project_x_over_y(&*v4, &*u3);
-
-            normalize(&mut *u1);
-            normalize(&mut *u2);
-            normalize(&mut *u3);
-            normalize(&mut *u4);
-
-            let basis = V4::new([u1, u2, u3, u4]);
+            let mut q: [V4<T>; 4] = *M44::zeros().get_cols();
+            for i in 0..q.len() {
+                let mut q_tilde = cols[i];
+                for k in 0..i {
+                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                }
+                normalize(&mut *q_tilde);
+                q[i] = q_tilde;
+            }
+            let basis = V4::new([q[0], q[1], q[2], q[3]]);
             let q     = M44::new_from_vecs(basis);
             let r     = q.transpose() * (*self);
             Some((q, r))
@@ -983,5 +977,18 @@ mod test_matrix4x4 {
         let result = M44::new_from_vecs(cols);
 
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn qr_test() {
+        let expected = m44_new!( 0.0,  1.0,  2.0,  3.0;
+                                 4.0,  5.0,  6.0,  7.0;
+                                 8.0,  9.0, 10.0, 11.0;
+                                12.0, 13.0, 14.0, 15.0);
+        if let Some((q, r)) = expected.qr() {
+            let result = q * r;
+            assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+            assert!(nearly_equal(q.det().abs(), 1.0, EPS));
+        }
     }
 }

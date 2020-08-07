@@ -113,6 +113,8 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
         }
     }
 
+    /// Calculate de QR factorization of the M22 via gram-schmidt
+    /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
         let det = self.det();
         if det.abs() > T::epsilon() {
@@ -134,6 +136,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
             None
         }
     }
+
 }
 
 impl<T: Num + Copy> M22<T> {
@@ -165,6 +168,21 @@ impl<T: Num + Copy> M22<T> {
         for i in 0..result.cols() {
             result[(i, 0)] = cols[0][i];
             result[(i, 1)] = cols[1][i];
+        }
+        result
+    }
+
+    /// get the diagonal of the matrix
+    pub fn get_diagonal(&self) -> V2<T> {
+        let mut result = V2::zeros();
+        let mut index: usize = 0;
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                if i == j {
+                    result[index] = self[(i, j)];
+                    index += 1;
+                }
+            }
         }
         result
     }
@@ -593,5 +611,20 @@ mod test_matrix2x2 {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
             assert!(nearly_equal(q.det().abs(), 1.0, EPS));
         }
+    }
+
+    #[test]
+    fn get_diagonal() {
+        let m = m22_new!(10.0, 2.0;
+                         3.0, -4.0);
+        let result = m.get_diagonal();
+        let expected = V2::new([10.0, -4.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 }

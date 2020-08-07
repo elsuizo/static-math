@@ -198,6 +198,8 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
         }
     }
 
+    /// Calculate de QR factorization of the M44 via gram-schmidt
+    /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
         let det = self.det();
         if det.abs() > T::epsilon() {
@@ -270,6 +272,20 @@ impl<T: Num + Copy> M44<T> {
         result
     }
 
+    /// get the diagonal of the matrix
+    pub fn get_diagonal(&self) -> V4<T> {
+        let mut result = V4::zeros();
+        let mut index: usize = 0;
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                if i == j {
+                    result[index] = self[(i, j)];
+                    index += 1;
+                }
+            }
+        }
+        result
+    }
     // TODO(elsuizo:2020-06-02): this could be optimize
 
     pub fn get_submatrix(&self, selected: (usize, usize)) -> M33<T> {
@@ -990,5 +1006,22 @@ mod test_matrix4x4 {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
             assert!(nearly_equal(q.det().abs(), 1.0, EPS));
         }
+    }
+
+    #[test]
+    fn get_diagonal() {
+        let m = m44_new!( 0.0,  1.0,  2.0,  3.0;
+                          4.0,  5.0,  6.0,  7.0;
+                          8.0,  9.0, 10.0, 11.0;
+                         12.0, 13.0, 14.0, 15.0);
+        let result = m.get_diagonal();
+        let expected = V4::new([0.0, 5.0, 10.0, 15.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 }

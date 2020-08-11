@@ -66,9 +66,9 @@ BenchmarkTools.Trial:
 
 ## TODOS:
 
- - [ ] Eigenvalues and Eigenvectors
- - [ ] `expm()`: Exponential matrix implementation
- - [X] QR decomposition
  - [ ] `Quaternion` type and methods
+ - [ ] `expm()`: Exponential matrix implementation
+ - [X] Eigenvalues
+ - [X] QR decomposition
 
 

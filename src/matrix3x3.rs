@@ -195,6 +195,36 @@ impl<T: Num + Copy> M33<T> {
         result
     }
 
+    pub fn get_upper_triagular(&self) -> [T; 3] {
+        let zero = T::zero();
+        let mut result: [T; 3] = [zero, zero, zero];
+        let mut index = 0;
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                if i < j {
+                    result[index] = self[(i, j)];
+                    index += 1;
+                }
+            }
+        }
+        result
+    }
+
+    pub fn get_lower_triangular(&self) -> [T; 3] {
+        let zero = T::zero();
+        let mut result: [T; 3] = [zero, zero, zero];
+        let mut index = 0;
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                if i > j {
+                    result[index] = self[(i, j)];
+                    index += 1;
+                }
+            }
+        }
+        result
+    }
+
 }
 
 impl<T: Num + Copy> M33<T> {
@@ -669,4 +699,37 @@ mod test_matrix3x3 {
             &expected[..]
         );
     }
+
+    #[test]
+    fn get_upper_triangular_test() {
+        let m = m33_new!(0.0, 1.0, 2.0;
+                         3.0, 4.0, 5.0;
+                         6.0, 7.0, 8.0);
+        let result = m.get_upper_triagular();
+        let expected = [1.0, 2.0, 5.0];
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn get_lower_triangular_test() {
+        let m = m33_new!(0.0, 1.0, 2.0;
+                         3.0, 4.0, 5.0;
+                         6.0, 7.0, 8.0);
+        let result = m.get_lower_triangular();
+        let expected = [3.0, 6.0, 7.0];
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
 }

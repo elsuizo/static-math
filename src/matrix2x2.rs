@@ -186,6 +186,7 @@ impl<T: Num + Copy> M22<T> {
         }
         result
     }
+
 }
 
 // M22 * V2

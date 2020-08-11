@@ -64,6 +64,9 @@ pub fn compare_vecs<T: Float>(v1: &[T], v2: &[T], epsilon: T) -> bool {
     v_result.iter().all(|&x| x == true)
 }
 
+pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {
+    Float::abs(num1 - num2) < tol
+}
 
 //-------------------------------------------------------------------------
 //                        tests
@@ -82,6 +85,14 @@ mod test_utils {
     fn test_zero_signs() {
         let a = 0.0;
         let b = -0.0;
-        assert_eq!(nearly_equal(a, b, 1e-9), true);
+        assert_eq!(nearly_equal(a, b, 1e-10), true);
+    }
+
+    // FIXME(elsuizo:2020-08-10): this test fails!!!
+    #[test]
+    fn test_one_zero() {
+        let b = -0.00000000000000039905561918225744;
+        let a = 0.0;
+        assert_eq!(nearly_equal(a, b, 1e-10), false);
     }
 }

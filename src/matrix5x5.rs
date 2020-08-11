@@ -797,6 +797,36 @@ impl<T: Num + Copy> M55<T> {
         V5::new([c0, c1, c2, c3, c4])
     }
 
+    pub fn get_upper_triagular(&self) -> [T; 10] {
+        let zero = T::zero();
+        let mut result: [T; 10] = [zero; 10];
+        let mut index = 0;
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                if i < j {
+                    result[index] = self[(i, j)];
+                    index += 1;
+                }
+            }
+        }
+        result
+    }
+
+    pub fn get_lower_triangular(&self) -> [T; 10] {
+        let zero = T::zero();
+        let mut result: [T; 10] = [zero; 10];
+        let mut index = 0;
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                if i > j {
+                    result[index] = self[(i, j)];
+                    index += 1;
+                }
+            }
+        }
+        result
+    }
+
 }
 
 impl<T> Deref for M55<T> {
@@ -1189,6 +1219,42 @@ mod test_matrix5x5 {
                           1.0, 8.0, 8.0, 10.0,  5.0);
         let result = m.get_diagonal();
         let expected = V5::new([10.0, 1.0, 1.0, 1.0, 5.0]);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn get_upper_triangular_test() {
+        let m = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                          2.0, 1.0, 8.0,  3.0,  2.0;
+                          5.0, 1.0, 1.0,  9.0, 10.0;
+                          6.0, 9.0, 9.0,  1.0,  3.0;
+                          1.0, 8.0, 8.0, 10.0,  5.0);
+        let result = m.get_upper_triagular();
+        let expected = [1.0, 7.0, 1.0, 5.0, 8.0, 3.0, 2.0, 9.0, 10.0, 3.0];
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn get_lower_triangular_test() {
+        let m = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                          2.0, 1.0, 8.0,  3.0,  2.0;
+                          5.0, 1.0, 1.0,  9.0, 10.0;
+                          6.0, 9.0, 9.0,  1.0,  3.0;
+                          1.0, 8.0, 8.0, 10.0,  5.0);
+        let result = m.get_lower_triangular();
+        let expected = [2.0, 5.0, 1.0, 6.0, 9.0, 9.0, 1.0, 8.0, 8.0, 10.0];
         assert_eq!(
             &result[..],
             &expected[..],

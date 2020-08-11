@@ -42,7 +42,9 @@ pub trait LinearAlgebra<T> {
     }
 
     /// transpose dimentions of the matrix
-    fn transpose(&self) -> Self;
+    fn transpose(&self) -> Self
+    where
+        Self: Sized;
 
     /// get the trace of the matrix
     fn trace(&self) -> T;

@@ -29,6 +29,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use num::{Num, Float};
+use crate::utils::compare_floats;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct MaxMin<T> {
@@ -70,6 +71,14 @@ pub fn normalize<T: Float>(slice: &mut [T]) {
 /// project x in the direction of y
 pub fn project_x_over_y<T: Float + std::iter::Sum>(x: &[T], y: &[T]) -> T {
     dot(x, y) / dot(y, y)
+}
+
+pub fn check_elements<T: Float>(v: &[T], tol: T) -> bool {
+    let mut result = false;
+    for num in v.iter() {
+        result |= compare_floats(*num, T::zero(), tol);
+    }
+    result
 }
 
 //-------------------------------------------------------------------------

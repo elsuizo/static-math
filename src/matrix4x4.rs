@@ -232,7 +232,7 @@ impl<T> M44<T> {
     pub fn rows(&self) -> usize {
         self.0.len()
     }
-    // NOTE(elsuizo:2019-09-13): si ya se es medio...
+
     pub fn cols(&self) -> usize {
         self.rows()
     }

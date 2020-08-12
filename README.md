@@ -35,13 +35,16 @@ this are the results for one operation(6x6 matrix inverse):
 
 
 ```text
-inverse 6x6             time:   [19.912 us 20.047 us 20.193 us]
-                        change: [-32.374% -30.094% -28.425%] (p = 0.00 < 0.05)
-                        Performance has improved.
+inverse 6x6             time:   [9.9747 us 9.9786 us 9.9827 us]
+                        change: [-0.0532% +0.3519% +1.0973%] (p = 0.44 > 0.05)
+                        No change in performance detected.
+Found 4 outliers among 100 measurements (4.00%)
+  1 (1.00%) high mild
+  3 (3.00%) high severe
 
-inverse 4x4             time:   [135.43 ns 135.74 ns 136.09 ns]
-Found 2 outliers among 100 measurements (2.00%)
-  2 (2.00%) high severe
+inverse 4x4             time:   [118.78 ns 118.97 ns 119.17 ns]
+                        change: [-0.3000% -0.0129% +0.2796%] (p = 0.93 > 0.05)
+                        No change in performance detected.
 ```
 
 you can look the bench here: [bench](benches/bench_inverse.rs)
@@ -62,7 +65,6 @@ BenchmarkTools.Trial:
   samples:          3040
   evals/sample:     1
 ```
-
 
 ## TODOS:
 

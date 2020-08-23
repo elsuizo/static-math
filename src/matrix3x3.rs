@@ -160,10 +160,8 @@ impl<T: Num + Copy> M33<T> {
     /// transform the matrix to a flatten vector
     pub fn as_vec(&self) -> [T; 9] {
         let mut result = [T::zero(); 9];
-        for i in 0..self.rows() {
-            for j in 0..self.cols() {
-                result[i] = self[(i, j)];
-            }
+        for (index, element) in self.iter().flatten().enumerate() {
+            result[index] = *element;
         }
         result
     }

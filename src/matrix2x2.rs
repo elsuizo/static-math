@@ -153,10 +153,8 @@ impl<T: Num + Copy> M22<T> {
     /// transform the matrix to a flatten vector
     pub fn as_vec(&self) -> [T; 4] {
         let mut result = [T::zero(); 4];
-        for i in 0..self.rows() {
-            for j in 0..self.cols() {
-                result[i] = self[(i, j)];
-            }
+        for (index, element) in self.iter().flatten().enumerate() {
+            result[index] = *element;
         }
         result
     }

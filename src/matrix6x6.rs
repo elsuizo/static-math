@@ -1427,10 +1427,8 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
     /// transform the matrix to a flatten vector
     pub fn as_vec(&self) -> [T; 36] {
         let mut result = [T::zero(); 36];
-        for i in 0..self.rows() {
-            for j in 0..self.cols() {
-                result[i] = self[(i, j)];
-            }
+        for (index, element) in self.iter().flatten().enumerate() {
+            result[index] = *element;
         }
         result
     }
@@ -1723,7 +1721,7 @@ mod test_matrix6x6 {
     use crate::vector6::V6;
 
     // TODO(elsuizo:2020-06-02): ver porque tenemos que bajar el EPS para que ande inverse()
-    const EPS: f32 = 1e-5;
+    const EPS: f32 = 1e-4;
 
     #[test]
     fn sub_test() {

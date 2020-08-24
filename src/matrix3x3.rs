@@ -80,13 +80,14 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
         )
     }
 
+    /// Calculate the determiant of the matrix
     fn det(&self) -> T {
         self[(0, 0)] * (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)])
             - self[(0, 1)] * (self[(1, 0)] * self[(2, 2)] - self[(1, 2)] * self[(2, 0)])
             + self[(0, 2)] * (self[(1, 0)] * self[(2, 1)] - self[(1, 1)] * self[(2, 0)])
     }
 
-    // TODO(elsuizo:2020-06-02): use here utils::nearly_equal()
+    /// Calculate the inverse
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if det.abs() > T::epsilon() {

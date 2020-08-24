@@ -897,13 +897,14 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
         let det = self.det();
         if det.abs() > T::epsilon() {
             let mut cofactors: M66<T> = M66::zeros();
-            for i in 0..self.rows() {
-                for j in 0..self.cols() {
+            for i in 0..6 {
+                for j in 0..6 {
                     let sign = (-T::one()).powi((i + j) as i32);
-                    cofactors[(i, j)] = sign * self.get_submatrix((i, j)).det();
+                    // transpose in place
+                    cofactors[(j, i)] = sign * self.get_submatrix((i, j)).det();
                 }
             }
-            Some(cofactors.transpose() * (T::one() / det))
+            Some(cofactors * (T::one() / det))
         } else {
             None
         }
@@ -1470,8 +1471,8 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
         let mut values: [T; 25] = [T::zero(); 25];
         let mut result: M55<T> = M55::zeros();
         let mut index: usize = 0;
-        for i in 0..self.rows() {
-            for j in 0..self.cols() {
+        for i in 0..6 {
+            for j in 0..6 {
                 if !(i == selected.0 || j == selected.1) {
                     // get the values from the Matrix4x4
                     values[index] = self[(i, j)];
@@ -1479,11 +1480,11 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
                 }
             }
         }
-        let mut i: usize = 0;
-        for r in 0..result.rows() {
-            for c in 0..result.cols() {
-                result[(r, c)] = values[i];
-                i += 1;
+        index = 0;
+        for r in 0.. 5 {
+            for c in 0..5 {
+                result[(r, c)] = values[index];
+                index += 1;
             }
         }
         return result;

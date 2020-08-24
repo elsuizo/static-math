@@ -163,7 +163,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
             - a16 * a3 * a6 * a9
     }
 
-    // TODO(elsuizo:2020-06-02): here could we use utils::nearly_equal()???
+    /// Calculate the inverse
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if det.abs() > T::epsilon() {
@@ -284,14 +284,13 @@ impl<T: Num + Copy> M44<T> {
         }
         result
     }
-    // TODO(elsuizo:2020-06-02): this could be optimize
 
     pub fn get_submatrix(&self, selected: (usize, usize)) -> M33<T> {
         let mut values: [T; 9] = [T::zero(); 9];
         let mut result: M33<T> = M33::zeros();
         let mut index: usize = 0;
-        for i in 0..self.rows() {
-            for j in 0..self.cols() {
+        for i in 0..4 {
+            for j in 0..4 {
                 if !(i == selected.0 || j == selected.1) {
                     // get the values from the M33
                     values[index] = self[(i, j)];
@@ -299,11 +298,11 @@ impl<T: Num + Copy> M44<T> {
                 }
             }
         }
-        let mut i: usize = 0;
-        for r in 0..result.rows() {
-            for c in 0..result.cols() {
-                result[(r, c)] = values[i];
-                i += 1;
+        index = 0;
+        for r in 0..3 {
+            for c in 0..3 {
+                result[(r, c)] = values[index];
+                index += 1;
             }
         }
         result

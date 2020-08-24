@@ -259,7 +259,6 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
     /// Cofactor = (-1)^(i+j) M(i, j).det()
     ///
     fn inverse(&self) -> Option<Self> {
-
         let det = self.det();
         if det.abs() > T::epsilon() {
             let mut cofactors: M55<T> = M55::zeros();
@@ -267,10 +266,11 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
             for i in 0..self.rows() {
                 for j in 0..self.cols() {
                     let sign = (-T::one()).powi((i + j) as i32);
-                    cofactors[(i, j)] = sign * self.get_submatrix((i, j)).det();
+                    // transpose in place
+                    cofactors[(j, i)] = sign * self.get_submatrix((i, j)).det();
                 }
             }
-            Some(cofactors.transpose() * (T::one() / det))
+            Some(cofactors * (T::one() / det))
         } else {
             None
         }
@@ -291,7 +291,6 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
             }
-            // TODO(elsuizo:2020-08-05): do this with a another for loop
             let basis = V5::new([q[0], q[1], q[2], q[3], q[4]]);
             let q     = M55::new_from_vecs(basis);
             let r     = q.transpose() * (*self);

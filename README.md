@@ -7,6 +7,10 @@
 - This crate take advantage of the static arrays in Rust for fast operations in
 stack memory.
 
+- No `unsafe` code
+
+- Could be optimize more with the use of SIMD
+
 - This crate could be used in an `no-std` environment.
 
 - The determinant of the matrixs are evaluated "in-place" without loops and code
@@ -31,7 +35,7 @@ Using the criterion crate:
 
 https://github.com/bheisler/criterion.rs
 
-this are the results for one operation(6x6 matrix inverse):
+this are the results for matrixs inverse operations(in a very old machine)
 
 
 ```text

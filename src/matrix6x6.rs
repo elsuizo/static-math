@@ -45,6 +45,27 @@ use crate::traits::LinearAlgebra;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M66<T>([[T; 6]; 6]);
 
+//-------------------------------------------------------------------------
+//                        macros
+//-------------------------------------------------------------------------
+#[macro_export]
+macro_rules! m66_new {
+    ($($first_row:expr),*;
+     $($second_row:expr),*;
+     $($third_row:expr),*;
+     $($fourth_row:expr),*;
+     $($fifth_row:expr),*;
+     $($sixth_row:expr),*
+     ) => {
+        M66::new([[$($first_row),*],
+                 [$($second_row),*],
+                 [$($third_row),*],
+                 [$($fourth_row),*],
+                 [$($fifth_row),*],
+                 [$($sixth_row),*]])
+    }
+}
+
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
     #[inline]
     fn rows(&self) -> usize {
@@ -894,12 +915,13 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
     ///
     /// Cofactor = (-1)^(i+j) * M(i, j).det()
     fn inverse(&self) -> Option<Self> {
+        let one = T::one();
         let det = self.det();
         if det.abs() > T::epsilon() {
             let mut cofactors: M66<T> = M66::zeros();
             for i in 0..6 {
                 for j in 0..6 {
-                    let sign = (-T::one()).powi((i + j) as i32);
+                    let sign = if (i + j) % 2 == 0 {one} else {-one};
                     // transpose in place
                     cofactors[(j, i)] = sign * self.get_submatrix((i, j)).det();
                 }
@@ -1463,8 +1485,6 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
         result
     }
 
-    // TODO(elsuizo:2020-06-02): this could be optimize
-
     /// get the a submatrix from discard row `i` and column `j`
     ///
     fn get_submatrix(&self, selected: (usize, usize)) -> M55<T> {
@@ -1474,7 +1494,6 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
         for i in 0..6 {
             for j in 0..6 {
                 if !(i == selected.0 || j == selected.1) {
-                    // get the values from the Matrix4x4
                     values[index] = self[(i, j)];
                     index += 1;
                 }
@@ -1688,26 +1707,6 @@ impl<T: Num + fmt::Display> fmt::Display for M66<T> {
     }
 }
 
-//-------------------------------------------------------------------------
-//                        macros
-//-------------------------------------------------------------------------
-#[macro_export]
-macro_rules! m66_new {
-    ($($first_row:expr),*;
-     $($second_row:expr),*;
-     $($third_row:expr),*;
-     $($fourth_row:expr),*;
-     $($fifth_row:expr),*;
-     $($sixth_row:expr),*
-     ) => {
-        M66::new([[$($first_row),*],
-                 [$($second_row),*],
-                 [$($third_row),*],
-                 [$($fourth_row),*],
-                 [$($fifth_row),*],
-                 [$($sixth_row),*]])
-    }
-}
 
 //-------------------------------------------------------------------------
 //                        tests

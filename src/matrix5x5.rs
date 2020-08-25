@@ -259,13 +259,13 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
     /// Cofactor = (-1)^(i+j) M(i, j).det()
     ///
     fn inverse(&self) -> Option<Self> {
+        let one = T::one();
         let det = self.det();
         if det.abs() > T::epsilon() {
             let mut cofactors: M55<T> = M55::zeros();
-
             for i in 0..self.rows() {
                 for j in 0..self.cols() {
-                    let sign = (-T::one()).powi((i + j) as i32);
+                    let sign = if (i + j) % 2 == 0 {one} else {-one};
                     // transpose in place
                     cofactors[(j, i)] = sign * self.get_submatrix((i, j)).det();
                 }
@@ -734,7 +734,6 @@ impl<T: Num + Copy> M55<T> {
         }
         result
     }
-    // TODO(elsuizo:2020-06-02): this could be optimize
 
     /// get the a submatrix from discard row `i` and column `j`
     fn get_submatrix(&self, selected: (usize, usize)) -> M44<T> {
@@ -744,17 +743,16 @@ impl<T: Num + Copy> M55<T> {
         for i in 0..self.rows() {
             for j in 0..self.cols() {
                 if !(i == selected.0 || j == selected.1) {
-                    // get the values from the M44
                     values[index] = self[(i, j)];
                     index += 1;
                 }
             }
         }
-        let mut i: usize = 0;
+        index = 0;
         for r in 0..result.rows() {
             for c in 0..result.cols() {
-                result[(r, c)] = values[i];
-                i += 1;
+                result[(r, c)] = values[index];
+                index += 1;
             }
         }
         return result;

@@ -7,6 +7,8 @@
 - This crate take advantage of the static arrays in Rust for fast operations in
 stack memory.
 
+- We use a tuple to indexing elements: `m[(i, j)]` allowing nice interface with the `match` feature of Rust
+
 - No `unsafe` code
 
 - Could be optimize more with the use of SIMD

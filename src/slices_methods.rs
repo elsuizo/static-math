@@ -51,7 +51,7 @@ pub fn find_max_min<T: std::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
 }
 
 /// calculate the euclidean norm of the slice
-pub fn norm2<T: Num + Copy + Float>(slice: &[T]) -> T {
+pub fn norm2<T: Float>(slice: &[T]) -> T {
     slice.iter().fold(T::zero(), |n, &i| (i * i) + n).sqrt()
 }
 

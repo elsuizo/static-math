@@ -15,7 +15,19 @@ stack memory.
 
 - This crate could be used in an `no-std` environment.
 
-- The determinant of the matrixs are evaluated "in-place" without loops and code
+- You can visualize the matrices
+
+```text
+inverse:
+|-0.54    0.58    0.67    -0.08   -0.17    -1.18|
+|2.16     -1.53   -2.44   0.44    0.32      3.77|
+|0.21     -0.42   -0.39   0.15    0.20      0.62|
+|0.70     -0.24   -0.53   0.20    -0.21     0.73|
+|0.85     -0.47   -0.83   0.11    0.11      1.20|
+|-3.91    2.47    4.17    -0.87   -0.31    -6.08|
+```
+
+- The determinant of the matrices are evaluated "in-place" without loops and code
 bifurcations
 
 - The use cases can be: Robotics, Game programming, Simulations ...etc.

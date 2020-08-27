@@ -549,7 +549,7 @@ impl<T: Num + Copy> Mul<T> for M55<T> {
 
 
 // M55 * V5
-impl<T: Num + Copy + std::iter::Sum> Mul<V5<T>> for M55<T> {
+impl<T: Num + Copy> Mul<V5<T>> for M55<T> {
     type Output = V5<T>;
 
     fn mul(self, rhs: V5<T>) -> V5<T> {

@@ -44,20 +44,33 @@ use crate::matrix4x4::M44;
 pub struct V4<T>([T; 4]);
 
 impl<T> V4<T> {
-    pub fn new(input: [T; 4]) -> V4<T> {
-        V4(input)
+    /// create a new V4 from a static array
+    pub fn new(input: [T; 4]) -> Self {
+        Self(input)
+    }
+
+    /// create a new V4 from numbers
+    pub fn new_from(a: T, b: T, c: T, d: T) -> Self {
+        Self::new([a, b, c, d])
     }
 }
 
 impl<T: Num + Copy> V4<T> {
+    /// create a V4 with all elements zeros
     pub fn zeros() -> V4<T> {
         <V4<T> as Zero>::zero()
+    }
+
+    /// create a V4 with all elements one
+    pub fn ones() -> Self {
+        let one = T::one();
+        Self::new([one, one, one, one])
     }
 
 }
 
 impl<T: Float> V4<T> {
-    /// calculate the euclidean norm of the vector
+    /// calculate the euclidean norm of the V4
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];

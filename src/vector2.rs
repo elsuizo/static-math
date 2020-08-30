@@ -46,15 +46,27 @@ pub struct V2<T>([T; 2]);
 // NOTE(elsuizo:2020-06-27): whit this definition you could create a new vector
 // of any types
 impl<T> V2<T> {
-    pub fn new(input: [T; 2]) -> V2<T> {
-        V2(input)
+    /// create a new V2 from a static array
+    pub fn new(input: [T; 2]) -> Self {
+        Self(input)
+    }
+
+    /// create a new V2 from numbers
+    pub fn new_from(a: T, b: T) -> Self {
+        Self::new([a, b])
     }
 }
 
-/// create a vector of all elements zeros
 impl<T: Num + Copy> V2<T> {
-    pub fn zeros() -> V2<T> {
-        <V2<T> as Zero>::zero()
+    /// create a V2 with all elements zero
+    pub fn zeros() -> Self {
+        <Self as Zero>::zero()
+    }
+
+    /// create a V2 with all elements one
+    pub fn ones() -> Self {
+        let one = T::one();
+        Self::new([one, one])
     }
 
 }

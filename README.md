@@ -4,6 +4,8 @@
 
 # Static Math in Rust programming language
 
+"*Simple things should be simple, complex things should be possible*" Alan Kay.
+
 - This crate take advantage of the static arrays in Rust for fast operations in
 stack memory.
 

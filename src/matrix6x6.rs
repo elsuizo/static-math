@@ -959,6 +959,23 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
 
 }
 
+// TODO(elsuizo:2020-08-29): check with this in the future!!!
+// impl<T: Float> M66<T> {
+//
+//     const fn get_sign(i: usize, j: usize) -> T {
+//         let one = T::one();
+//
+//         let m = m66_new!(one,-one, one,-one, one,-one;
+//                         -one, one,-one, one,-one, one;
+//                          one,-one, one,-one, one,-one;
+//                         -one, one,-one, one,-one, one;
+//                          one,-one, one,-one, one,-one;
+//                         -one, one,-one, one,-one, one);
+//         m[(i, j)]
+//     }
+//
+// }
+
 impl<T> M66<T> {
     pub fn new(data_input: [[T; 6]; 6]) -> Self {
         Self(data_input)

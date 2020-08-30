@@ -44,14 +44,27 @@ use crate::matrix3x3::M33;
 pub struct V3<T>([T; 3]);
 
 impl<T> V3<T> {
-    pub fn new(input: [T; 3]) -> V3<T> {
-        V3(input)
+    /// create a new V3 from a static array
+    pub fn new(input: [T; 3]) -> Self {
+        Self(input)
+    }
+
+    /// create a new V3 from numbers
+    pub fn new_from(a: T, b: T, c: T) -> Self {
+        Self::new([a, b, c])
     }
 }
 
 impl<T: Num + Copy> V3<T> {
-    pub fn zeros() -> V3<T> {
-        <V3<T> as Zero>::zero()
+    /// create a V3 with all elements zero
+    pub fn zeros() -> Self {
+        <Self as Zero>::zero()
+    }
+
+    /// create a V3 with all elements one
+    pub fn ones() -> Self {
+        let one = T::one();
+        Self::new([one, one, one])
     }
 
     /// calculate the cross product
@@ -68,7 +81,7 @@ impl<T: Num + Copy> V3<T> {
 }
 
 impl<T: Float> V3<T> {
-    /// calculate the euclidean norm of the vector
+    /// calculate the euclidean norm of the V3
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -76,7 +89,7 @@ impl<T: Float> V3<T> {
         T::sqrt(a * a + b * b + c * c)
     }
 
-    /// normalize the current vector
+    /// normalize the current V3
     pub fn normalize(&self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
@@ -98,7 +111,7 @@ impl<T: Float> V3<T> {
 
 // V3 * const
 impl<T: Num + Copy> Mul<T> for V3<T> {
-    type Output = V3<T>;
+    type Output = Self;
 
     fn mul(self, rhs: T) -> Self::Output {
         let a0 = self[0] * rhs;

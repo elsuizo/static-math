@@ -44,20 +44,32 @@ use crate::matrix6x6::M66;
 pub struct V6<T>([T; 6]);
 
 impl<T> V6<T> {
-    pub fn new(input: [T; 6]) -> V6<T> {
+    /// create a new V6 from a static array
+    pub fn new(input: [T; 6]) -> Self {
         V6(input)
+    }
+
+    /// create a new V6 from numbers
+    pub fn new_from(a: T, b: T, c: T, d: T, e: T, f: T) -> Self {
+        Self::new([a, b, c, d, e, f])
     }
 }
 
 impl<T: Num + Copy> V6<T> {
-    pub fn zeros() -> V6<T> {
+    /// create a V6 with all elements zeros
+    pub fn zeros() -> Self {
         <V6<T> as Zero>::zero()
     }
 
+    /// create a V6 with all elements one
+    pub fn ones() -> Self {
+        let one = T::one();
+        Self::new([one, one, one, one, one, one])
+    }
 }
 
 impl<T: Float> V6<T> {
-    /// calculate the euclidean norm of the vector
+    /// calculate the euclidean norm of the V6
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -68,7 +80,7 @@ impl<T: Float> V6<T> {
         T::sqrt(a * a + b * b + c * c + d * d + e * e + f * f)
     }
 
-    /// normalize the current vector and return a new one
+    /// normalize the current V6 and return a new one
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {

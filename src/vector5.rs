@@ -43,19 +43,32 @@ use crate::matrix5x5::M55;
 pub struct V5<T>([T; 5]);
 
 impl<T> V5<T> {
+    /// create a new V5 from a static array
     pub fn new(input: [T; 5]) -> Self {
         Self(input)
+    }
+
+    /// create a new V5 from numbers
+    pub fn new_from(a: T, b: T, c: T, d: T, e: T) -> Self {
+        Self::new([a, b, c, d, e])
     }
 }
 
 impl<T: Num + Copy> V5<T> {
+    /// create a V5 with all elements zeros
     pub fn zeros() -> Self {
         <V5<T> as Zero>::zero()
+    }
+
+    /// create a V5 with all elements one
+    pub fn ones() -> Self {
+        let one = T::one();
+        Self::new([one, one, one, one, one])
     }
 }
 
 impl<T: Float> V5<T> {
-    /// calculate the euclidean norm of the vector
+    /// calculate the euclidean norm of the V5
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -65,7 +78,7 @@ impl<T: Float> V5<T> {
         T::sqrt(a * a + b * b + c * c + d * d + e * e)
     }
 
-    /// normalize the current vector and return a new one
+    /// normalize the current V5 and return a new one
     pub fn normalize(&mut self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {

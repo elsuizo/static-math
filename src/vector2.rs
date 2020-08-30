@@ -75,7 +75,7 @@ impl<T: Num + Copy> V2<T> {
 // the use of the sqrt method
 impl<T: Float> V2<T> {
 
-    /// calculate the euclidean norm of the vector
+    /// calculate the euclidean norm of the V2
     pub fn norm2(&self) -> T {
         let a = self[0];
         let b = self[1];
@@ -83,7 +83,7 @@ impl<T: Float> V2<T> {
         T::sqrt(a * a + b * b)
     }
 
-    /// normalize the current vector and return a new one
+    /// normalize the current V2 and return a new one
     pub fn normalize(&self) -> Result<Self, VectorErrors> {
         let n = self.norm2();
         if n != T::zero() {
@@ -318,9 +318,9 @@ mod vector2_test {
 
     #[test]
     fn mul_const_rhs() {
-        let v1 = V2::new([1.0, 2.0]);
+        let v1 = V2::new_from(1.0, 2.0);
         let result = 2.0 * v1;
-        let expected = V2::new([2.0, 4.0]);
+        let expected = V2::new_from(2.0, 4.0);
         assert_eq!(
             &result[..],
             &expected[..],
@@ -333,9 +333,9 @@ mod vector2_test {
 
     #[test]
     fn mul_const() {
-        let v1 = V2::new([1.0, 2.0]);
+        let v1 = V2::new_from(1.0, 2.0);
         let result = v1 * 10.0;
-        let expected = V2::new([10.0, 20.0]);
+        let expected = V2::new_from(10.0, 20.0);
         assert_eq!(
             &result[..],
             &expected[..],
@@ -347,7 +347,7 @@ mod vector2_test {
 
     #[test]
     fn norm2_test() {
-        let v1 = V2::new([1.0, 2.0]);
+        let v1 = V2::new_from(1.0, 2.0);
         let expected = 2.23606797749979;
         let result = v1.norm2();
         assert_eq!(result, expected);
@@ -368,9 +368,9 @@ mod vector2_test {
 
     #[test]
     fn sub_assigment_test() {
-        let mut result = V2::new([1.0, 3.0]);
-        let v2 = V2::new([3.0, 3.0]);
-        let expected = V2::new([-2.0, 0.0]);
+        let mut result = V2::new_from(1.0, 3.0);
+        let v2 = V2::new_from(3.0, 3.0);
+        let expected = V2::new_from(-2.0, 0.0);
         result -= v2;
         assert_eq!(
             &result[..],
@@ -383,9 +383,9 @@ mod vector2_test {
 
     #[test]
     fn add_assigment_test() {
-        let mut result = V2::new([1.0, 3.0]);
-        let v2 = V2::new([3.0, 3.0]);
-        let expected = V2::new([4.0, 6.0]);
+        let mut result = V2::new_from(1.0, 3.0);
+        let v2 = V2::new_from(3.0, 3.0);
+        let expected = V2::new_from(4.0, 6.0);
         result += v2;
         assert_eq!(
             &result[..],

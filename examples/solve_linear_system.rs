@@ -38,7 +38,7 @@ fn main() {
                       7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
                       3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
 
-    let b = V6::new([0.0, 1.0, 3.0, 0.0, 1.0, 2.0]);
+    let b = V6::new_from(0.0, 1.0, 3.0, 0.0, 1.0, 2.0);
 
     if let Some(inv) = a.inverse() {
         let solution = inv * b;

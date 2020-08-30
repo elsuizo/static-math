@@ -447,9 +447,9 @@ mod vector6_tests {
 
     #[test]
     fn add_assigment_test() {
-        let mut result = V6::new([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
-        let v = V6::new([0.0, 1.0, 2.0, 3.0, 4.0, 5.0]);
-        let expected = V6::new([1.0, 3.0, 5.0, 7.0, 9.0, 11.0]);
+        let mut result = V6::new_from(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+        let v = V6::new_from(0.0, 1.0, 2.0, 3.0, 4.0, 5.0);
+        let expected = V6::new_from(1.0, 3.0, 5.0, 7.0, 9.0, 11.0);
         result += v;
         assert_eq!(
             &result[..],

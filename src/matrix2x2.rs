@@ -42,34 +42,46 @@ use crate::slices_methods::*;
 
 /// A static Matrix of 2x2 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct M22<T>([[T; 2]; 2]);
+pub struct M22<T>([T; 4]);
+
+//-------------------------------------------------------------------------
+//                        macros
+//-------------------------------------------------------------------------
+#[macro_export]
+macro_rules! m22_new {
+    ($($first_row:expr),* ; $($second_row:expr),*) => {
+        M22::new([$($first_row),*, $($second_row),*])
+    }
+}
 
 impl<T> M22<T> {
+    pub fn new(data_input: [T; 4]) -> Self {
 
-    pub fn new(data_input: [[T; 2]; 2]) -> Self {
         Self(data_input)
     }
 
-    pub fn create(a: T, b: T, c: T, d: T) -> Self {
-        Self::new([[a, b], [c, d]])
+    pub fn new_from(a: T, b: T, c: T, d: T) -> Self {
+        Self::new([a, b, c, d])
     }
 
-    pub fn rows(&self) -> usize {
-        self.0.len()
+    #[inline]
+    pub const fn rows(&self) -> usize {
+        2
     }
 
-    pub fn cols(&self) -> usize {
-        self.rows()
+    #[inline]
+    pub const fn cols(&self) -> usize {
+        2
     }
 }
 
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
     fn rows(&self) -> usize {
-        self.0.len()
+        2
     }
 
     fn cols(&self) -> usize {
-        self.rows()
+        2
     }
 
     fn det(&self) -> T {
@@ -85,7 +97,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
         let b = self[(0, 1)];
         let c = self[(1, 0)];
         let d = self[(1, 1)];
-        M22::new([[a, c], [b, d]])
+        M22::new([a, c, b, d])
     }
 
     fn trace(&self) -> T {
@@ -107,7 +119,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
         let d = self[(1, 1)];
         let det = self.det();
         if det.abs() > T::epsilon() {
-            Some(M22::new([[d / det, -b / det], [-c / det, a / det]]))
+            Some(m22_new!(d / det, -b / det; -c / det, a / det))
         } else {
             None
         }
@@ -153,8 +165,12 @@ impl<T: Num + Copy> M22<T> {
     /// transform the matrix to a flatten vector
     pub fn as_vec(&self) -> [T; 4] {
         let mut result = [T::zero(); 4];
-        for (index, element) in self.iter().flatten().enumerate() {
-            result[index] = *element;
+        let mut index = 0;
+        for i in 0..2 {
+            for j in 0..2 {
+                result[index] = self[(i, j)];
+                index += 1;
+            }
         }
         result
     }
@@ -217,7 +233,8 @@ impl<T: Num + Copy> Add for M22<T> {
         let b2 = rhs[(0, 1)];
         let c2 = rhs[(1, 0)];
         let d2 = rhs[(1, 1)];
-        M22::new([[a1 + a2, b1 + b2], [c1 + c2, d1 + d2]])
+        m22_new!(a1 + a2, b1 + b2;
+                 c1 + c2, d1 + d2)
     }
 }
 
@@ -235,7 +252,8 @@ impl<T: Num + Copy> Sub for M22<T> {
         let b2 = rhs[(0, 1)];
         let c2 = rhs[(1, 0)];
         let d2 = rhs[(1, 1)];
-        M22::new([[a1 - a2, b1 - b2], [c1 - c2, d1 - d2]])
+        m22_new!(a1 - a2, b1 - b2;
+                 c1 - c2, d1 - d2)
     }
 }
 
@@ -298,7 +316,8 @@ impl Mul<M22<f32>> for f32 {
         let a_10 = rhs[(1, 0)] * self;
         let a_11 = rhs[(1, 1)] * self;
 
-        M22::new([[a_00, a_01], [a_10, a_11]])
+        m22_new!(a_00, a_01;
+                 a_10, a_11)
     }
 }
 
@@ -312,7 +331,8 @@ impl<T: Num + Copy> Mul<T> for M22<T> {
         let a_10 = self[(1, 0)] * rhs;
         let a_11 = self[(1, 1)] * rhs;
 
-        M22::new([[a_00, a_01], [a_10, a_11]])
+        m22_new!(a_00, a_01;
+                 a_10, a_11)
     }
 }
 
@@ -336,13 +356,14 @@ impl<T: Num + Copy> Mul for M22<T> {
 
         let m10 = c1 * a2 + d1 * c2;
         let m11 = c1 * b2 + d1 * d2;
-        M22::new([[m00, m01], [m10, m11]])
+        m22_new!(m00, m01;
+                 m10, m11)
     }
 }
 
 impl<T: Num + Copy> Zero for M22<T> {
     fn zero() -> M22<T> {
-        M22::new([[T::zero(); 2]; 2])
+        M22::new([T::zero(); 4])
     }
 
     fn is_zero(&self) -> bool {
@@ -355,12 +376,13 @@ impl<T: Num + Copy> One for M22<T> {
     fn one() -> M22<T> {
         let one = T::one();
         let zero = T::zero();
-        M22::new([[one, zero], [zero, one]])
+        m22_new!(one, zero;
+                zero, one)
     }
 }
 
 impl<T> Deref for M22<T> {
-    type Target = [[T; 2]; 2];
+    type Target = [T; 4];
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -374,8 +396,8 @@ impl<T> DerefMut for M22<T> {
     }
 }
 
-impl<T> From<[[T; 2]; 2]> for M22<T> {
-    fn from(data: [[T; 2]; 2]) -> M22<T> {
+impl<T> From<[T; 4]> for M22<T> {
+    fn from(data: [T; 4]) -> M22<T> {
         M22(data)
     }
 }
@@ -383,25 +405,28 @@ impl<T> From<[[T; 2]; 2]> for M22<T> {
 impl<T> Index<(usize, usize)> for M22<T> {
     type Output = T;
     fn index(&self, index: (usize, usize)) -> &T {
-        &self.0[index.0][index.1]
+        match index {
+            (0, 0) => &self.0[0],
+            (0, 1) => &self.0[1],
+            (1, 0) => &self.0[2],
+            (1, 1) => &self.0[3],
+            (_, _) => panic!("errror!!!")
+        }
     }
 }
 
 impl<T> IndexMut<(usize, usize)> for M22<T> {
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
-        &mut self.0[index.0][index.1]
+        match index {
+            (0, 0) => &mut self.0[0],
+            (0, 1) => &mut self.0[1],
+            (1, 0) => &mut self.0[2],
+            (1, 1) => &mut self.0[3],
+            (_, _) => panic!("errror!!!")
+        }
     }
 }
 
-//-------------------------------------------------------------------------
-//                        macros
-//-------------------------------------------------------------------------
-#[macro_export]
-macro_rules! m22_new {
-    ($($first_row:expr),* ; $($second_row:expr),*) => {
-        M22::new([[$($first_row),*], [$($second_row),*]])
-    }
-}
 
 //-------------------------------------------------------------------------
 //                        Display for M22
@@ -429,7 +454,7 @@ mod test_matrix2x2 {
 
     #[test]
     fn create_m22_floats() {
-        let matrix = M22::new([[0.0, 1.0], [2.0, 3.0]]);
+        let matrix = M22::new([0.0, 1.0, 2.0, 3.0]);
         assert_eq!(matrix[(0, 0)], 0.0);
         assert_eq!(matrix[(0, 1)], 1.0);
         assert_eq!(matrix[(1, 0)], 2.0);
@@ -449,7 +474,7 @@ mod test_matrix2x2 {
 
     #[test]
     fn create_m22_ints() {
-        let m = M22::new([[0, 1], [2, 3]]);
+        let m = M22::new([0, 1, 2, 3]);
         assert_eq!(m[(0, 0)], 0);
         assert_eq!(m[(0, 1)], 1);
         assert_eq!(m[(1, 0)], 2);
@@ -458,23 +483,23 @@ mod test_matrix2x2 {
 
     #[test]
     fn create_identity_floats() {
-        let expected = M22::new([[1.0, 0.0], [0.0, 1.0]]);
+        let expected = M22::new([1.0, 0.0, 0.0, 1.0]);
         let result: M22<f64> = M22::identity();
         assert_eq!(result.as_vec(), expected.as_vec());
     }
 
     #[test]
     fn create_identity_ints() {
-        let expected = M22::new([[1, 0], [0, 1]]);
+        let expected = M22::new([1, 0, 0, 1]);
         let result: M22<i32> = M22::identity();
         assert_eq!(result.as_vec(), expected.as_vec());
     }
 
     #[test]
     fn add_m22_floats() {
-        let m1 = M22::new([[1.0, 2.0], [3.0, 4.0]]);
-        let m2 = M22::new([[5.0, 6.0], [7.0, 8.0]]);
-        let expected = M22::new([[6.0, 8.0], [10.0, 12.0]]);
+        let m1 = M22::new([1.0, 2.0, 3.0, 4.0]);
+        let m2 = M22::new([5.0, 6.0, 7.0, 8.0]);
+        let expected = M22::new([6.0, 8.0, 10.0, 12.0]);
         let result = m1 + m2;
         assert_eq!(result.as_vec(), expected.as_vec());
     }
@@ -493,9 +518,9 @@ mod test_matrix2x2 {
 
     #[test]
     fn add_m22_ints() {
-        let m1 = M22::new([[1, 2], [3, 4]]);
-        let m2 = M22::new([[5, 6], [7, 8]]);
-        let expected = M22::new([[6, 8], [10, 12]]);
+        let m1 = M22::new([1, 2, 3, 4]);
+        let m2 = M22::new([5, 6, 7, 8]);
+        let expected = M22::new([6, 8, 10, 12]);
         let result = m1 + m2;
         assert_eq!(result.as_vec(), expected.as_vec());
     }
@@ -512,7 +537,7 @@ mod test_matrix2x2 {
 
     #[test]
     fn product_with_vector2_rhs_test() {
-        let m1 = M22::new([[1.0, 2.0], [3.0, 4.0]]);
+        let m1 = M22::new([1.0, 2.0, 3.0, 4.0]);
         let v = V2::new([1.0, 2.0]);
 
         let result = m1 * v;
@@ -529,7 +554,7 @@ mod test_matrix2x2 {
     #[test]
     fn product_with_matrix2x2_rhs_test() {
         let v = V2::new([1.0, 2.0]);
-        let m1 = M22::new([[1.0, 2.0], [3.0, 4.0]]);
+        let m1 = M22::new([1.0, 2.0, 3.0, 4.0]);
         let result = v * m1;
         let expected = V2::new([7.0, 10.0]);
         assert_eq!(
@@ -546,8 +571,8 @@ mod test_matrix2x2 {
         // NOTE(elsuizo:2020-06-02): no se si conviene asi o poner el numero
         // directamente
         use super::test_matrix2x2::EPS;
-        let m1 = M22::new([[1.0, 2.0], [3.0, 4.0]]);
-        let expected = M22::new([[-2.0, 1.0], [1.5, -0.5]]);
+        let m1 = M22::new([1.0, 2.0, 3.0, 4.0]);
+        let expected = M22::new([-2.0, 1.0, 1.5, -0.5]);
         if let Some(result) = m1.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }

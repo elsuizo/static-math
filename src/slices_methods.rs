@@ -31,23 +31,27 @@
 use num::{Num, Float};
 use crate::utils::compare_floats;
 
+// TODO(elsuizo:2020-08-31): implement the Display trait for this type
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct MaxMin<T> {
-    max: T,
-    min: T,
+    max: (T, usize),
+    min: (T, usize),
 }
 
-/// generic function to fin min and max values in a slice
+/// generic function to fin min and max values and the position in a slice
 pub fn find_max_min<T: std::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
     let mut max = &slice[0];
     let mut min = &slice[0];
 
+    let mut max_pos: usize = 0;
+    let mut min_pos: usize = 0;
+
     for index in 1..slice.len() {
-        if slice[index] < *min { min = &slice[index];}
-        if slice[index] > *max { max = &slice[index];}
+        if slice[index] < *min { min = &slice[index]; min_pos = index;}
+        if slice[index] > *max { max = &slice[index]; max_pos = index;}
     }
 
-    MaxMin{max: *max, min: *min}
+    MaxMin{max: (*max, max_pos), min: (*min, min_pos)}
 }
 
 /// calculate the euclidean norm of the slice
@@ -96,7 +100,7 @@ mod test_slides_methods {
 
         let result = find_max_min(&*v);
 
-        let expected = MaxMin{max: 37, min: 1};
+        let expected = MaxMin{max: (37, 2), min: (1, 0)};
 
         assert_eq!(result, expected);
 

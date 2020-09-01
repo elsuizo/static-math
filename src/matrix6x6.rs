@@ -45,26 +45,18 @@ use crate::traits::LinearAlgebra;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M66<T>([[T; 6]; 6]);
 
-//-------------------------------------------------------------------------
-//                        macros
-//-------------------------------------------------------------------------
-#[macro_export]
-macro_rules! m66_new {
-    ($($first_row:expr),*;
-     $($second_row:expr),*;
-     $($third_row:expr),*;
-     $($fourth_row:expr),*;
-     $($fifth_row:expr),*;
-     $($sixth_row:expr),*
-     ) => {
-        M66::new([[$($first_row),*],
-                 [$($second_row),*],
-                 [$($third_row),*],
-                 [$($fourth_row),*],
-                 [$($fifth_row),*],
-                 [$($sixth_row),*]])
+impl<T> M66<T> {
+    pub fn new(data_input: [[T; 6]; 6]) -> Self {
+        Self(data_input)
+    }
+    pub fn rows(&self) -> usize {
+        self.0.len()
+    }
+    pub fn cols(&self) -> usize {
+        self.rows()
     }
 }
+
 
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
     #[inline]
@@ -976,17 +968,6 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
 //
 // }
 
-impl<T> M66<T> {
-    pub fn new(data_input: [[T; 6]; 6]) -> Self {
-        Self(data_input)
-    }
-    pub fn rows(&self) -> usize {
-        self.0.len()
-    }
-    pub fn cols(&self) -> usize {
-        self.rows()
-    }
-}
 
 // M66 + M66
 impl<T: Num + Copy> Add for M66<T> {
@@ -1696,6 +1677,27 @@ impl<T> Index<(usize, usize)> for M66<T> {
 impl<T> IndexMut<(usize, usize)> for M66<T> {
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         &mut self.0[index.0][index.1]
+    }
+}
+
+//-------------------------------------------------------------------------
+//                        macros
+//-------------------------------------------------------------------------
+#[macro_export]
+macro_rules! m66_new {
+    ($($first_row:expr),*;
+     $($second_row:expr),*;
+     $($third_row:expr),*;
+     $($fourth_row:expr),*;
+     $($fifth_row:expr),*;
+     $($sixth_row:expr),*
+     ) => {
+        M66::new([[$($first_row),*],
+                 [$($second_row),*],
+                 [$($third_row),*],
+                 [$($fourth_row),*],
+                 [$($fifth_row),*],
+                 [$($sixth_row),*]])
     }
 }
 

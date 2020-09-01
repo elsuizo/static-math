@@ -45,6 +45,20 @@ use crate::vector4::V4;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M44<T>([[T; 4]; 4]);
 
+impl<T> M44<T> {
+    pub fn new(data_input: [[T; 4]; 4]) -> M44<T> {
+        M44(data_input)
+    }
+
+    pub fn rows(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn cols(&self) -> usize {
+        self.rows()
+    }
+}
+
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     fn rows(&self) -> usize {
         self.0.len()
@@ -224,19 +238,6 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
 
 }
 
-impl<T> M44<T> {
-    pub fn new(data_input: [[T; 4]; 4]) -> M44<T> {
-        M44(data_input)
-    }
-
-    pub fn rows(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn cols(&self) -> usize {
-        self.rows()
-    }
-}
 
 impl<T: Num + Copy> M44<T> {
     /// contruct identity matrix

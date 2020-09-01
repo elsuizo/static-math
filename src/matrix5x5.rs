@@ -45,6 +45,18 @@ use crate::vector5::V5;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M55<T>([[T; 5]; 5]);
 
+impl<T> M55<T> {
+    pub fn new(data_input: [[T; 5]; 5]) -> Self {
+        Self(data_input)
+    }
+    pub fn rows(&self) -> usize {
+        self.0.len()
+    }
+    pub fn cols(&self) -> usize {
+        self.rows()
+    }
+}
+
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
     fn rows(&self) -> usize {
         self.0.len()
@@ -301,17 +313,6 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
     }
 }
 
-impl<T> M55<T> {
-    pub fn new(data_input: [[T; 5]; 5]) -> Self {
-        Self(data_input)
-    }
-    pub fn rows(&self) -> usize {
-        self.0.len()
-    }
-    pub fn cols(&self) -> usize {
-        self.rows()
-    }
-}
 
 impl<T: Num + Copy> Add for M55<T> {
     type Output = Self;

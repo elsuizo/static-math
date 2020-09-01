@@ -45,6 +45,20 @@ use crate::vector3::*;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M33<T>([[T; 3]; 3]);
 
+impl<T> M33<T> {
+    pub fn new(data_input: [[T; 3]; 3]) -> M33<T> {
+        M33(data_input)
+    }
+
+    pub fn rows(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn cols(&self) -> usize {
+        self.rows()
+    }
+}
+
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     fn rows(&self) -> usize {
         self.0.len()
@@ -133,19 +147,6 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     }
 }
 
-impl<T> M33<T> {
-    pub fn new(data_input: [[T; 3]; 3]) -> M33<T> {
-        M33(data_input)
-    }
-
-    pub fn rows(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn cols(&self) -> usize {
-        self.rows()
-    }
-}
 
 impl<T: Num + Copy> M33<T> {
     /// contruct identity matrix

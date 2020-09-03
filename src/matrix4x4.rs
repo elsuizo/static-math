@@ -153,28 +153,30 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
         let a15 = self[(3, 2)];
         let a16 = self[(3, 3)];
 
-        a1 * a10 * a15 * a8 - a1 * a10 * a16 * a7 - a1 * a11 * a14 * a8
-            + a1 * a11 * a16 * a6
-            + a1 * a12 * a14 * a7
-            - a1 * a12 * a15 * a6
-            - a10 * a13 * a3 * a8
-            + a10 * a13 * a4 * a7
-            - a10 * a15 * a4 * a5
-            + a10 * a16 * a3 * a5
-            + a11 * a13 * a2 * a8
-            - a11 * a13 * a4 * a6
-            + a11 * a14 * a4 * a5
-            - a11 * a16 * a2 * a5
-            - a12 * a13 * a2 * a7
-            + a12 * a13 * a3 * a6
-            - a12 * a14 * a3 * a5
-            + a12 * a15 * a2 * a5
-            + a14 * a3 * a8 * a9
-            - a14 * a4 * a7 * a9
-            - a15 * a2 * a8 * a9
-            + a15 * a4 * a6 * a9
-            + a16 * a2 * a7 * a9
-            - a16 * a3 * a6 * a9
+        a1 * a10 * a15 * a8
+        - a1 * a10 * a16 * a7
+        - a1 * a11 * a14 * a8
+        + a1 * a11 * a16 * a6
+        + a1 * a12 * a14 * a7
+        - a1 * a12 * a15 * a6
+        - a10 * a13 * a3 * a8
+        + a10 * a13 * a4 * a7
+        - a10 * a15 * a4 * a5
+        + a10 * a16 * a3 * a5
+        + a11 * a13 * a2 * a8
+        - a11 * a13 * a4 * a6
+        + a11 * a14 * a4 * a5
+        - a11 * a16 * a2 * a5
+        - a12 * a13 * a2 * a7
+        + a12 * a13 * a3 * a6
+        - a12 * a14 * a3 * a5
+        + a12 * a15 * a2 * a5
+        + a14 * a3 * a8 * a9
+        - a14 * a4 * a7 * a9
+        - a15 * a2 * a8 * a9
+        + a15 * a4 * a6 * a9
+        + a16 * a2 * a7 * a9
+        - a16 * a3 * a6 * a9
     }
 
     /// Calculate the inverse
@@ -364,6 +366,17 @@ impl<T: Num + Copy> M44<T> {
                     result[index] = self[(i, j)];
                     index += 1;
                 }
+            }
+        }
+        result
+    }
+
+    /// Applies `f` of each element in the M44
+    pub fn for_each(&self, f: impl Fn(T) -> T) -> Self {
+        let mut result = Self::zeros();
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[(i, j)] = f(self[(i, j)]);
             }
         }
         result
@@ -1108,5 +1121,19 @@ mod test_matrix4x4 {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn for_each_test() {
+        let m = m44_new!( 0.0,  1.0,  2.0,  3.0;
+                          4.0,  5.0,  6.0,  7.0;
+                          8.0,  9.0, 10.0, 11.0;
+                         12.0, 13.0, 14.0, 15.0);
+        let result = m.for_each(|element| element + 1.0);
+        let expected = m44_new!( 1.0,  2.0,  3.0,  4.0;
+                                 5.0,  6.0,  7.0,  8.0;
+                                 9.0,  10.0, 11.0, 12.0;
+                                13.0, 14.0, 15.0, 16.0);
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 }

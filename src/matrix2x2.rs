@@ -73,19 +73,11 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
     }
 
     fn det(&self) -> T {
-        let a = self[(0, 0)];
-        let b = self[(0, 1)];
-        let c = self[(1, 0)];
-        let d = self[(1, 1)];
-        (a * d) - (c * b)
+        (self[(0, 0)] * self[(1, 1)]) - (self[(1, 0)] * self[(0, 1)])
     }
 
     fn transpose(&self) -> M22<T> {
-        let a = self[(0, 0)];
-        let b = self[(0, 1)];
-        let c = self[(1, 0)];
-        let d = self[(1, 1)];
-        M22::new([[a, c], [b, d]])
+        M22::new([[self[(0, 0)], self[(1, 0)]], [self[(0, 1)], self[(1, 1)]]])
     }
 
     fn trace(&self) -> T {
@@ -264,6 +256,17 @@ impl<T: Num + Copy> M22<T> {
         }
 
         V2::new([c0, c1])
+    }
+
+    /// Applies `f` of each element in the M22
+    pub fn for_each(&self, f: impl Fn(T) -> T) -> Self {
+        let mut result = Self::zeros();
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[(i, j)] = f(self[(i, j)]);
+            }
+        }
+        result
     }
 }
 
@@ -625,5 +628,16 @@ mod test_matrix2x2 {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn for_each_test() {
+        let m = m22_new!(10.0, 2.0;
+                         3.0, -4.0);
+        let result = m.for_each(|element| element + 37.0);
+        let expected = m22_new!(47.0, 39.0;
+                                40.0, 33.0);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 }

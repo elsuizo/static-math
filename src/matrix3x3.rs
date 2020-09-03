@@ -96,9 +96,18 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
 
     /// Calculate the determiant of the matrix
     fn det(&self) -> T {
-        self[(0, 0)] * (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)])
-            - self[(0, 1)] * (self[(1, 0)] * self[(2, 2)] - self[(1, 2)] * self[(2, 0)])
-            + self[(0, 2)] * (self[(1, 0)] * self[(2, 1)] - self[(1, 1)] * self[(2, 0)])
+        let a_00 = self[(0, 0)];
+        let a_01 = self[(0, 1)];
+        let a_02 = self[(0, 2)];
+        let a_10 = self[(1, 0)];
+        let a_11 = self[(1, 1)];
+        let a_12 = self[(1, 2)];
+        let a_20 = self[(2, 0)];
+        let a_21 = self[(2, 1)];
+        let a_22 = self[(2, 2)];
+        a_00 * (a_11 * a_22 - a_21 * a_12)
+            - a_01 * (a_10 * a_22 - a_12 * a_20)
+            + a_02 * (a_10 * a_21 - a_11 * a_20)
     }
 
     /// Calculate the inverse
@@ -220,6 +229,18 @@ impl<T: Num + Copy> M33<T> {
                     result[index] = self[(i, j)];
                     index += 1;
                 }
+            }
+        }
+        result
+    }
+
+
+    /// Applies `f` of each element in the M33
+    pub fn for_each(&self, f: impl Fn(T) -> T) -> Self {
+        let mut result = Self::zeros();
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[(i, j)] = f(self[(i, j)]);
             }
         }
         result
@@ -730,6 +751,18 @@ mod test_matrix3x3 {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn for_each_test() {
+        let m = m33_new!(0.0, 1.0, 2.0;
+                         3.0, 4.0, 5.0;
+                         6.0, 7.0, 8.0);
+        let result = m.for_each(|element| element + 1.0);
+        let expected = m33_new!(1.0, 2.0, 3.0;
+                                4.0, 5.0, 6.0;
+                                7.0, 8.0, 9.0);
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 
 }

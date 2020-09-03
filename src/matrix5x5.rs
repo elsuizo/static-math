@@ -719,7 +719,6 @@ impl<T: Num + Copy> One for M55<T> {
     }
 }
 
-// NOTE(elsuizo:2020-04-26): poniendo ese Trait anda el norm2 funcional
 impl<T: Num + Copy> M55<T> {
     /// contruct identity matrix
     pub fn identity() -> M55<T> {
@@ -850,6 +849,17 @@ impl<T: Num + Copy> M55<T> {
                     result[index] = self[(i, j)];
                     index += 1;
                 }
+            }
+        }
+        result
+    }
+
+    /// Applies `f` of each element in the M44
+    pub fn for_each(&self, f: impl Fn(T) -> T) -> Self {
+        let mut result = Self::zeros();
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[(i, j)] = f(self[(i, j)]);
             }
         }
         result
@@ -1290,6 +1300,25 @@ mod test_matrix5x5 {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn for_each_test() {
+        let m = m55_new!(10.0, 1.0, 7.0,  1.0,  5.0;
+                          2.0, 1.0, 8.0,  3.0,  2.0;
+                          5.0, 1.0, 1.0,  9.0, 10.0;
+                          6.0, 9.0, 9.0,  1.0,  3.0;
+                          1.0, 8.0, 8.0, 10.0,  5.0);
+
+        let result = m.for_each(|element| element + 1.0);
+
+        let expected = m55_new!(11.0, 2.0, 8.0,  2.0,  6.0;
+                                 3.0, 2.0, 9.0,  4.0,  3.0;
+                                 6.0, 2.0, 2.0,  10.0, 11.0;
+                                 7.0, 10.0, 10.0,  2.0,  4.0;
+                                 2.0, 9.0, 9.0, 11.0,  6.0);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 
 }

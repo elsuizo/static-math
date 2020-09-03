@@ -1478,7 +1478,7 @@ impl<T: Num + Copy> Mul for M66<T> {
     }
 }
 
-impl<T: Num + Copy + std::iter::Sum> M66<T> {
+impl<T: Num + Copy> M66<T> {
     /// contruct identity matrix
     pub fn identity() -> M66<T> {
         <M66<T> as One>::one()
@@ -1614,6 +1614,17 @@ impl<T: Num + Copy + std::iter::Sum> M66<T> {
                     result[index] = self[(i, j)];
                     index += 1;
                 }
+            }
+        }
+        result
+    }
+
+    /// Applies `f` of each element in the M66
+    pub fn for_each(&self, f: impl Fn(T) -> T) -> Self {
+        let mut result = Self::zeros();
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                result[(i, j)] = f(self[(i, j)]);
             }
         }
         result
@@ -2094,5 +2105,26 @@ mod test_matrix6x6 {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn for_each_test() {
+        let m = m66_new!( 1.0,  1.0, 3.0,  4.0,  9.0, 3.0;
+                         10.0, 10.0, 1.0,  2.0,  2.0, 5.0;
+                          2.0,  9.0, 6.0, 10.0, 10.0, 9.0;
+                         10.0,  9.0, 9.0,  7.0,  3.0, 6.0;
+                          7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
+                          3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
+
+        let result = m.for_each(|element| element + 1.0);
+
+        let expected = m66_new!( 2.0,  2.0, 4.0,  5.0, 10.0, 4.0;
+                                11.0, 11.0, 2.0,  3.0,  3.0, 6.0;
+                                 3.0, 10.0, 7.0, 11.0, 11.0,10.0;
+                                11.0, 10.0,10.0,  8.0,  4.0, 7.0;
+                                 8.0,  7.0, 7.0,  3.0, 10.0, 6.0;
+                                 4.0,  9.0, 2.0,  5.0,  2.0, 6.0);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 }

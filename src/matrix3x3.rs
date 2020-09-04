@@ -29,7 +29,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
@@ -303,6 +303,13 @@ impl<T: Num + Copy> Add for M33<T> {
     }
 }
 
+// M33 += M33
+impl<T: Num + Copy> AddAssign for M33<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
+    }
+}
+
 // M33 - M33
 impl<T: Num + Copy> Sub for M33<T> {
     type Output = Self;
@@ -327,6 +334,14 @@ impl<T: Num + Copy> Sub for M33<T> {
         ])
     }
 }
+
+// M33 -= M33
+impl<T: Num + Copy> SubAssign for M33<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
+    }
+}
+
 // M3 * V3
 impl<T: Num + Copy> Mul<V3<T>> for M33<T> {
     type Output = V3<T>;

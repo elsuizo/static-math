@@ -30,7 +30,7 @@
 //-------------------------------------------------------------------------
 // imports
 use std::fmt;
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, AddAssign, SubAssign};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use num::{Float, Num, Zero, One};
@@ -213,6 +213,13 @@ impl<T: Num + Copy> Add for M22<T> {
     }
 }
 
+// M22 += M22
+impl<T: Num + Copy> AddAssign for M22<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
+    }
+}
+
 // M22 - M22
 impl<T: Num + Copy> Sub for M22<T> {
     type Output = Self;
@@ -228,6 +235,13 @@ impl<T: Num + Copy> Sub for M22<T> {
         let c2 = rhs[(1, 0)];
         let d2 = rhs[(1, 1)];
         M22::new([[a1 - a2, b1 - b2], [c1 - c2, d1 - d2]])
+    }
+}
+
+// M22 -= M22
+impl<T: Num + Copy> SubAssign for M22<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
     }
 }
 

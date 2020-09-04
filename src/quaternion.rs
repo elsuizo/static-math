@@ -81,8 +81,8 @@ impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
 #[cfg(test)]
 mod test_quaternion {
     use crate::vector3::V3;
-    use crate::utils::{compare_vecs, nearly_equal};
     use crate::quaternion::Quaternion;
+    // use crate::utils::{compare_vecs, nearly_equal};
 
     #[test]
     fn quaternion_creation_test() {

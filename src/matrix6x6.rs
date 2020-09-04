@@ -29,7 +29,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, AddAssign, SubAssign};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use num::{Float, Num, One, Zero};
@@ -1100,6 +1100,14 @@ impl<T: Num + Copy> Add for M66<T> {
         ])
     }
 }
+
+// M66 += M66
+impl<T: Num + Copy> AddAssign for M66<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
+    }
+}
+
 // M66 - M66
 impl<T: Num + Copy> Sub for M66<T> {
     type Output = Self;
@@ -1229,6 +1237,13 @@ impl<T: Num + Copy> Sub for M66<T> {
                 a_55 - b_55,
             ],
         ])
+    }
+}
+
+// M66 -= M66
+impl<T: Num + Copy> SubAssign for M66<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
     }
 }
 

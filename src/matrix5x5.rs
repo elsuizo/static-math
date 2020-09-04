@@ -30,7 +30,7 @@
 //-------------------------------------------------------------------------
 use num::{Float, One, Zero, Num};
 use std::fmt;
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Mul, Sub, AddAssign, SubAssign};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::slices_methods::*;
@@ -410,6 +410,14 @@ impl<T: Num + Copy> Add for M55<T> {
     }
 }
 
+
+// M55 += M55
+impl<T: Num + Copy> AddAssign for M55<T> {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
+    }
+}
+
 // M55 - M55
 impl<T: Num + Copy> Sub for M55<T> {
     type Output = Self;
@@ -504,6 +512,13 @@ impl<T: Num + Copy> Sub for M55<T> {
                 a_44 - b_44,
             ],
         ])
+    }
+}
+
+// M55 -= M55
+impl<T: Num + Copy> SubAssign for M55<T> {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
     }
 }
 

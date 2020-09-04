@@ -44,4 +44,5 @@ pub mod vector6;
 pub mod utils;
 pub mod errors;
 pub mod slices_methods;
+pub mod quaternion;
 

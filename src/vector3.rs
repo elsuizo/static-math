@@ -29,10 +29,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use num::{Float, Zero, Num};
+use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign, Neg};
 // use std::ops::{AddAssign, DivAssign, MulAssign, SubAssign};
 
 use crate::errors::VectorErrors;
@@ -78,6 +78,17 @@ impl<T: Num + Copy> V3<T> {
                  u_x * self[1] - u_y * self[0]])
     }
 
+}
+
+impl<T: Num + Copy + Signed> Neg for V3<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a = self[0];
+        let b = self[1];
+        let c = self[2];
+        V3::new([-a, -b, -c])
+    }
 }
 
 impl<T: Float> V3<T> {

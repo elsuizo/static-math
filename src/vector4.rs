@@ -29,10 +29,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use num::{Float, Zero, Num};
+use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign, Neg};
 
 use crate::errors::VectorErrors;
 use crate::matrix4x4::M44;
@@ -67,6 +67,18 @@ impl<T: Num + Copy> V4<T> {
         Self::new([one, one, one, one])
     }
 
+}
+
+impl<T: Num + Copy + Signed> Neg for V4<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a = self[0];
+        let b = self[1];
+        let c = self[2];
+        let d = self[3];
+        V4::new([-a, -b, -c, -d])
+    }
 }
 
 impl<T: Float> V4<T> {

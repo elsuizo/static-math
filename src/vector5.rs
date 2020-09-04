@@ -29,10 +29,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use num::{Float, Zero, Num};
+use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign, Neg};
 
 use crate::errors::VectorErrors;
 use crate::matrix5x5::M55;
@@ -67,6 +67,18 @@ impl<T: Num + Copy> V5<T> {
     }
 }
 
+impl<T: Num + Copy + Signed> Neg for V5<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a = self[0];
+        let b = self[1];
+        let c = self[2];
+        let d = self[3];
+        let e = self[4];
+        V5::new([-a, -b, -c, -d, -e])
+    }
+}
 impl<T: Float> V5<T> {
     /// calculate the euclidean norm of the V5
     pub fn norm2(&self) -> T {

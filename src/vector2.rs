@@ -29,10 +29,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use num::{Float, Zero, Num};
+use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign, Neg};
 
 use crate::errors::VectorErrors;
 use crate::matrix2x2::*;
@@ -69,6 +69,16 @@ impl<T: Num + Copy> V2<T> {
         Self::new([one, one])
     }
 
+}
+
+impl<T: Num + Copy + Signed> Neg for V2<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a = self[0];
+        let b = self[1];
+        V2::new([-a, -b])
+    }
 }
 
 // NOTE(elsuizo:2020-06-27): this impl must be whith the Float trait because

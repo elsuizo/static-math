@@ -69,28 +69,11 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     }
 
     fn transpose(&self) -> M44<T> {
-        let a1 = self[(0, 0)];
-        let a2 = self[(0, 1)];
-        let a3 = self[(0, 2)];
-        let a4 = self[(0, 3)];
-        let a5 = self[(1, 0)];
-        let a6 = self[(1, 1)];
-        let a7 = self[(1, 2)];
-        let a8 = self[(1, 3)];
-        let a9 = self[(2, 0)];
-        let a10 = self[(2, 1)];
-        let a11 = self[(2, 2)];
-        let a12 = self[(2, 3)];
-        let a13 = self[(3, 0)];
-        let a14 = self[(3, 1)];
-        let a15 = self[(3, 2)];
-        let a16 = self[(3, 3)];
-
         M44::new([
-            [a1, a5, a9, a13],
-            [a2, a6, a10, a14],
-            [a3, a7, a11, a15],
-            [a4, a8, a12, a16],
+            [self[(0, 0)], self[(1, 0)], self[(2, 0)], self[(3, 0)]],
+            [self[(0, 1)], self[(1, 1)], self[(2, 1)], self[(3, 1)]],
+            [self[(0, 2)], self[(1, 2)], self[(2, 2)], self[(3, 2)]],
+            [self[(0, 3)], self[(1, 3)], self[(2, 3)], self[(3, 3)]],
         ])
     }
 

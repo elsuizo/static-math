@@ -32,7 +32,7 @@ use std::fmt;
 use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub, SubAssign, AddAssign, Neg};
+use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
 
 use crate::errors::VectorErrors;
 use crate::matrix4x4::M44;
@@ -126,7 +126,7 @@ impl<T: Num + Copy> Mul for V4<T> {
     }
 }
 
-// V4 * constant
+// V4 * const
 impl<T: Num + Copy> Mul<T> for V4<T> {
     type Output = V4<T>;
 
@@ -135,6 +135,19 @@ impl<T: Num + Copy> Mul<T> for V4<T> {
         let a1 = self[1] * rhs;
         let a2 = self[2] * rhs;
         let a3 = self[3] * rhs;
+        V4::new([a0, a1, a2, a3])
+    }
+}
+
+// V4 / const
+impl<T: Num + Copy> Div<T> for V4<T> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let a0 = self[0] / rhs;
+        let a1 = self[1] / rhs;
+        let a2 = self[2] / rhs;
+        let a3 = self[3] / rhs;
         V4::new([a0, a1, a2, a3])
     }
 }

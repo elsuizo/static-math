@@ -32,7 +32,7 @@ use std::fmt;
 use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Mul, Sub, SubAssign, AddAssign, Neg};
+use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
 
 use crate::errors::VectorErrors;
 use crate::matrix6x6::M66;
@@ -121,6 +121,21 @@ impl<T: Num + Copy> Mul<T> for V6<T> {
         let a3 = self[3] * rhs;
         let a4 = self[4] * rhs;
         let a5 = self[5] * rhs;
+        V6::new([a0, a1, a2, a3, a4, a5])
+    }
+}
+
+// V6 / const
+impl<T: Num + Copy> Div<T> for V6<T> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let a0 = self[0] / rhs;
+        let a1 = self[1] / rhs;
+        let a2 = self[2] / rhs;
+        let a3 = self[3] / rhs;
+        let a4 = self[4] / rhs;
+        let a5 = self[5] / rhs;
         V6::new([a0, a1, a2, a3, a4, a5])
     }
 }

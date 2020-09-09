@@ -28,16 +28,16 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use std::ops::{Mul, Neg};
-use num::{Num, Signed};
+use std::ops::{Mul, Neg, Div};
+use num::{Num, Float, Signed};
 
 use crate::vector3::*;
 
 /// Quaternion type
 #[derive(Copy, Debug, Clone)]
 pub struct Quaternion<T> {
-    q0: T,   // scalar part
-    q: V3<T> // imaginary values
+    pub q0: T,    // scalar part
+    pub q: V3<T>, // imaginary values
 }
 
 impl<T> Quaternion<T> {
@@ -57,6 +57,18 @@ impl<T: Num + Copy> Quaternion<T> {
     }
 }
 
+// q / const
+impl<T: Num + Copy> Div<T> for Quaternion<T> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let q0 = self.q0 / rhs;
+        let q  = self.q / rhs;
+        Self{q0, q}
+    }
+}
+
+// q * q
 impl<T: Num + Copy> Mul for Quaternion<T> {
     type Output = Self;
 
@@ -65,7 +77,6 @@ impl<T: Num + Copy> Mul for Quaternion<T> {
         let q = rhs.q * self.q0 + self.q * rhs.q0 + self.q.cross(rhs.q);
         Self {q0, q}
     }
-
 }
 
 impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
@@ -75,6 +86,47 @@ impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
         Self{q0: self.q0, q: -self.q}
     }
 }
+
+// TODO(elsuizo:2020-09-09): maybe here is better a Error
+impl<T: Float> Quaternion<T> {
+    pub fn normalize(&self) -> Option<Self> {
+        let norm_sqr = self.dot(*self);
+        if norm_sqr > T::epsilon() {
+            Some(*self / self.dot(*self).sqrt())
+        } else {
+            None
+        }
+    }
+
+    pub fn rotation(&self, theta: T, v: V3<T>) -> Option<Self> {
+        let one = T::one();
+        let two = one + one;
+        if let Ok(n) = v.normalize() {
+            Some(Self::new((theta.to_radians() / two).cos(), n * (theta.to_radians() / two).sin()))
+        } else {
+            None
+        }
+    }
+
+    pub fn get_angle(&self) -> T {
+        let one = T::one();
+        let two = one + one;
+        let n = self.q.norm2();
+
+        two * T::atan2(n, self.q0)
+    }
+
+    pub fn get_axis(&self) -> Option<V3<T>> {
+        let qn = self.normalize()?;
+        let s = T::cos(qn.get_angle() / T::from(2.0)?);
+        if s.abs() > T::epsilon() {
+            Some(qn.q / s)
+        } else {
+            None
+        }
+    }
+}
+
 //-------------------------------------------------------------------------
 //                        testing
 //-------------------------------------------------------------------------

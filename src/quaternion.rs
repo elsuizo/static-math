@@ -87,6 +87,19 @@ impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
     }
 }
 
+// NOTE(elsuizo:2020-09-10): this implementation comes from this nice simplification
+// https://fgiesen.wordpress.com/2019/02/09/rotating-a-single-vector-using-a-quaternion/
+// from: Fabian “ryg” Giesen
+impl<T: Num + Copy + Signed> Mul<V3<T>> for Quaternion<T> {
+    type Output = V3<T>;
+    fn mul(self, rhs: V3<T>) -> Self::Output {
+        let one = T::one();
+        let two = one + one;
+        let t = (self.q * two).cross(rhs);
+        rhs + t * self.q0 + self.q.cross(t)
+    }
+}
+
 // TODO(elsuizo:2020-09-09): maybe here is better a Error
 impl<T: Float> Quaternion<T> {
     pub fn normalize(&self) -> Option<Self> {
@@ -98,14 +111,11 @@ impl<T: Float> Quaternion<T> {
         }
     }
 
-    pub fn rotation(&self, theta: T, v: V3<T>) -> Option<Self> {
+    pub fn rotation(theta: T, v: V3<T>) -> Self {
         let one = T::one();
         let two = one + one;
-        if let Ok(n) = v.normalize() {
-            Some(Self::new((theta.to_radians() / two).cos(), n * (theta.to_radians() / two).sin()))
-        } else {
-            None
-        }
+        let n = v.normalize().expect("the input has to be a normalized vector");
+        Self::new((theta.to_radians() / two).cos(), n * (theta.to_radians() / two).sin())
     }
 
     pub fn get_angle(&self) -> T {
@@ -134,7 +144,9 @@ impl<T: Float> Quaternion<T> {
 mod test_quaternion {
     use crate::vector3::V3;
     use crate::quaternion::Quaternion;
-    // use crate::utils::{compare_vecs, nearly_equal};
+    use crate::utils::{compare_floats};
+
+    const EPS: f32 = 1e-7;
 
     #[test]
     fn quaternion_creation_test() {
@@ -190,5 +202,28 @@ mod test_quaternion {
         assert_eq!(result_float.q[0], -1.0);
         assert_eq!(result_float.q[1], -1.0);
         assert_eq!(result_float.q[2], -1.0);
+    }
+
+    #[test]
+    fn rotate_vec() {
+        let q1 = Quaternion::rotation(90.0, V3::new_from(0.0, 0.0, 1.0));
+        let x = V3::new_from(1.0, 0.0, 0.0);
+        // rotate x around z 90 degrees
+        let result = q1 * x;
+        let expected = V3::new_from(0.0, -1.0, 0.0);
+        assert!(compare_floats(result[0], expected[0], EPS));
+        assert!(compare_floats(result[1], expected[1], EPS));
+        assert!(compare_floats(result[2], expected[2], EPS));
+    }
+
+    #[test]
+    fn rotate_vec_composition_360() {
+        let q1 = Quaternion::rotation(90.0, V3::new_from(0.0, 0.0, 1.0));
+        let x = V3::new_from(1.0, 0.0, 0.0);
+        // rotate x around z (90 * 4 = 360) degrees
+        let result = q1 * q1 * q1 * q1 * x;
+        assert!(compare_floats(result[0], x[0], EPS));
+        assert!(compare_floats(result[1], x[1], EPS));
+        assert!(compare_floats(result[2], x[2], EPS));
     }
 }

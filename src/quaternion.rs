@@ -28,7 +28,7 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use std::ops::{Mul, Neg, Div};
+use std::ops::{Mul, Add, Sub, Neg, Div};
 use num::{Num, Float, Signed};
 
 use crate::vector3::*;
@@ -36,8 +36,10 @@ use crate::vector3::*;
 /// Quaternion type
 #[derive(Copy, Debug, Clone)]
 pub struct Quaternion<T> {
-    pub q0: T,    // scalar part
-    pub q: V3<T>, // imaginary values
+    /// Scalar part
+    pub q0: T,
+    /// Imaginary part
+    pub q: V3<T>,
 }
 
 impl<T> Quaternion<T> {
@@ -54,6 +56,22 @@ impl<T> Quaternion<T> {
 impl<T: Num + Copy> Quaternion<T> {
     pub fn dot(&self, rhs: Self) -> T {
         self.q0 * rhs.q0 + self.q * rhs.q
+    }
+}
+
+// q + q
+impl<T: Num + Copy> Add for Quaternion<T> {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        Self {q0: self.q0 + rhs.q0, q: self.q + rhs.q}
+    }
+}
+
+// q - q
+impl<T: Num + Copy> Sub for Quaternion<T> {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self {
+        Self {q0: self.q0 - rhs.q0, q: self.q - rhs.q}
     }
 }
 
@@ -79,14 +97,6 @@ impl<T: Num + Copy> Mul for Quaternion<T> {
     }
 }
 
-impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
-    type Output = Self;
-    #[inline]
-    fn neg(self) -> Self {
-        Self{q0: self.q0, q: -self.q}
-    }
-}
-
 // NOTE(elsuizo:2020-09-10): this implementation comes from this nice simplification
 // https://fgiesen.wordpress.com/2019/02/09/rotating-a-single-vector-using-a-quaternion/
 // from: Fabian “ryg” Giesen
@@ -100,6 +110,15 @@ impl<T: Num + Copy + Signed> Mul<V3<T>> for Quaternion<T> {
     }
 }
 
+impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
+    type Output = Self;
+    #[inline]
+    fn neg(self) -> Self {
+        Self{q0: self.q0, q: -self.q}
+    }
+}
+
+
 // TODO(elsuizo:2020-09-09): maybe here is better a Error
 impl<T: Float> Quaternion<T> {
     pub fn normalize(&self) -> Option<Self> {
@@ -111,11 +130,26 @@ impl<T: Float> Quaternion<T> {
         }
     }
 
+    /// generate a Quaternion that represents a rotation of a angle `theta`
+    /// around the axis(normalized) `v`
     pub fn rotation(theta: T, v: V3<T>) -> Self {
         let one = T::one();
         let two = one + one;
         let n = v.normalize().expect("the input has to be a normalized vector");
         Self::new((theta.to_radians() / two).cos(), n * (theta.to_radians() / two).sin())
+    }
+
+    // variant of the rotation where norm(v) encodes theta
+    pub fn rotation_norm_encoded(v: V3<T>) -> Self {
+        let one = T::one();
+        let two = one + one;
+        let theta = v.norm2();
+        if theta > T::epsilon() {
+            let s = T::sin(theta.to_radians() / two) / theta;
+            Self {q0: T::cos(theta.to_radians() / two), q: v * s}
+        } else {
+            Self {q0: one, q: V3::zeros()}
+        }
     }
 
     pub fn get_angle(&self) -> T {
@@ -146,7 +180,7 @@ mod test_quaternion {
     use crate::quaternion::Quaternion;
     use crate::utils::{compare_floats};
 
-    const EPS: f32 = 1e-7;
+    const EPS: f32 = 1e-6;
 
     #[test]
     fn quaternion_creation_test() {
@@ -225,5 +259,18 @@ mod test_quaternion {
         assert!(compare_floats(result[0], x[0], EPS));
         assert!(compare_floats(result[1], x[1], EPS));
         assert!(compare_floats(result[2], x[2], EPS));
+    }
+
+    #[test]
+    fn rotate_vec_angle_encode() {
+        let q = Quaternion::rotation_norm_encoded(V3::new_from(0.0, 0.0, 90.0));
+        let x = V3::new_from(1.0, 0.0, 0.0);
+        // rotate x around z (90 * 4 = 360) degrees
+        let result = q * x;
+        println!("result: {:}", result);
+        let expected = V3::new_from(0.0, -1.0, 0.0);
+        assert!(compare_floats(result[0], expected[0], EPS));
+        assert!(compare_floats(result[1], expected[1], EPS));
+        assert!(compare_floats(result[2], expected[2], EPS));
     }
 }

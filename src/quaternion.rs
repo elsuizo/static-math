@@ -57,6 +57,7 @@ impl<T: Num + Copy> Quaternion<T> {
     pub fn dot(&self, rhs: Self) -> T {
         self.q0 * rhs.q0 + self.q * rhs.q
     }
+
 }
 
 // q + q
@@ -114,10 +115,15 @@ impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
     type Output = Self;
     #[inline]
     fn neg(self) -> Self {
-        Self{q0: self.q0, q: -self.q}
+        Self{q0: -self.q0, q: -self.q}
     }
 }
 
+impl<T: Num + Copy + Signed> Quaternion<T> {
+    pub fn conjugate(&self) -> Self {
+        Self {q0: self.q0, q: -self.q}
+    }
+}
 
 // TODO(elsuizo:2020-09-09): maybe here is better a Error
 impl<T: Float> Quaternion<T> {
@@ -209,7 +215,7 @@ mod test_quaternion {
         assert_eq!(result.q[2], 2);
 
         let q1 = Quaternion::new(1, V3::ones());
-        let q2 = -q1;
+        let q2 = q1.conjugate();
 
         let result = q1 * q2;
         let expected = Quaternion::new(q1.dot(q1), V3::zeros());
@@ -223,7 +229,7 @@ mod test_quaternion {
     #[test]
     fn quaternion_conj() {
         let a = Quaternion::new(1, V3::ones());
-        let result = -a;
+        let result = a.conjugate();
         assert_eq!(result.q0, 1);
         assert_eq!(result.q[0], -1);
         assert_eq!(result.q[1], -1);
@@ -231,7 +237,7 @@ mod test_quaternion {
 
 
         let a_float = Quaternion::new(1.0, V3::ones());
-        let result_float = -a_float;
+        let result_float = a_float.conjugate();
         assert_eq!(result_float.q0, 1.0);
         assert_eq!(result_float.q[0], -1.0);
         assert_eq!(result_float.q[1], -1.0);

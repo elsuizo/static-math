@@ -130,7 +130,7 @@ with the following results:
 
 ## TODOS:
 
- - [ ] `Quaternion` type and methods
+ - [X] `Quaternion` type and methods
  - [ ] `expm()`: Exponential matrix implementation
  - [X] Eigenvalues
  - [X] QR decomposition

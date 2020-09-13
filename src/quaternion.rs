@@ -53,6 +53,7 @@ impl<T> Quaternion<T> {
     }
 }
 
+// dot product
 impl<T: Num + Copy> Quaternion<T> {
     pub fn dot(&self, rhs: Self) -> T {
         self.q0 * rhs.q0 + self.q * rhs.q
@@ -64,7 +65,7 @@ impl<T: Num + Copy> Quaternion<T> {
 impl<T: Num + Copy> Add for Quaternion<T> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        Self {q0: self.q0 + rhs.q0, q: self.q + rhs.q}
+        Self{q0: self.q0 + rhs.q0, q: self.q + rhs.q}
     }
 }
 
@@ -72,7 +73,7 @@ impl<T: Num + Copy> Add for Quaternion<T> {
 impl<T: Num + Copy> Sub for Quaternion<T> {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
-        Self {q0: self.q0 - rhs.q0, q: self.q - rhs.q}
+        Self{q0: self.q0 - rhs.q0, q: self.q - rhs.q}
     }
 }
 
@@ -94,7 +95,7 @@ impl<T: Num + Copy> Mul for Quaternion<T> {
     fn mul(self, rhs: Self) -> Self::Output {
         let q0 = self.q0 * rhs.q0  - self.q * rhs.q;
         let q = rhs.q * self.q0 + self.q * rhs.q0 + self.q.cross(rhs.q);
-        Self {q0, q}
+        Self{q0, q}
     }
 }
 
@@ -120,13 +121,14 @@ impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
 }
 
 impl<T: Num + Copy + Signed> Quaternion<T> {
-    pub fn conjugate(&self) -> Self {
-        Self {q0: self.q0, q: -self.q}
+    pub fn conj(&self) -> Self {
+        Self{q0: self.q0, q: -self.q}
     }
 }
 
 // TODO(elsuizo:2020-09-09): maybe here is better a Error
 impl<T: Float> Quaternion<T> {
+    /// normalize the Quaternion
     pub fn normalize(&self) -> Option<Self> {
         let norm_sqr = self.dot(*self);
         if norm_sqr > T::epsilon() {
@@ -139,28 +141,28 @@ impl<T: Float> Quaternion<T> {
     /// generate a Quaternion that represents a rotation of a angle `theta`
     /// around the axis(normalized) `v`
     pub fn rotation(theta: T, v: V3<T>) -> Self {
-        let one = T::one();
-        let two = one + one;
-        let n = v.normalize().expect("the input has to be a normalized vector");
+        let two = T::from(2u8).unwrap();
+        let n = v.normalize().expect("the input has to be a non zero vector");
         Self::new((theta.to_radians() / two).cos(), n * (theta.to_radians() / two).sin())
     }
 
-    // variant of the rotation where norm(v) encodes theta
+    /// generate a Quaternion that represents a rotation of a angle `theta`
+    /// around the axis(normalized) `v`, the angle `theta` is encoded in the
+    /// norm of the vector `v`
     pub fn rotation_norm_encoded(v: V3<T>) -> Self {
         let one = T::one();
-        let two = one + one;
+        let two = T::from(2.0).unwrap();
         let theta = v.norm2();
         if theta > T::epsilon() {
             let s = T::sin(theta.to_radians() / two) / theta;
-            Self {q0: T::cos(theta.to_radians() / two), q: v * s}
+            Self{q0: T::cos(theta.to_radians() / two), q: v * s}
         } else {
-            Self {q0: one, q: V3::zeros()}
+            Self{q0: one, q: V3::zeros()}
         }
     }
 
     pub fn get_angle(&self) -> T {
-        let one = T::one();
-        let two = one + one;
+        let two = T::from(2.0).unwrap();
         let n = self.q.norm2();
 
         two * T::atan2(n, self.q0)
@@ -215,7 +217,7 @@ mod test_quaternion {
         assert_eq!(result.q[2], 2);
 
         let q1 = Quaternion::new(1, V3::ones());
-        let q2 = q1.conjugate();
+        let q2 = q1.conj();
 
         let result = q1 * q2;
         let expected = Quaternion::new(q1.dot(q1), V3::zeros());
@@ -229,7 +231,7 @@ mod test_quaternion {
     #[test]
     fn quaternion_conj() {
         let a = Quaternion::new(1, V3::ones());
-        let result = a.conjugate();
+        let result = a.conj();
         assert_eq!(result.q0, 1);
         assert_eq!(result.q[0], -1);
         assert_eq!(result.q[1], -1);
@@ -237,7 +239,7 @@ mod test_quaternion {
 
 
         let a_float = Quaternion::new(1.0, V3::ones());
-        let result_float = a_float.conjugate();
+        let result_float = a_float.conj();
         assert_eq!(result_float.q0, 1.0);
         assert_eq!(result_float.q[0], -1.0);
         assert_eq!(result_float.q[1], -1.0);

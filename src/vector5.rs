@@ -34,6 +34,7 @@ use std::ops::{Deref, DerefMut};
 
 use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
 
+use crate::slices_methods::{norm_inf, norm_l};
 use crate::errors::VectorErrors;
 use crate::matrix5x5::M55;
 //-------------------------------------------------------------------------
@@ -64,6 +65,18 @@ impl<T: Num + Copy> V5<T> {
     pub fn ones() -> Self {
         let one = T::one();
         Self::new([one, one, one, one, one])
+    }
+}
+
+impl<T: Num + Copy + std::cmp::PartialOrd> V5<T> {
+    pub fn norm_inf(&self) -> T {
+        norm_inf(&**self)
+    }
+}
+
+impl<T: Num + Copy + Signed + std::iter::Sum> V5<T> {
+    pub fn norm_l(&self) -> T {
+        norm_l(&**self)
     }
 }
 
@@ -480,6 +493,22 @@ mod vector5_test {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn norm_inf_test() {
+        let v = V5::new_from(1, 2, 30, 91, 10);
+        let result = v.norm_inf();
+        let expected = 91;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn norm_l_test() {
+        let v = V5::new_from(-1, 1, -1, 1, -1);
+        let result = v.norm_l();
+        let expected = 5;
+        assert_eq!(result, expected);
     }
 }
 

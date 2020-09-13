@@ -38,11 +38,11 @@ use static_math::vector3::V3;
 // rotations of 90 degrees
 fn main() {
 
-    // vector to rotate
-    let x = V3::new_from(1.0, 0.0, 0.0);
+    // vector to rotate: x axis: [1, 0, 0]
+    let x = V3::x_axis();
     // quaternion represent the rotation around the z axis 90 degrees, the angle
-    // is encoded in the vector norm
-    let q = Quaternion::rotation_norm_encoded(V3::new_from(0.0, 0.0, 90.0));
+    // is encoded in the vector norm: [0, 0, 90]
+    let q = Quaternion::rotation_norm_encoded(V3::z_axis() * 90.0);
     let r = q * q * q * q * x;
     println!("r: {:}", r);
 }

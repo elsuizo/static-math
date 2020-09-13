@@ -33,6 +33,7 @@ use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
 
 use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
+use crate::slices_methods::{norm_l, norm_inf};
 
 use crate::errors::VectorErrors;
 use crate::matrix3x3::M33;
@@ -77,6 +78,37 @@ impl<T: Num + Copy> V3<T> {
                  u_x * self[1] - u_y * self[0]])
     }
 
+    pub fn x_axis() -> Self {
+        let one = T::one();
+        let zero = T::zero();
+        Self::new_from(one, zero, zero)
+    }
+
+    pub fn y_axis() -> Self {
+        let one = T::one();
+        let zero = T::zero();
+        Self::new_from(zero, one, zero)
+    }
+
+    pub fn z_axis() -> Self {
+        let one = T::one();
+        let zero = T::zero();
+        Self::new_from(zero, zero, one)
+    }
+
+
+}
+
+impl<T: Num + Copy + std::cmp::PartialOrd> V3<T> {
+    pub fn norm_inf(&self) -> T {
+        norm_inf(&**self)
+    }
+}
+
+impl<T: Num + Copy + Signed + std::iter::Sum> V3<T> {
+    pub fn norm_l(&self) -> T {
+        norm_l(&**self)
+    }
 }
 
 impl<T: Num + Copy + Signed> Neg for V3<T> {
@@ -451,5 +483,21 @@ mod vector3_test {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn norm_inf_test() {
+        let v = V3::new_from(1, -10, 73);
+        let result = v.norm_inf();
+        let expected = 73;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn norm_l_test() {
+        let v = V3::new_from(1, -1, 1);
+        let result = v.norm_l();
+        let expected = 3;
+        assert_eq!(result, expected);
     }
 }

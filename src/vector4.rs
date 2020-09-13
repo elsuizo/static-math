@@ -34,6 +34,7 @@ use std::ops::{Deref, DerefMut};
 
 use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
 
+use crate::slices_methods::{norm_inf, norm_l};
 use crate::errors::VectorErrors;
 use crate::matrix4x4::M44;
 
@@ -67,6 +68,18 @@ impl<T: Num + Copy> V4<T> {
         Self::new([one, one, one, one])
     }
 
+}
+
+impl<T: Num + Copy + std::cmp::PartialOrd> V4<T> {
+    pub fn norm_inf(&self) -> T {
+        norm_inf(&**self)
+    }
+}
+
+impl<T: Num + Copy + Signed + std::iter::Sum> V4<T> {
+    pub fn norm_l(&self) -> T {
+        norm_l(&**self)
+    }
 }
 
 impl<T: Num + Copy + Signed> Neg for V4<T> {
@@ -462,5 +475,21 @@ mod vector4_test {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn norm_inf_test() {
+        let v = V4::new_from(10, 100, -9, 0);
+        let result = v.norm_inf();
+        let expected = 100;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn norm_l_test() {
+        let v = V4::new_from(1, -1, 1, -1);
+        let result = v.norm_l();
+        let expected = 4;
+        assert_eq!(result, expected);
     }
 }

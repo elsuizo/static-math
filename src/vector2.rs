@@ -35,6 +35,7 @@ use std::ops::{Deref, DerefMut};
 use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
 
 use crate::errors::VectorErrors;
+use crate::slices_methods::{norm_inf, norm_l};
 use crate::matrix2x2::*;
 
 //-------------------------------------------------------------------------
@@ -69,6 +70,18 @@ impl<T: Num + Copy> V2<T> {
         Self::new([one, one])
     }
 
+}
+
+impl<T: Num + Copy + std::cmp::PartialOrd> V2<T> {
+    pub fn norm_inf(&self) -> T {
+        norm_inf(&**self)
+    }
+}
+
+impl<T: Num + Copy + Signed + std::iter::Sum> V2<T> {
+    pub fn norm_l(&self) -> T {
+        norm_l(&**self)
+    }
 }
 
 impl<T: Num + Copy + Signed> Neg for V2<T> {
@@ -415,5 +428,21 @@ mod vector2_test {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn norm_inf_test() {
+        let v = V2::new_from(1, 10);
+        let result = v.norm_inf();
+        let expected = 10;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn norm_l_test() {
+        let v = V2::new_from(-1, 1);
+        let result = v.norm_l();
+        let expected = 2;
+        assert_eq!(result, expected);
     }
 }

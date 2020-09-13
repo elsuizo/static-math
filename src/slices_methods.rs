@@ -28,17 +28,17 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use num::{Num, Float};
+use num::{Num, Float, Signed};
 use crate::utils::compare_floats;
 
 // TODO(elsuizo:2020-08-31): implement the Display trait for this type
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct MaxMin<T> {
-    max: (T, usize),
-    min: (T, usize),
+    pub max: (T, usize),
+    pub min: (T, usize),
 }
 
-/// generic function to fin min and max values and the position in a slice
+/// generic function to fin min, max values and the position in a slice
 pub fn find_max_min<T: std::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
     let mut max = &slice[0];
     let mut min = &slice[0];
@@ -52,6 +52,17 @@ pub fn find_max_min<T: std::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
     }
 
     MaxMin{max: (*max, max_pos), min: (*min, min_pos)}
+}
+
+/// calculate the inf-norm of the slice
+pub fn norm_inf<T: Num + Copy + std::cmp::PartialOrd>(slice: &[T]) -> T {
+    let max_min = find_max_min(slice);
+    max_min.max.0
+}
+
+/// calculate the l-norm of the slice
+pub fn norm_l<T: Num + Copy + Signed + std::iter::Sum>(slice: &[T]) -> T {
+    slice.iter().map(|element| element.abs()).sum()
 }
 
 /// calculate the euclidean norm of the slice

@@ -45,4 +45,4 @@ pub mod utils;
 pub mod errors;
 pub mod slices_methods;
 pub mod quaternion;
-
+pub mod transformations;

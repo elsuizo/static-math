@@ -28,6 +28,7 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
+#![macro_use]
 use std::fmt;
 use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
@@ -50,11 +51,11 @@ impl<T> M33<T> {
         M33(data_input)
     }
 
-    pub fn rows(&self) -> usize {
+    pub const fn rows(&self) -> usize {
         self.0.len()
     }
 
-    pub fn cols(&self) -> usize {
+    pub const fn cols(&self) -> usize {
         self.rows()
     }
 }
@@ -155,7 +156,6 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
         }
     }
 }
-
 
 impl<T: Num + Copy> M33<T> {
     /// contruct identity matrix

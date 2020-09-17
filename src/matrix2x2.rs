@@ -29,6 +29,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 // imports
+#![macro_use]
 use std::fmt;
 use std::ops::{Add, Mul, Sub, AddAssign, SubAssign};
 use std::ops::{Deref, DerefMut, Index, IndexMut};

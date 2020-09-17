@@ -161,6 +161,17 @@ impl<T: Float> Quaternion<T> {
         }
     }
 
+    // NOTE(elsuizo:2020-09-17): this comes from this paper:https://arxiv.org/pdf/math/0701759.pdf
+    // /// generate a Quaternion that represents a rotations from DCM(Direct Cosine
+    // /// Matrix)
+    // pub fn rotation_from_dcm(m: M33<T>) -> Self {
+    //     a2 = 1 + dcm[1,1] + dcm[2,2] + dcm[3,3]
+    //     b2 = 1 + dcm[1,1] - dcm[2,2] - dcm[3,3]
+    //     c2 = 1 - dcm[1,1] + dcm[2,2] - dcm[3,3]
+    //     d2 = 1 - dcm[1,1] - dcm[2,2] + dcm[3,3]
+    //
+    // }
+    //
     pub fn get_angle(&self) -> T {
         let two = T::from(2.0).unwrap();
         let n = self.q.norm2();

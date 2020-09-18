@@ -32,6 +32,7 @@ use std::ops::{Mul, Add, Sub, Neg, Div};
 use num::{Num, Float, Signed};
 
 use crate::vector3::*;
+use crate::matrix3x3::M33;
 
 /// Quaternion type
 #[derive(Copy, Debug, Clone)]
@@ -51,12 +52,23 @@ impl<T> Quaternion<T> {
     pub fn new_from(q0: T, q1: T, q2: T, q3: T) -> Self {
         Self {q0, q: V3::new([q1, q2, q3])}
     }
+
 }
 
-// dot product
 impl<T: Num + Copy> Quaternion<T> {
+    /// dot product
     pub fn dot(&self, rhs: Self) -> T {
         self.q0 * rhs.q0 + self.q * rhs.q
+    }
+
+    /// get the real part
+    pub fn real(&self) -> T {
+        self.q0
+    }
+
+    /// get the imaginary part
+    pub fn imag(&self) -> V3<T> {
+        self.q
     }
 
 }
@@ -159,6 +171,20 @@ impl<T: Float> Quaternion<T> {
         } else {
             Self{q0: one, q: V3::zeros()}
         }
+    }
+
+    pub fn q2dcm(&self) -> M33<T> {
+        let (q0, q) = (self.real(), self.imag());
+        let q0_s = q0 * q0;
+        let (q1, q2, q3) = (q[0], q[1], q[2]);
+        let q1_s = q1 * q1;
+        let q2_s = q2 * q2;
+        let q3_s = q3 * q3;
+        let two = T::one() + T::one();
+
+        m33_new!(q0_s + q1_s - q2_s - q3_s, two*q1*q2 - two*q0*q3, two*q1*q3 + two*q0*q2;
+                 two*q1*q2 + two*q0*q3, q0_s - q1_s + q2_s - q3_s, two*q2*q3 - two*q0*q1;
+                 two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
     }
 
     // NOTE(elsuizo:2020-09-17): this comes from this paper:https://arxiv.org/pdf/math/0701759.pdf

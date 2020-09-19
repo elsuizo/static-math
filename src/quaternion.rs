@@ -173,7 +173,7 @@ impl<T: Float> Quaternion<T> {
         }
     }
 
-    pub fn q2dcm(&self) -> M33<T> {
+    pub fn to_dcm(&self) -> M33<T> {
         let (q0, q) = (self.real(), self.imag());
         let q0_s = q0 * q0;
         let (q1, q2, q3) = (q[0], q[1], q[2]);
@@ -187,17 +187,6 @@ impl<T: Float> Quaternion<T> {
                  two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
     }
 
-    // NOTE(elsuizo:2020-09-17): this comes from this paper:https://arxiv.org/pdf/math/0701759.pdf
-    // /// generate a Quaternion that represents a rotations from DCM(Direct Cosine
-    // /// Matrix)
-    // pub fn rotation_from_dcm(m: M33<T>) -> Self {
-    //     a2 = 1 + dcm[1,1] + dcm[2,2] + dcm[3,3]
-    //     b2 = 1 + dcm[1,1] - dcm[2,2] - dcm[3,3]
-    //     c2 = 1 - dcm[1,1] + dcm[2,2] - dcm[3,3]
-    //     d2 = 1 - dcm[1,1] - dcm[2,2] + dcm[3,3]
-    //
-    // }
-    //
     pub fn get_angle(&self) -> T {
         let two = T::from(2.0).unwrap();
         let n = self.q.norm2();
@@ -309,11 +298,25 @@ mod test_quaternion {
     #[test]
     fn rotate_vec_angle_encode() {
         let q = Quaternion::rotation_norm_encoded(V3::new_from(0.0, 0.0, 90.0));
-        let x = V3::new_from(1.0, 0.0, 0.0);
-        // rotate x around z (90 * 4 = 360) degrees
+        let x = V3::x_axis();
         let result = q * x;
-        println!("result: {:}", result);
         let expected = V3::new_from(0.0, -1.0, 0.0);
+        assert!(compare_floats(result[0], expected[0], EPS));
+        assert!(compare_floats(result[1], expected[1], EPS));
+        assert!(compare_floats(result[2], expected[2], EPS));
+    }
+
+    #[test]
+    fn convert_dcm_test() {
+        let q = Quaternion::rotation_norm_encoded(V3::new_from(0.0, 0.0, 90.0));
+        let x = V3::x_axis();
+        // rotate the x around z axis 360 degrees
+        let expected = q * q * q * q * x;
+        // convert the quaternion to a rotation matrix
+        let m = q.to_dcm();
+        // rotate the x around z axis 360 degrees with the rotation matrix
+        let result = m * m * m * m * x;
+
         assert!(compare_floats(result[0], expected[0], EPS));
         assert!(compare_floats(result[1], expected[1], EPS));
         assert!(compare_floats(result[2], expected[2], EPS));

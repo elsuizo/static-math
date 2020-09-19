@@ -117,13 +117,13 @@ pub fn rotz<T: Float>(angle: T) -> M33<T> {
 
 /// Brief.
 ///
-/// Compute the rotation matrix from euler angles from the following conventions:
+/// Compute the rotation matrix from euler angles with the following conventions:
 /// XYX, XYZ, XZX, XZY, YXY, YXZ, YZX, YZY, ZXY, ZXZ
 ///
 /// Function arguments:
-/// phi: first euler angle (Float number)
-/// theta: second euler angle (Float number)
-/// psi: third euler angle (Float number)
+/// phi: first euler angle in degrees (Float number)
+/// theta: second euler angle in degrees (Float number)
+/// psi: third euler angle in degrees (Float number)
 /// s: Option<EulerSeq>: Optional Euler sequence if is None compute ZYZ
 ///
 /// Output:

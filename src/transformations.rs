@@ -144,3 +144,12 @@ pub fn euler2rot<T: Float>(phi: T, theta: T, psi: T, s: Option<EulerSeq>) -> M33
         None                => rotz(phi) * roty(theta) * rotz(psi)
     }
 }
+
+// TODO(elsuizo:2020-09-20): do the tests
+//-------------------------------------------------------------------------
+//                        tests
+//-------------------------------------------------------------------------
+#[cfg(test)]
+mod test_transformations {
+
+}

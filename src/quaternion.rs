@@ -187,6 +187,25 @@ impl<T: Float> Quaternion<T> {
                  two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
     }
 
+    /// create a quaternion that represents the rotation from a Euler angles
+    /// with the roll-pitch-yay convention
+    pub fn from_euler_angles(yay: T, pitch: T, roll: T) -> Self {
+        let two = T::one() + T::one();
+        let cy = T::cos(yay / two);
+        let sy = T::sin(yay / two);
+        let cp = T::cos(pitch / two);
+        let sp = T::sin(pitch / two);
+        let cr = T::cos(roll / two);
+        let sr = T::sin(roll / two);
+
+        let q0 = cr * cp * cy + sr * sp * sy;
+        let q1 = sr * cp * cy - cr * sp * sy;
+        let q2 = cr * sp * cy + sr * cp * sy;
+        let q3 = cr * cp * sy - sr * sp * cy;
+
+        Self::new_from(q0, q1, q2, q3)
+    }
+
     pub fn get_angle(&self) -> T {
         let two = T::from(2.0).unwrap();
         let n = self.q.norm2();
@@ -206,7 +225,7 @@ impl<T: Float> Quaternion<T> {
 }
 
 //-------------------------------------------------------------------------
-//                        testing
+//                        tests
 //-------------------------------------------------------------------------
 #[cfg(test)]
 mod test_quaternion {

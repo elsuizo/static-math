@@ -39,8 +39,6 @@ use crate::vector2::*;
 use crate::traits::LinearAlgebra;
 use crate::slices_methods::*;
 
-// code
-
 /// A static Matrix of 2x2 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M22<T>([[T; 2]; 2]);

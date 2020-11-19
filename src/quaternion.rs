@@ -191,12 +191,12 @@ impl<T: Float> Quaternion<T> {
     /// with the roll-pitch-yay convention
     pub fn from_euler_angles(yay: T, pitch: T, roll: T) -> Self {
         let two = T::one() + T::one();
-        let cy = T::cos(yay / two);
-        let sy = T::sin(yay / two);
-        let cp = T::cos(pitch / two);
-        let sp = T::sin(pitch / two);
-        let cr = T::cos(roll / two);
-        let sr = T::sin(roll / two);
+        let cy = T::cos(yay.to_radians() / two);
+        let sy = T::sin(yay.to_radians() / two);
+        let cp = T::cos(pitch.to_radians() / two);
+        let sp = T::sin(pitch.to_radians() / two);
+        let cr = T::cos(roll.to_radians() / two);
+        let sr = T::sin(roll.to_radians() / two);
 
         let q0 = cr * cp * cy + sr * sp * sy;
         let q1 = sr * cp * cy - cr * sp * sy;

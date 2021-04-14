@@ -34,6 +34,8 @@ use num::{Num, Float, Signed};
 use crate::vector3::*;
 use crate::matrix3x3::M33;
 
+// NOTE(elsuizo:2021-04-13): vamos a tomar la idea de poner un flag para saber
+// si el Quaternion es un unit quaternion
 /// Quaternion type
 #[derive(Copy, Debug, Clone)]
 pub struct Quaternion<T> {
@@ -41,17 +43,20 @@ pub struct Quaternion<T> {
     pub q0: T,
     /// Imaginary part
     pub q: V3<T>,
+    /// flag to signaling if the Quaternion is normalized
+    normalized: bool
 }
 
 impl<T> Quaternion<T> {
 
-    pub fn new(q0: T, q: V3<T>) -> Self {
-        Self {q0, q}
+    pub const fn new(q0: T, q: V3<T>) -> Self {
+        Self {q0, q, normalized: false}
     }
 
     pub fn new_from(q0: T, q1: T, q2: T, q3: T) -> Self {
-        Self {q0, q: V3::new([q1, q2, q3])}
+        Self {q0, q: V3::new([q1, q2, q3]), normalized: false}
     }
+
 
 }
 
@@ -71,13 +76,21 @@ impl<T: Num + Copy> Quaternion<T> {
         self.q
     }
 
+    pub fn zero() -> Self {
+        Self::new(T::zero(), V3::zeros())
+    }
+
+    pub fn new_real(q0: T) -> Self {
+        Self {q0, q: V3::zeros(), normalized: true}
+    }
 }
 
 // q + q
 impl<T: Num + Copy> Add for Quaternion<T> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        Self{q0: self.q0 + rhs.q0, q: self.q + rhs.q}
+        // Self{q0: self.q0 + rhs.q0, q: self.q + rhs.q}
+        Self::new(self.q0 + rhs.q0, self.q + rhs.q)
     }
 }
 
@@ -85,7 +98,8 @@ impl<T: Num + Copy> Add for Quaternion<T> {
 impl<T: Num + Copy> Sub for Quaternion<T> {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
-        Self{q0: self.q0 - rhs.q0, q: self.q - rhs.q}
+        // Self{q0: self.q0 - rhs.q0, q: self.q - rhs.q}
+        Self::new(self.q0 + rhs.q0, self.q + rhs.q)
     }
 }
 
@@ -96,7 +110,8 @@ impl<T: Num + Copy> Div<T> for Quaternion<T> {
     fn div(self, rhs: T) -> Self::Output {
         let q0 = self.q0 / rhs;
         let q  = self.q / rhs;
-        Self{q0, q}
+        // Self{q0, q}
+        Self::new(q0, q)
     }
 }
 
@@ -107,7 +122,8 @@ impl<T: Num + Copy> Mul for Quaternion<T> {
     fn mul(self, rhs: Self) -> Self::Output {
         let q0 = self.q0 * rhs.q0  - self.q * rhs.q;
         let q = rhs.q * self.q0 + self.q * rhs.q0 + self.q.cross(rhs.q);
-        Self{q0, q}
+        // Self{q0, q}
+        Self::new(q0, q)
     }
 }
 
@@ -128,25 +144,33 @@ impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
     type Output = Self;
     #[inline]
     fn neg(self) -> Self {
-        Self{q0: -self.q0, q: -self.q}
+        // Self{q0: -self.q0, q: -self.q}
+        Self::new(-self.q0, -self.q)
     }
 }
 
 impl<T: Num + Copy + Signed> Quaternion<T> {
     pub fn conj(&self) -> Self {
-        Self{q0: self.q0, q: -self.q}
+        // Self{q0: self.q0, q: -self.q}
+        Self::new(self.q0, -self.q)
     }
 }
 
-// TODO(elsuizo:2020-09-09): maybe here is better a Error
 impl<T: Float> Quaternion<T> {
-    /// normalize the Quaternion
+    /// normalize the Quaternion only if necesary
     pub fn normalize(&self) -> Option<Self> {
-        let norm_sqr = self.dot(*self);
-        if norm_sqr > T::epsilon() {
-            Some(*self / self.dot(*self).sqrt())
+        if self.normalized {
+            Some(*self)
         } else {
-            None
+            let norm_sqr = self.dot(*self);
+            let mut result = Self::zero();
+            if norm_sqr > T::epsilon() {
+                result = *self / self.dot(*self).sqrt();
+                result.normalized = true;
+                Some(result)
+            } else {
+                None
+            }
         }
     }
 
@@ -154,8 +178,10 @@ impl<T: Float> Quaternion<T> {
     /// around the axis(normalized) `v`
     pub fn rotation(theta: T, v: V3<T>) -> Self {
         let two = T::from(2u8).unwrap();
-        let n = v.normalize().expect("the input has to be a non zero vector");
-        Self::new((theta.to_radians() / two).cos(), n * (theta.to_radians() / two).sin())
+        let n   = v.normalize().expect("the input has to be a non zero vector");
+        let q0  = (theta.to_radians() / two).cos();
+        let q   = n * (theta.to_radians() / two).sin();
+        Self{q0, q, normalized: true}
     }
 
     /// generate a Quaternion that represents a rotation of a angle `theta`
@@ -167,9 +193,9 @@ impl<T: Float> Quaternion<T> {
         let theta = v.norm2();
         if theta > T::epsilon() {
             let s = T::sin(theta.to_radians() / two) / theta;
-            Self{q0: T::cos(theta.to_radians() / two), q: v * s}
+            Self::new(T::cos(theta.to_radians() / two), v * s)
         } else {
-            Self{q0: one, q: V3::zeros()}
+            Self::new(one, V3::zeros())
         }
     }
 

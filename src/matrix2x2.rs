@@ -45,21 +45,22 @@ pub struct M22<T>([[T; 2]; 2]);
 
 impl<T> M22<T> {
 
-    pub fn new(data_input: [[T; 2]; 2]) -> Self {
+    pub const fn new(data_input: [[T; 2]; 2]) -> Self {
         Self(data_input)
     }
 
-    pub fn create(a: T, b: T, c: T, d: T) -> Self {
+    pub const fn create(a: T, b: T, c: T, d: T) -> Self {
         Self::new([[a, b], [c, d]])
     }
 
-    pub fn rows(&self) -> usize {
+    pub const fn rows(&self) -> usize {
         self.0.len()
     }
 
-    pub fn cols(&self) -> usize {
+    pub const fn cols(&self) -> usize {
         self.rows()
     }
+
 }
 
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
@@ -175,7 +176,6 @@ impl<T: Num + Copy> M22<T> {
         }
         result
     }
-
 }
 
 // M22 * V2
@@ -430,6 +430,12 @@ impl<T: Num + fmt::Display> fmt::Display for M22<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        constants
+//-------------------------------------------------------------------------
+// TODO(elsuizo): no se si me sirve esto pero lo podriamos dejar
+pub const M22_ZEROS: M22<f32> = M22::new([[0.0, 0.0], [0.0, 0.0]]);
+pub const M22_IDENT: M22<f32> = M22::new([[1.0, 0.0], [0.0, 1.0]]);
 //-------------------------------------------------------------------------
 //                        testing
 //-------------------------------------------------------------------------

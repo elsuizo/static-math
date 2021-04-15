@@ -31,7 +31,6 @@
 use std::fmt;
 use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
-
 use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
 
 use crate::errors::VectorErrors;
@@ -263,12 +262,6 @@ impl<T> DerefMut for V2<T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
-    }
-}
-
-impl<T> From<[T; 2]> for V2<T> {
-    fn from(data: [T; 2]) -> V2<T> {
-        V2(data)
     }
 }
 

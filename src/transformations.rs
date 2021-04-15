@@ -30,10 +30,10 @@
 //-------------------------------------------------------------------------
 use crate::matrix2x2::M22;
 use crate::matrix3x3::M33;
-use crate::matrix4x4::M44;
-use crate::vector3::V3;
+// use crate::matrix4x4::M44;
+// use crate::vector3::V3;
 
-use num::{Float, Zero};
+use num::{Float};
 
 ///
 /// Euler sequences conventions of rotations

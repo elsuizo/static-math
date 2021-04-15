@@ -1563,7 +1563,7 @@ impl<T: Num + Copy> M66<T> {
                 index += 1;
             }
         }
-        return result;
+        result
     }
 
     pub fn get_rows(self) -> V6<V6<T>> {

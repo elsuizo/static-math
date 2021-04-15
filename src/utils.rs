@@ -61,7 +61,7 @@ pub fn compare_vecs<T: Float>(v1: &[T], v2: &[T], epsilon: T) -> bool {
         .zip(v2)
         .map(|(a, b)| nearly_equal(*a, *b, epsilon))
         .collect();
-    v_result.iter().all(|&x| x == true)
+    v_result.iter().all(|&x| x)
 }
 
 pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {

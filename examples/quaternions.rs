@@ -42,7 +42,14 @@ fn main() {
     let x = V3::x_axis();
     // quaternion represent the rotation around the z axis 90 degrees, the angle
     // is encoded in the vector norm: [0, 0, 90]
-    let q = Quaternion::rotation_norm_encoded(V3::z_axis() * 90.0);
+    let q = Quaternion::rotation_norm_encoded(V3::z_axis() * 90.0f32.to_radians());
     let r = q * q * q * q * x;
     println!("r: {:}", r);
+    //-------------------------------------------------------------------------
+    //                        Quaternions and euler angles
+    //-------------------------------------------------------------------------
+    let q = Quaternion::from_euler_angles(0.1, 0.2, 0.3);
+    let euler_angles = q.to_euler_angles();
+    // this would have to give the same value :)
+    println!("euler_angles: {:?}", euler_angles);
 }

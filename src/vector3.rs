@@ -45,7 +45,7 @@ pub struct V3<T>([T; 3]);
 
 impl<T> V3<T> {
     /// create a new V3 from a static array
-    pub fn new(input: [T; 3]) -> Self {
+    pub const fn new(input: [T; 3]) -> Self {
         Self(input)
     }
 

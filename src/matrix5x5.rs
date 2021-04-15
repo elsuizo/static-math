@@ -802,7 +802,7 @@ impl<T: Num + Copy> M55<T> {
                 index += 1;
             }
         }
-        return result;
+        result
     }
 
     pub fn get_rows(self) -> V5<V5<T>> {

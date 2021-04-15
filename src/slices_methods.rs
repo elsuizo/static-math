@@ -75,6 +75,8 @@ pub fn dot<T: Num + Copy + std::iter::Sum>(slice1: &[T], slice2: &[T]) -> T {
     slice1.iter().zip(slice2).map(|(&a, &b)| a * b).sum()
 }
 
+// NOTE(elsuizo:2021-04-15): this function assume that the slice is not zero
+// we use safely in the QR algorithm because known that the vector is not zero
 /// normalize the slice
 pub fn normalize<T: Float>(slice: &mut [T]) {
     let n = norm2(slice);

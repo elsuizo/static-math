@@ -31,7 +31,6 @@
 use std::ops::{Mul, Add, Sub, Neg, Div};
 use num::{Num, Float, Signed, Zero, One};
 use num::traits::FloatConst;
-
 use crate::vector3::*;
 use crate::matrix3x3::M33;
 
@@ -99,6 +98,7 @@ impl<T: Num + Copy> Quaternion<T> {
     pub fn abs2(&self) -> T {
         self.q0 * self.q0 + self.q[0] * self.q[0] + self.q[1] * self.q[1] + self.q[2] * self.q[2]
     }
+
 }
 
 impl<T: Num + Copy> Zero for Quaternion<T> {
@@ -131,7 +131,7 @@ impl<T: Num + Copy> Add for Quaternion<T> {
 impl<T: Num + Copy> Sub for Quaternion<T> {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
-        Self::new(self.q0 + rhs.q0, self.q + rhs.q)
+        Self::new(self.q0 - rhs.q0, self.q - rhs.q)
     }
 }
 
@@ -143,6 +143,15 @@ impl<T: Num + Copy> Div<T> for Quaternion<T> {
         let q0 = self.q0 / rhs;
         let q  = self.q / rhs;
         Self::new(q0, q)
+    }
+}
+
+// q / q
+impl<T: Float + Signed> Div for Quaternion<T> {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        self * rhs.inv().expect("the input has to be a non zero vector")
     }
 }
 
@@ -167,6 +176,13 @@ impl<T: Num + Copy + Signed> Mul<V3<T>> for Quaternion<T> {
         let two = one + one;
         let t = (self.q * two).cross(rhs);
         rhs + t * self.q0 + self.q.cross(t)
+    }
+}
+
+impl<T: Num + Copy> Mul<T> for Quaternion<T> {
+    type Output = Quaternion<T>;
+    fn mul(self, rhs: T) -> Self::Output {
+        Self {q0: self.q0 * rhs, q: self.q * rhs, normalized: false}
     }
 }
 
@@ -200,7 +216,7 @@ impl<T: Float + Signed> Quaternion<T> {
 }
 
 // TODO(elsuizo:2021-04-14): a warning from here but i dont known why???
-impl<T: Float + FloatConst> Quaternion<T> {
+impl<T: Float + FloatConst + Signed> Quaternion<T> {
     /// normalize the Quaternion only if necesary
     pub fn normalize(&self) -> Option<Self> {
         if self.normalized {
@@ -218,6 +234,14 @@ impl<T: Float + FloatConst> Quaternion<T> {
         }
     }
 
+    /// get the norm of the "imaginary" part
+    pub fn abs_imag(&self) -> T {
+        self.imag().norm2()
+    }
+
+    pub fn norm2(&self) -> T {
+        self.dot(*self).sqrt()
+    }
 
     /// generate a Quaternion that represents a rotation of a angle `theta`
     /// around the axis(normalized) `v`
@@ -340,8 +364,90 @@ impl<T: Float + FloatConst> Quaternion<T> {
         let roll  = T::atan2(aux3, aux4);
         (yay, pitch, roll)
     }
-}
 
+    fn normalize_q(&self) -> Self {
+        let a = self.dot(*self);
+        if a > T::epsilon() {
+            let mut result = Self::zero();
+            result = *self / a.sqrt();
+            result.normalized = true;
+            result
+        } else {
+            Self {q0: T::zero(), q: V3::x_axis(), normalized: true}
+        }
+    }
+
+    fn normalize_a(&self) -> (Self, T) {
+        if self.normalized {
+            return (*self, T::one())
+        }
+        let a = self.norm2();
+        let mut result = *self / a;
+        result.normalized = true;
+        return (result, a)
+    }
+
+    pub fn argq(&self) -> Self {
+        let result = Quaternion::new(T::zero(), self.q);
+        result.normalize_q()
+    }
+
+    /// exponential function apply to the current Quaternion
+    pub fn exp(&self) -> Self {
+        let real = self.real();
+        let real_exp = T::exp(real);
+        let mut scale = real_exp;
+        let imag_norm = self.abs_imag();
+
+        if imag_norm > T::epsilon() {
+            scale = scale * (T::sin(imag_norm) / imag_norm);
+        }
+
+        Self {q0: real_exp * T::cos(imag_norm), q: self.q * scale, normalized: self.norm2() < T::epsilon()}
+    }
+
+    /// natural logaritmic function apply to the current Quaternion
+    pub fn ln(&self) -> Self {
+        let (q_norm, a) = self.normalize_a();
+        let real = q_norm.real();
+        let mut imag_norm = q_norm.abs_imag();
+        let arg_angle = T::atan2(imag_norm, real);
+        if imag_norm > T::epsilon() {
+            imag_norm = arg_angle / imag_norm;
+            Self {q0: T::ln(a), q: q_norm.q * imag_norm, normalized: false}
+        } else {
+            Self {q0: T::ln(a), q: V3::new_from(arg_angle, T::zero(), T::zero()), normalized: false}
+        }
+    }
+
+    /// sin function apply to the current Quaternion
+    pub fn sin(&self) -> Self {
+        let one = T::one();
+        let two = one + one;
+        let l = self.argq();
+        ((*self * l).exp() - (*self * -l).exp())/ (l * two)
+    }
+
+    /// cos function apply to the current Quaternion
+    pub fn cos(&self) -> Self {
+        let one = T::one();
+        let two = one + one;
+        let l = self.argq();
+        ((*self * l).exp() + (*self * -l).exp()) / two
+    }
+
+    /// sqrt function apply to the current Quaternion
+    pub fn sqrt(&self) -> Self {
+        let one = T::one();
+        let two = one + one;
+        (self.ln() * (one / two)).exp()
+    }
+
+    /// power the current Quaternion to the rhs argument
+    pub fn pow(&self, rhs: Self) -> Self {
+        (rhs * self.ln()).exp()
+    }
+}
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------

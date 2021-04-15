@@ -35,9 +35,6 @@ use num::traits::FloatConst;
 use crate::vector3::*;
 use crate::matrix3x3::M33;
 
-// TODO(elsuizo:2021-04-14): missing methods:
-// - [  ] quaternion -> euler_angles
-
 /// Quaternion type
 #[derive(Copy, Debug, Clone, PartialEq)]
 pub struct Quaternion<T> {
@@ -285,6 +282,7 @@ impl<T: Float + FloatConst> Quaternion<T> {
         Self::new_from(q0, q1, q2, q3)
     }
 
+    /// get the angle of representation from this Quaternion
     pub fn get_angle(&self) -> T {
         let two = T::from(2.0).unwrap();
         let n = self.q.norm2();
@@ -292,14 +290,17 @@ impl<T: Float + FloatConst> Quaternion<T> {
         two * T::atan2(n, self.q0)
     }
 
+    // TODO(elsuizo:2021-04-15): this is with `sin` or `cos` ???
+    /// get the axis of rotation from which this Quaternion represent
     pub fn get_axis(&self) -> Option<V3<T>> {
         let qn = self.normalize()?;
-        let s = T::cos(qn.get_angle() / T::from(2.0)?);
-        if s.abs() > T::epsilon() {
-            Some(qn.q / s)
-        } else {
-            None
-        }
+        let s = T::sin(qn.get_angle() / T::from(2.0)?);
+        (s.abs() > T::epsilon()).then(|| qn.q / s)
+    }
+
+    /// combine the two previous methods: `get_axis` and `get_angle`
+    pub fn axis_angle(&self) -> (T, Option<V3<T>>) {
+        (self.get_angle(), self.get_axis())
     }
 
     // NOTE(elsuizo:2021-04-14): this implementation is a translation from this
@@ -316,6 +317,7 @@ impl<T: Float + FloatConst> Quaternion<T> {
         // if the Quaternion is normalized this is one, otherwise is a correction factor
         let unit = q0_2 + q1_2 + q2_2 + q3_2;
         let test = self.q[0] * self.q[1] + self.q[2] * self.q0;
+        // TODO(elsuizo:2021-04-14): maybe this has to be 0.499999...
         let sing_number = one / two;
         if test - sing_number * unit > T::epsilon() {
             let yay   = two * T::atan2(self.q[0], self.q0);

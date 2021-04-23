@@ -319,7 +319,6 @@ impl<T> From<[T; 5]> for V5<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for V5<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!("");
         write!(dest, "[{0:^3.2} {1:^3.2} {2:^3.2} {3:^3.2} {4:^3.2}]\n", self[0], self[1], self[2], self[3], self[4])
     }
 }

@@ -28,6 +28,7 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
+use std::fmt;
 use std::ops::{Mul, Add, Sub, Neg, Div};
 use num::{Num, Float, Signed, Zero, One};
 use num::traits::FloatConst;
@@ -418,6 +419,15 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
 impl<T: Copy> From<[T; 4]> for Quaternion<T> {
     fn from(data: [T; 4]) -> Quaternion<T> {
         Quaternion::new_from(data[0], data[1], data[2], data[3])
+    }
+}
+
+//-------------------------------------------------------------------------
+//                        Display for Quaternion
+//-------------------------------------------------------------------------
+impl<T: Num + fmt::Display> fmt::Display for Quaternion<T> {
+    fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
+        write!(dest, "q0: {0:^3.2}, q:{1:^3.2}", self.q0, self.q)
     }
 }
 

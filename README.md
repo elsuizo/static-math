@@ -51,29 +51,11 @@ Using the criterion crate:
 
 https://github.com/bheisler/criterion.rs
 
-this are the results for matrixs inverse operations(in a very old machine)
-
-
-```text
-inverse 6x6             time:   [9.6090 us 9.6128 us 9.6172 us]
-                        change: [-3.2723% -3.0278% -2.8038%] (p = 0.00 < 0.05)
-                        Performance has improved.
-Found 5 outliers among 100 measurements (5.00%)
-  1 (1.00%) low mild
-  1 (1.00%) high mild
-  3 (3.00%) high severe
-
-inverse 4x4             time:   [98.560 ns 98.605 ns 98.677 ns]
-                        change: [-5.4359% -3.2101% -1.4680%] (p = 0.00 < 0.05)
-                        Performance has improved.
-Found 15 outliers among 100 measurements (15.00%)
-  5 (5.00%) high mild
-  10 (10.00%) high severe
-```
-
-you can look the bench here: [bench](benches/bench_inverse.rs)
+run with: `cargo bench`
 
 Others benches comparing the performance with others crates are in this repo: https://github.com/bitshifter/mathbench-rs
+
+*NOTE*: this is the only crate that not have unsafe code
 
 with the following results:
 

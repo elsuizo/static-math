@@ -30,11 +30,10 @@
 //-------------------------------------------------------------------------
 use crate::matrix2x2::M22;
 use crate::matrix3x3::M33;
-// use crate::matrix4x4::M44;
-// use crate::vector3::V3;
 
+use crate::utils::nearly_equal;
 use num::{Float};
-
+use num::traits::FloatConst;
 ///
 /// Euler sequences conventions of rotations
 ///
@@ -53,10 +52,9 @@ pub enum EulerSeq {
 //-------------------------------------------------------------------------
 //                        transformations
 //-------------------------------------------------------------------------
-/// Compute rotation matrix from a angle in degrees
+/// Compute rotation matrix from a angle in radians
 pub fn rot2<T: Float>(angle: T) -> M22<T> {
-    let c = angle.to_radians().cos();
-    let s = angle.to_radians().sin();
+    let (s, c) = angle.sin_cos();
     m22_new!(c, -s;
              s,  c)
 }
@@ -67,13 +65,12 @@ pub fn rot2<T: Float>(angle: T) -> M22<T> {
 ///
 /// description
 ///
-/// * `angle` - angle of rotation in degrees
+/// * `angle` - angle of rotation in radians
 ///
 pub fn rotx<T: Float>(angle: T) -> M33<T> {
     let one = T::one();
     let zero = T::zero();
-    let c = angle.to_radians().cos();
-    let s = angle.to_radians().sin();
+    let (s, c) = angle.sin_cos();
     m33_new!( one, zero, zero;
              zero,    c,   -s;
              zero,    s,    c)
@@ -85,13 +82,12 @@ pub fn rotx<T: Float>(angle: T) -> M33<T> {
 ///
 /// Description
 ///
-/// * `angle` - Angle of rotation in degrees
+/// * `angle` - Angle of rotation in radians
 ///
 pub fn roty<T: Float>(angle: T) -> M33<T> {
     let one = T::one();
     let zero = T::zero();
-    let c = angle.to_radians().cos();
-    let s = angle.to_radians().sin();
+    let (s, c) = angle.sin_cos();
     m33_new!(   c, zero,    s;
              zero,  one, zero;
                -s, zero,    c)
@@ -103,13 +99,12 @@ pub fn roty<T: Float>(angle: T) -> M33<T> {
 ///
 /// Description
 ///
-/// * `angle` - Angle of rotation in degrees
+/// * `angle` - Angle of rotation in radians
 ///
 pub fn rotz<T: Float>(angle: T) -> M33<T> {
     let one = T::one();
     let zero = T::zero();
-    let c = angle.to_radians().cos();
-    let s = angle.to_radians().sin();
+    let (s, c) = angle.sin_cos();
     m33_new!(   c,   -s, zero;
                 s,    c, zero;
              zero, zero,  one)
@@ -121,27 +116,60 @@ pub fn rotz<T: Float>(angle: T) -> M33<T> {
 /// XYX, XYZ, XZX, XZY, YXY, YXZ, YZX, YZY, ZXY, ZXZ
 ///
 /// Function arguments:
-/// phi: first euler angle in degrees (Float number)
-/// theta: second euler angle in degrees (Float number)
-/// psi: third euler angle in degrees (Float number)
-/// s: Option<EulerSeq>: Optional Euler sequence if is None compute ZYZ
+/// yay: first euler angle in radians (Float number)
+/// pitch: second euler angle in radians (Float number)
+/// roll: third euler angle in radians (Float number)
+/// s: `Option<EulerSeq>:` Optional Euler sequence if is None compute ZYX
 ///
 /// Output:
-/// R: Rotation matrix(M33<Float>)
+/// r: Rotation matrix(`M33<Float>`)
 ///
-pub fn euler2rot<T: Float>(phi: T, theta: T, psi: T, s: Option<EulerSeq>) -> M33<T> {
+pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq>) -> M33<T> {
     match s {
-        Some(EulerSeq::XYX) => rotx(phi) * roty(theta) * rotx(psi),
-        Some(EulerSeq::XYZ) => rotx(phi) * roty(theta) * rotz(psi),
-        Some(EulerSeq::XZX) => rotx(phi) * rotz(theta) * rotx(psi),
-        Some(EulerSeq::XZY) => rotx(phi) * rotz(theta) * roty(psi),
-        Some(EulerSeq::YXY) => roty(phi) * rotx(theta) * roty(psi),
-        Some(EulerSeq::YXZ) => roty(phi) * rotx(theta) * rotz(psi),
-        Some(EulerSeq::YZX) => roty(phi) * rotz(theta) * rotx(psi),
-        Some(EulerSeq::YZY) => roty(phi) * rotz(theta) * roty(psi),
-        Some(EulerSeq::ZXY) => rotz(phi) * rotx(theta) * roty(psi),
-        Some(EulerSeq::ZXZ) => rotz(phi) * rotx(theta) * rotz(psi),
-        None                => rotz(phi) * roty(theta) * rotz(psi)
+        Some(EulerSeq::XYX) => rotx(yay) * roty(pitch) * rotx(roll),
+        Some(EulerSeq::XYZ) => rotx(yay) * roty(pitch) * rotz(roll),
+        Some(EulerSeq::XZX) => rotx(yay) * rotz(pitch) * rotx(roll),
+        Some(EulerSeq::XZY) => rotx(yay) * rotz(pitch) * roty(roll),
+        Some(EulerSeq::YXY) => roty(yay) * rotx(pitch) * roty(roll),
+        Some(EulerSeq::YXZ) => roty(yay) * rotx(pitch) * rotz(roll),
+        Some(EulerSeq::YZX) => rotx(yay) * roty(pitch) * rotz(roll),
+        Some(EulerSeq::YZY) => roty(yay) * rotz(pitch) * roty(roll),
+        Some(EulerSeq::ZXY) => rotz(yay) * rotx(pitch) * roty(roll),
+        Some(EulerSeq::ZXZ) => rotz(yay) * rotx(pitch) * rotz(roll),
+        None                => rotz(yay) * roty(pitch) * rotx(roll)
+    }
+}
+
+// TODO(elsuizo:2021-04-23): handle all the rotation sequences
+/// Brief.
+///
+/// get the euler angles from a rotation matrix comming from the convention ZYX
+///
+/// Function arguments:
+/// `r`: Rotation matrix(M33<Float>)
+///
+/// Output:
+/// Euler angles: (yay, pitch, roll)
+///
+pub fn rotation_to_euler<T: Float + FloatConst>(r: M33<T>) -> (T, T, T) {
+    let one   = T::one();
+    let pitch = T::atan2(-r[(2, 0)], (r[(0, 0)] * r[(0, 0)] + r[(1, 0)] * r[(1, 0)]).sqrt());
+
+    // singularity
+    if nearly_equal(pitch, -one * T::FRAC_PI_2(), T::epsilon()) {
+        let yay  = T::atan2(-r[(1, 2)], -r[(0, 2)]);
+        let roll = T::zero();
+        (yay, pitch, roll)
+    // singularity
+    } else if nearly_equal(pitch, T::FRAC_PI_2(), T::epsilon()) {
+        let yay  = T::atan2(r[(1, 2)], r[(0, 2)]);
+        let roll = T::zero();
+        (yay, pitch, roll)
+    // normal case
+    } else {
+        let yay   = T::atan2(r[(1, 0)], r[(0, 0)]);
+        let roll  = T::atan2(r[(2, 1)], r[(2, 2)]);
+        (yay, pitch, roll)
     }
 }
 
@@ -151,5 +179,37 @@ pub fn euler2rot<T: Float>(phi: T, theta: T, psi: T, s: Option<EulerSeq>) -> M33
 //-------------------------------------------------------------------------
 #[cfg(test)]
 mod test_transformations {
+
+    use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz};
+    use crate::utils::{nearly_equal, is_rotation};
+    const EPS: f32 = 1e-6;
+
+    #[test]
+    fn rotation_and_euler_test() {
+        let expected = (0.1, 0.2, 0.3);
+        let r = euler_to_rotation(expected.0, expected.1, expected.2, None);
+        let result = rotation_to_euler(r);
+        assert!(nearly_equal(result.0, expected.0, EPS));
+        assert!(nearly_equal(result.1, expected.1, EPS));
+        assert!(nearly_equal(result.2, expected.2, EPS));
+    }
+
+    #[test]
+    fn rotation_x() {
+        let r = rotx(20f32.to_radians());
+        assert!(is_rotation(r));
+    }
+
+    #[test]
+    fn rotation_y() {
+        let r = roty(20f32.to_radians());
+        assert!(is_rotation(r));
+    }
+
+    #[test]
+    fn rotation_z() {
+        let r = rotz(20f32.to_radians());
+        assert!(is_rotation(r));
+    }
 
 }

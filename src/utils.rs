@@ -29,11 +29,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use num::{Float};
-
+use crate::matrix3x3::M33;
+use crate::traits::LinearAlgebra;
 // NOTE(elsuizo:2020-06-02): the following function
 // is a translation of the implementation that is here:
 // https://floating-point-gui.de/errors/comparison/
-
+//
 /// a comparison function for floating point values
 ///
 pub fn nearly_equal<T: Float>(a: T, b: T, epsilon: T) -> bool {
@@ -44,10 +45,10 @@ pub fn nearly_equal<T: Float>(a: T, b: T, epsilon: T) -> bool {
     // short-cut, handles infinity
     if a == b { true }
 
-    else if a == zero || b == zero || (abs_a + abs_b < T::min_positive_value()) {
+    else if a == zero || b == zero || (abs_a + abs_b < T::min_value()) {
         // a or b is zero or both are extremely close to it
         // relative error is less meaningful here
-        abs_diff < (epsilon * T::min_positive_value())
+        abs_diff < epsilon
     } else {
       abs_diff / T::min(abs_a + abs_b, T::max_value()) < epsilon
     }
@@ -68,6 +69,16 @@ pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {
     Float::abs(num1 - num2) < tol
 }
 
+/// utility function to verify if a Matrix is a propper rotation matrix
+pub fn is_rotation<T: Float + std::iter::Sum>(r: M33<T>) -> bool {
+    let r2 = r * r;
+    if nearly_equal(r.det(), T::one(), T::epsilon()) && nearly_equal(r2.det(), T::one(), T::epsilon()) {
+        true
+    } else {
+        false
+    }
+}
+
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
@@ -78,7 +89,7 @@ mod test_utils {
     fn test_nearly_equal() {
         let a = 0.15 + 0.15;
         let b = 0.1 + 0.2;
-        assert_eq!(nearly_equal(a, b, 1e-9), true);
+        assert_eq!(nearly_equal(a, b, 1e-10), true);
     }
 
     #[test]
@@ -88,11 +99,10 @@ mod test_utils {
         assert_eq!(nearly_equal(a, b, 1e-10), true);
     }
 
-    // FIXME(elsuizo:2020-08-10): this test fails!!!
     #[test]
     fn test_one_zero() {
-        let b = -0.00000000000000039905561918225744;
+        let b = -0.0000000005561918225744;
         let a = 0.0;
-        assert_eq!(nearly_equal(a, b, 1e-10), false);
+        assert_eq!(nearly_equal(a, b, 1e-8), true);
     }
 }

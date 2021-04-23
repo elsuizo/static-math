@@ -34,6 +34,7 @@ use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
+use crate::utils::nearly_equal;
 use num::{Float, One, Zero, Num};
 
 use crate::slices_methods::*;
@@ -47,7 +48,7 @@ use crate::vector3::*;
 pub struct M33<T>([[T; 3]; 3]);
 
 impl<T> M33<T> {
-    pub fn new(data_input: [[T; 3]; 3]) -> M33<T> {
+    pub const fn new(data_input: [[T; 3]; 3]) -> M33<T> {
         M33(data_input)
     }
 
@@ -114,7 +115,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     /// Calculate the inverse
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
-        if det.abs() > T::epsilon() {
+        if !nearly_equal(det, T::zero(), T::epsilon()) {
             let invdet = T::one() / det;
             let mut res = M33::zero();
             res[(0, 0)] = (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)]) * invdet;
@@ -135,8 +136,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     /// Calculate de QR factorization of the M33 via gram-schmidt
     /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
-        let det = self.det();
-        if det.abs() > T::epsilon() {
+        if !nearly_equal(self.det(), T::zero(), T::epsilon()) {
             let cols = self.get_cols();
             let mut q: [V3<T>; 3] = *M33::zeros().get_cols();
             for i in 0..q.len() {
@@ -458,12 +458,14 @@ impl<T> From<[[T; 3]; 3]> for M33<T> {
 
 impl<T> Index<(usize, usize)> for M33<T> {
     type Output = T;
+    #[inline(always)]
     fn index(&self, index: (usize, usize)) -> &T {
         &self.0[index.0][index.1]
     }
 }
 
 impl<T> IndexMut<(usize, usize)> for M33<T> {
+    #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         &mut self.0[index.0][index.1]
     }
@@ -631,6 +633,14 @@ mod test_matrix3x3 {
         if let Some(result) = m.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn inverse_fail() {
+        let m = M33::new([[1.0, 0.0, 3.0], [1.0, 0.0, 3.0], [10.0, 0.0, 3.0]]);
+        let result = m.inverse();
+        let expected = None;
+        assert_eq!(result, expected);
     }
 
     #[test]

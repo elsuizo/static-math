@@ -33,6 +33,8 @@ use num::{Num, Float, Signed, Zero, One};
 use num::traits::FloatConst;
 use crate::vector3::*;
 use crate::matrix3x3::M33;
+use crate::transformations::rotation_to_euler;
+use crate::utils::nearly_equal;
 
 /// Quaternion type
 #[derive(Copy, Debug, Clone, PartialEq)]
@@ -49,12 +51,12 @@ impl<T> Quaternion<T> {
 
     /// construct a new Quaternion from a number(real part) and a vector(imag part)
     pub const fn new(q0: T, q: V3<T>) -> Self {
-        Self {q0, q, normalized: false}
+        Self{q0, q, normalized: false}
     }
 
-    /// construct a new Quaternion from four numbers
+    /// construct a new Quaternion zrom four numbers
     pub fn new_from(q0: T, q1: T, q2: T, q3: T) -> Self {
-        Self {q0, q: V3::new([q1, q2, q3]), normalized: false}
+        Self{q0, q: V3::new([q1, q2, q3]), normalized: false}
     }
 }
 
@@ -86,12 +88,12 @@ impl<T: Num + Copy> Quaternion<T> {
 
     /// construct a pure "real" Quaternion
     pub fn new_real(q0: T) -> Self {
-        Self {q0, q: V3::zeros(), normalized: true}
+        Self{q0, q: V3::zeros(), normalized: false}
     }
 
     /// construct a pure "imaginary" Quaternion
     pub fn new_imag(q: V3<T>) -> Self {
-        Self {q0: T::zero(), q, normalized: false}
+        Self{q0: T::zero(), q, normalized: false}
     }
 
     /// calculate the abs2 of the Quaternion
@@ -99,8 +101,11 @@ impl<T: Num + Copy> Quaternion<T> {
         self.q0 * self.q0 + self.q[0] * self.q[0] + self.q[1] * self.q[1] + self.q[2] * self.q[2]
     }
 
+    
+
 }
 
+// create the zero Quaternion
 impl<T: Num + Copy> Zero for Quaternion<T> {
     fn zero() -> Self {
         Self::new(T::zero(), V3::zeros())
@@ -111,6 +116,7 @@ impl<T: Num + Copy> Zero for Quaternion<T> {
     }
 }
 
+// create the unit Quaternion
 impl<T: Num + Copy> One for Quaternion<T> {
     /// Create an identity Quaternion
     fn one() -> Self {
@@ -200,32 +206,33 @@ impl<T: Num + Copy + Signed> Quaternion<T> {
     }
 }
 
+// NOTE(elsuizo:2021-04-23): we only need the Float for the sqrt function
+impl<T: Float> Quaternion<T> {
+    pub fn norm2(&self) -> T {
+        self.dot(*self).sqrt()
+    }
+}
+
 impl<T: Float + Signed> Quaternion<T> {
     pub fn inv(&self) -> Option<Self> {
         if !self.normalized {
-            let norm_sqr = self.dot(*self);
-            if norm_sqr > T::epsilon() {
-                Some(self.conj() / self.abs2())
-            } else {
-                None
-            }
+            let norm_sqr = self.norm2();
+            nearly_equal(norm_sqr, T::zero(), T::epsilon()).then(|| self.conj() / self.abs2())
         } else {
             Some(self.conj())
         }
     }
 }
 
-// TODO(elsuizo:2021-04-14): a warning from here but i dont known why???
 impl<T: Float + FloatConst + Signed> Quaternion<T> {
     /// normalize the Quaternion only if necesary
     pub fn normalize(&self) -> Option<Self> {
         if self.normalized {
             Some(*self)
         } else {
-            let norm_sqr = self.dot(*self);
+            let norm_sqr = self.norm2();
             if norm_sqr > T::epsilon() {
-                let mut result = Self::zero();
-                result = *self / self.dot(*self).sqrt();
+                let mut result = *self / norm_sqr;
                 result.normalized = true;
                 Some(result)
             } else {
@@ -239,17 +246,16 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         self.imag().norm2()
     }
 
-    pub fn norm2(&self) -> T {
-        self.dot(*self).sqrt()
-    }
 
     /// generate a Quaternion that represents a rotation of a angle `theta`
     /// around the axis(normalized) `v`
     pub fn rotation(theta: T, v: V3<T>) -> Self {
-        let two = T::from(2u8).unwrap();
+        let one = T::one();
+        let two = one + one;
         let n   = v.normalize().expect("the input has to be a non zero vector");
-        let q0  = (theta / two).cos();
-        let q   = n * (theta / two).sin();
+        let (s, c) = (theta / two).sin_cos();
+        let q0  = c;
+        let q   = n * s;
         Self{q0, q, normalized: true}
     }
 
@@ -260,15 +266,15 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         let one = T::one();
         let two = T::from(2.0).unwrap();
         let theta = v.norm2();
-        if theta > T::epsilon() {
-            let s = T::sin(theta / two) / theta;
-            Self::new(T::cos(theta / two), v * s)
+        if !nearly_equal(theta, T::zero(), T::epsilon()) {
+            let (s, c) = (theta / two).sin_cos();
+            Self{q0: c, q: v * (s / theta), normalized: true}
         } else {
             Self::new(one, V3::zeros())
         }
     }
 
-    pub fn to_dcm(&self) -> M33<T> {
+    pub fn to_rotation(&self) -> M33<T> {
         let (q0, q) = (self.real(), self.imag());
         let q0_s = q0 * q0;
         let (q1, q2, q3) = (q[0], q[1], q[2]);
@@ -288,20 +294,15 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
     /// create a quaternion that represents the rotation from a Euler angles
     /// with the roll-pitch-yay convention
     pub fn from_euler_angles(yay: T, pitch: T, roll: T) -> Self {
-        let two = T::one() + T::one();
-        let c1 = T::cos(yay / two);
-        let s1 = T::sin(yay / two);
-        let c2 = T::cos(pitch / two);
-        let s2 = T::sin(pitch / two);
-        let c3 = T::cos(roll / two);
-        let s3 = T::sin(roll / two);
-        let c1c2 = c1 * c2;
-        let s1s2 = s1 * s2;
-
-        let q0 = c1c2 * c3 - s1s2 * s3;
-        let q1 = c1c2 * s3 + s1s2 * c3;
-        let q2 = s1 * c2 * c3 + c1 * s2 * s3;
-        let q3 = c1 * s2 * c3 - s1 * c2 * s3;
+        let one = T::one();
+        let two = one + one;
+        let (roll_sin, roll_cos)   = (roll / two).sin_cos();
+        let (pitch_sin, pitch_cos) = (pitch / two).sin_cos();
+        let (yay_sin, yay_cos)     = (yay / two).sin_cos();
+        let q0 = roll_cos * pitch_cos * yay_cos + roll_sin * pitch_sin * yay_sin;
+        let q1 = roll_sin * pitch_cos * yay_cos - roll_cos * pitch_sin * yay_sin;
+        let q2 = roll_cos * pitch_sin * yay_cos + roll_sin * pitch_cos * yay_sin;
+        let q3 = roll_cos * pitch_cos * yay_sin - roll_sin * pitch_sin * yay_cos;
 
         Self::new_from(q0, q1, q2, q3)
     }
@@ -327,49 +328,16 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         (self.get_angle(), self.get_axis())
     }
 
-    // NOTE(elsuizo:2021-04-14): this implementation is a translation from this
-    // webpage from Martin John Baker.
-    // http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm
-    //
+    /// get the euler angles from the Quaternion
     pub fn to_euler_angles(&self) -> (T, T, T) {
-        let one = T::one();
-        let two = one + one;
-        let q0_2 = self.q0 * self.q0;
-        let q1_2 = self.q[0] * self.q[0];
-        let q2_2 = self.q[1] * self.q[1];
-        let q3_2 = self.q[2] * self.q[2];
-        // if the Quaternion is normalized this is one, otherwise is a correction factor
-        let unit = q0_2 + q1_2 + q2_2 + q3_2;
-        let test = self.q[0] * self.q[1] + self.q[2] * self.q0;
-        // TODO(elsuizo:2021-04-14): maybe this has to be 0.499999...
-        let sing_number = one / two;
-        if test - sing_number * unit > T::epsilon() {
-            let yay   = two * T::atan2(self.q[0], self.q0);
-            let pitch = T::FRAC_PI_2();
-            let roll  = T::zero();
-            return (yay, pitch, roll);
-        }
-        if test + sing_number * unit < T::epsilon() {
-            let yay   = -two * T::atan2(self.q[0], self.q0);
-            let pitch = -one * T::FRAC_PI_2();
-            let roll  = T::zero();
-            return (yay, pitch, roll);
-        }
-        let aux1  = two * self.q[1] * self.q0 - two * self.q[0] * self.q[2];
-        let aux2  = q1_2 - q2_2 - q3_2 + q0_2;
-        let yay   = T::atan2(aux1, aux2);
-        let pitch = T::asin(two * test / unit);
-        let aux3  = two * self.q[0] * self.q0 - two * self.q[1] * self.q[2];
-        let aux4  = -q1_2 + q2_2 - q3_2 + q0_2;
-        let roll  = T::atan2(aux3, aux4);
-        (yay, pitch, roll)
+        rotation_to_euler(self.to_rotation())
     }
 
-    fn normalize_q(&self) -> Self {
+    /// normalize the Quaternion
+    pub fn normalize_q(&self) -> Self {
         let a = self.dot(*self);
         if a > T::epsilon() {
-            let mut result = Self::zero();
-            result = *self / a.sqrt();
+            let mut result = *self / a.sqrt();
             result.normalized = true;
             result
         } else {
@@ -448,6 +416,14 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         (rhs * self.ln()).exp()
     }
 }
+
+// convert from array to Quaternion
+impl<T: Copy> From<[T; 4]> for Quaternion<T> {
+    fn from(data: [T; 4]) -> Quaternion<T> {
+        Quaternion::new_from(data[0], data[1], data[2], data[3])
+    }
+}
+
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
@@ -455,8 +431,10 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
 mod test_quaternion {
     use crate::vector3::V3;
     use crate::quaternion::Quaternion;
-    use crate::utils::{compare_floats};
+    use crate::utils::{nearly_equal};
 
+    // NOTE(elsuizo:2021-04-23): this could be more small but the rotation accumulates error in
+    // sucesives runs
     const EPS: f32 = 1e-6;
 
     #[test]
@@ -523,9 +501,9 @@ mod test_quaternion {
         // rotate x around z 90 degrees
         let result = q1 * x;
         let expected = V3::new_from(0.0, -1.0, 0.0);
-        assert!(compare_floats(result[0], expected[0], EPS));
-        assert!(compare_floats(result[1], expected[1], EPS));
-        assert!(compare_floats(result[2], expected[2], EPS));
+        assert!(nearly_equal(result[0], expected[0], EPS));
+        assert!(nearly_equal(result[1], expected[1], EPS));
+        assert!(nearly_equal(result[2], expected[2], EPS));
     }
 
     #[test]
@@ -534,9 +512,9 @@ mod test_quaternion {
         let x = V3::new_from(1.0, 0.0, 0.0);
         // rotate x around z (90 * 4 = 360) degrees
         let result = q1 * q1 * q1 * q1 * x;
-        assert!(compare_floats(result[0], x[0], EPS));
-        assert!(compare_floats(result[1], x[1], EPS));
-        assert!(compare_floats(result[2], x[2], EPS));
+        assert!(nearly_equal(result[0], x[0], EPS));
+        assert!(nearly_equal(result[1], x[1], EPS));
+        assert!(nearly_equal(result[2], x[2], EPS));
     }
 
     #[test]
@@ -545,25 +523,25 @@ mod test_quaternion {
         let x = V3::x_axis();
         let result = q * x;
         let expected = V3::new_from(0.0, -1.0, 0.0);
-        assert!(compare_floats(result[0], expected[0], EPS));
-        assert!(compare_floats(result[1], expected[1], EPS));
-        assert!(compare_floats(result[2], expected[2], EPS));
+        assert!(nearly_equal(result[0], expected[0], EPS));
+        assert!(nearly_equal(result[1], expected[1], EPS));
+        assert!(nearly_equal(result[2], expected[2], EPS));
     }
 
     #[test]
-    fn convert_dcm_test() {
+    fn convert_rotation_test() {
         let q = Quaternion::rotation_norm_encoded(V3::new_from(0.0, 0.0, 90.0f32.to_radians()));
         let x = V3::x_axis();
         // rotate the x around z axis 360 degrees
         let expected = q * q * q * q * x;
         // convert the quaternion to a rotation matrix
-        let m = q.to_dcm();
+        let m = q.to_rotation();
         // rotate the x around z axis 360 degrees with the rotation matrix
         let result = m * m * m * m * x;
 
-        assert!(compare_floats(result[0], expected[0], EPS));
-        assert!(compare_floats(result[1], expected[1], EPS));
-        assert!(compare_floats(result[2], expected[2], EPS));
+        assert!(nearly_equal(result[0], expected[0], EPS));
+        assert!(nearly_equal(result[1], expected[1], EPS));
+        assert!(nearly_equal(result[2], expected[2], EPS));
     }
 
     #[test]
@@ -572,10 +550,10 @@ mod test_quaternion {
         if let Some(inv) = q.inv() {
             let result = q * inv;
             let expected = Quaternion::one();
-            assert!(compare_floats(result.q0, expected.q0, EPS));
-            assert!(compare_floats(result.q[0], expected.q[0], EPS));
-            assert!(compare_floats(result.q[1], expected.q[1], EPS));
-            assert!(compare_floats(result.q[2], expected.q[2], EPS));
+            assert!(nearly_equal(result.q0, expected.q0, EPS));
+            assert!(nearly_equal(result.q[0], expected.q[0], EPS));
+            assert!(nearly_equal(result.q[1], expected.q[1], EPS));
+            assert!(nearly_equal(result.q[2], expected.q[2], EPS));
         }
     }
 
@@ -584,8 +562,8 @@ mod test_quaternion {
         let expected = (0.1, 0.2, 0.3);
         let q = Quaternion::from_euler_angles(expected.0, expected.1, expected.2);
         let result = q.to_euler_angles();
-        assert!(compare_floats(result.0, expected.0, EPS));
-        assert!(compare_floats(result.1, expected.1, EPS));
-        assert!(compare_floats(result.2, expected.2, EPS));
+        assert!(nearly_equal(result.0, expected.0, EPS));
+        assert!(nearly_equal(result.1, expected.1, EPS));
+        assert!(nearly_equal(result.2, expected.2, EPS));
     }
 }

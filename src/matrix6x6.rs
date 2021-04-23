@@ -38,6 +38,7 @@ use crate::slices_methods::*;
 use crate::matrix5x5::M55;
 use crate::vector6::V6;
 use crate::traits::LinearAlgebra;
+use crate::utils::nearly_equal;
 //-------------------------------------------------------------------------
 //                        code
 //-------------------------------------------------------------------------
@@ -909,7 +910,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
     fn inverse(&self) -> Option<Self> {
         let one = T::one();
         let det = self.det();
-        if det.abs() > T::epsilon() {
+        if !nearly_equal(det, T::zero(), T::epsilon()) {
             let mut cofactors: M66<T> = M66::zeros();
             for i in 0..6 {
                 for j in 0..6 {
@@ -927,8 +928,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
     /// Calculate de QR factorization of the M66 via gram-schmidt
     /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
-        let det = self.det();
-        if det.abs() > T::epsilon() {
+        if !nearly_equal(self.det(), T::zero(), T::epsilon()) {
             let cols = self.get_cols();
             let mut q: [V6<T>; 6] = *M66::zeros().get_cols();
             for i in 0..q.len() {
@@ -1695,12 +1695,14 @@ impl<T> From<[[T; 6]; 6]> for M66<T> {
 
 impl<T> Index<(usize, usize)> for M66<T> {
     type Output = T;
+    #[inline(always)]
     fn index(&self, index: (usize, usize)) -> &T {
         &self.0[index.0][index.1]
     }
 }
 
 impl<T> IndexMut<(usize, usize)> for M66<T> {
+    #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         &mut self.0[index.0][index.1]
     }
@@ -1951,6 +1953,21 @@ mod test_matrix6x6 {
         if let Some(result) = m.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn inverse_fail() {
+        let m = m66_new!( 1.0,  1.0, 3.0,  4.0,  9.0, 3.0;
+                         10.0, 10.0, 1.0,  2.0,  2.0, 5.0;
+                          2.0,  9.0, 6.0, 10.0, 10.0, 9.0;
+                          2.0,  9.0, 6.0, 10.0, 10.0, 9.0;
+                          7.0,  6.0, 6.0,  2.0,  9.0, 5.0;
+                          3.0,  8.0, 1.0,  4.0,  1.0, 5.0);
+
+        let result = m.inverse();
+        let expected = None;
+        assert_eq!(result, expected);
+
     }
 
     #[test]

@@ -38,6 +38,7 @@ use num::{Float, Num, Zero, One};
 use crate::vector2::*;
 use crate::traits::LinearAlgebra;
 use crate::slices_methods::*;
+use crate::utils::nearly_equal;
 
 /// A static Matrix of 2x2 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -98,7 +99,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
         let c = self[(1, 0)];
         let d = self[(1, 1)];
         let det = self.det();
-        if det.abs() > T::epsilon() {
+        if !nearly_equal(det, T::zero(), T::epsilon()) {
             Some(M22::new([[d / det, -b / det], [-c / det, a / det]]))
         } else {
             None
@@ -108,8 +109,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
     /// Calculate de QR factorization of the M22 via gram-schmidt
     /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
-        let det = self.det();
-        if det.abs() > T::epsilon() {
+        if !nearly_equal(self.det(), T::zero(), T::epsilon()) {
             let cols = self.get_cols();
             let mut q: [V2<T>; 2] = *M22::zeros().get_cols();
             for i in 0..q.len() {
@@ -398,12 +398,14 @@ impl<T> From<[[T; 2]; 2]> for M22<T> {
 
 impl<T> Index<(usize, usize)> for M22<T> {
     type Output = T;
+    #[inline(always)]
     fn index(&self, index: (usize, usize)) -> &T {
         &self.0[index.0][index.1]
     }
 }
 
 impl<T> IndexMut<(usize, usize)> for M22<T> {
+    #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         &mut self.0[index.0][index.1]
     }
@@ -522,15 +524,13 @@ mod test_matrix2x2 {
         assert_eq!(result.as_vec(), expected.as_vec());
     }
 
-    // TODO(elsuizo:2020-06-02): no se como hacer para que ande con Ints y Floats
-    // #[test]
-    // #[ignore]
-    // fn test_determinant() {
-    //     let m1 = M22::new([[1, 2], [3, 4]]);
-    //     let result = m1.det();
-    //     let expected = -2;
-    //     assert_eq!(result, expected);
-    // }
+    #[test]
+    fn test_determinant() {
+        let m1 = M22::new([[1.0, 2.0], [1.0, 2.0]]);
+        let result = m1.det();
+        let expected = 0.0;
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn product_with_vector2_rhs_test() {
@@ -573,6 +573,13 @@ mod test_matrix2x2 {
         if let Some(result) = m1.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn inverse_fail() {
+        let m1 = M22::new([[1.0, 2.0], [1.0, 2.0]]);
+        let result = m1.inverse();
+        assert!(result.is_none())
     }
 
     #[test]

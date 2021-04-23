@@ -37,6 +37,7 @@ use crate::matrix3x3::*;
 use crate::slices_methods::*;
 use crate::traits::LinearAlgebra;
 use crate::vector4::V4;
+use crate::utils::nearly_equal;
 
 //-------------------------------------------------------------------------
 //                        code
@@ -165,7 +166,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     /// Calculate the inverse
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
-        if det.abs() > T::epsilon() {
+        if !nearly_equal(det, T::zero(), T::epsilon()) {
             let a1 = self.get_submatrix((0, 0)).det();
             let a2 = -self.get_submatrix((1, 0)).det();
             let a3 = self.get_submatrix((2, 0)).det();
@@ -200,8 +201,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     /// Calculate de QR factorization of the M44 via gram-schmidt
     /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
-        let det = self.det();
-        if det.abs() > T::epsilon() {
+        if !nearly_equal(self.det(), T::zero(), T::epsilon()) {
             let cols = self.get_cols();
             let mut q: [V4<T>; 4] = *M44::zeros().get_cols();
             for i in 0..q.len() {
@@ -654,12 +654,14 @@ impl<T> From<[[T; 4]; 4]> for M44<T> {
 
 impl<T> Index<(usize, usize)> for M44<T> {
     type Output = T;
+    #[inline(always)]
     fn index(&self, index: (usize, usize)) -> &T {
         &self.0[index.0][index.1]
     }
 }
 
 impl<T> IndexMut<(usize, usize)> for M44<T> {
+    #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         &mut self.0[index.0][index.1]
     }
@@ -989,6 +991,20 @@ mod test_matrix4x4 {
         if let Some(result) = m.inverse() {
             assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
         }
+    }
+
+    #[test]
+    fn inverse_fail() {
+        let m = M44::new([
+            [1.0, 1.0, 1.0, -1.0],
+            [1.0, 1.0, 1.0, -1.0],
+            [1.0, -1.0, 1.0, 1.0],
+            [-1.0, 1.0, 1.0, 1.0],
+        ]);
+
+        let result = m.inverse();
+        let expected = None;
+        assert_eq!(result, expected);
     }
 
     #[test]

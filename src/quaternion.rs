@@ -288,9 +288,6 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
                  two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
     }
 
-    // NOTE(elsuizo:2021-04-14): this implementation avoid the use of sqrt(which is expensive
-    // computationally)
-    // TODO(elsuizo:2021-04-14): maybe here we could acept a tuple (T, T, T)
     /// create a quaternion that represents the rotation from a Euler angles
     /// with the roll-pitch-yay convention
     pub fn from_euler_angles(yay: T, pitch: T, roll: T) -> Self {
@@ -304,7 +301,7 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         let q2 = roll_cos * pitch_sin * yay_cos + roll_sin * pitch_cos * yay_sin;
         let q3 = roll_cos * pitch_cos * yay_sin - roll_sin * pitch_sin * yay_cos;
 
-        Self::new_from(q0, q1, q2, q3)
+        Self{q0, q: V3::new_from(q1, q2, q3), normalized: true}
     }
 
     /// get the angle of representation from this Quaternion

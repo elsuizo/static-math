@@ -49,6 +49,7 @@ fn main() {
     //                        Quaternions and euler angles
     //-------------------------------------------------------------------------
     let q = Quaternion::from_euler_angles(0.1, 0.2, 0.3);
+    println!("q: {}", q);
     let euler_angles = q.to_euler_angles();
     // this would have to give the same value :)
     println!("euler_angles: {:?}", euler_angles);

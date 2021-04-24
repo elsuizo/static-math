@@ -1,6 +1,6 @@
 [package]
 name = "static-math"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["elsuizo <mnoblia@disroot.org>"]
 edition = "2018"
 description = "Fast mathematical operations with static arrays, without `unsafe` code"

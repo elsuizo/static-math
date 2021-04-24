@@ -7,7 +7,7 @@ description = "Fast mathematical operations with static arrays, without `unsafe`
 repository = "https://github.com/elsuizo/static-math"
 documentation = "https://docs.rs/static-math/"
 license = "MIT"
-keywords = ["linear-algebra",  "matrix-operations", "vector-operations", "gamedev", "simulations", "quaternions"]
+keywords = ["linear-algebra",  "matrix-operations", "quaternions", "gamedev", "simulations"]
 categories = ["science"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

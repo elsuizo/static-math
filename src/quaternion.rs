@@ -218,7 +218,7 @@ impl<T: Float + Signed> Quaternion<T> {
     pub fn inv(&self) -> Option<Self> {
         if !self.normalized {
             let norm_sqr = self.norm2();
-            nearly_equal(norm_sqr, T::zero(), T::epsilon()).then(|| self.conj() / self.abs2())
+            nearly_equal(norm_sqr, T::zero(), T::epsilon()).then(|| self.conj() / norm_sqr)
         } else {
             Some(self.conj())
         }
@@ -413,6 +413,67 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
     pub fn pow(&self, rhs: Self) -> Self {
         (rhs * self.ln()).exp()
     }
+
+    // TODO(elsuizo:2021-04-24): maybe here its better a error for the corner cases
+
+    /// Brief.
+    ///
+    /// Spherical Linear Interpolation between two Quaternions
+    /// this implementation follow this implementations:
+    /// https://www.mrpt.org/tutorials/programming/maths-and-geometry/slerp-interpolation/
+    ///
+    /// Function arguments:
+    /// a: Quaternion(normalized)
+    /// b: Quaternion(normalized)
+    /// t: Float in the closed interval [0.0, 1.0]
+    ///
+    pub fn slerp(a: Self, b: Self, t: T) -> Self {
+        let one = T::one();
+        // calculate the angle betwen two unit Quaternions via dot product
+        let mut cos_half_theta = a.dot(b);
+        // if a = b or a = -b then theta(the angle between) = 0 then we can return a
+        if cos_half_theta.abs() >= one {
+            return a;
+        }
+        let mut reverse_a = false;
+        // allways follow the shortest path
+        if cos_half_theta < T::zero() {
+            reverse_a = true;
+            cos_half_theta = -cos_half_theta;
+        }
+        let half_theta     = T::acos(cos_half_theta);
+        let sin_half_theta = T::sqrt(one - cos_half_theta * cos_half_theta);
+        // TODO(elsuizo:2021-04-24): maybe here the comparison could be with epsilon
+        if sin_half_theta.abs() < T::from(0.001).unwrap() {
+            if !reverse_a {
+                let mut result = Quaternion::zero();
+                result.q0   = (one - t) * a.q0 + t * b.q0;
+                result.q[0] = (one - t) * a.q[0] + t * b.q[0];
+                result.q[1] = (one - t) * a.q[1] + t * b.q[2];
+                result.q[2] = (one - t) * a.q[2] + t * b.q[1];
+                return result
+            }
+        }
+        let aux1 = T::sin((one - t) * half_theta) / sin_half_theta;
+        let aux2 = T::sin(t * half_theta) / sin_half_theta;
+
+        // this part handle the correct orientation
+        if !reverse_a {
+            let mut result = Quaternion::zero();
+            result.q0   = aux1 * a.q0   + aux2 * b.q0;
+            result.q[0] = aux1 * a.q[0] + aux2 * b.q[0];
+            result.q[1] = aux1 * a.q[1] + aux2 * b.q[2];
+            result.q[2] = aux1 * a.q[2] + aux2 * b.q[1];
+            return result
+        } else {
+            let mut result = Quaternion::zero();
+            result.q0   = aux1 * a.q0   - aux2 * b.q0;
+            result.q[0] = aux1 * a.q[0] - aux2 * b.q[0];
+            result.q[1] = aux1 * a.q[1] - aux2 * b.q[2];
+            result.q[2] = aux1 * a.q[2] - aux2 * b.q[1];
+            return result
+        }
+    }
 }
 
 // convert from array to Quaternion
@@ -572,5 +633,18 @@ mod test_quaternion {
         assert!(nearly_equal(result.0, expected.0, EPS));
         assert!(nearly_equal(result.1, expected.1, EPS));
         assert!(nearly_equal(result.2, expected.2, EPS));
+    }
+
+    #[test]
+    fn slerp_test() {
+        let a = Quaternion::rotation(1.78, V3::new_from(1.0, 2.0, 3.0));
+        let b = Quaternion::rotation(1.78, V3::x_axis());
+        let result = Quaternion::slerp(a, b, 0.3);
+        // NOTE(elsuizo:2021-04-24): this result is from julia language
+        let expected = Quaternion::new_from(0.6995922116669001, 0.42947374679735195, 0.31677365769795535, 0.475160486546933);
+        assert!(nearly_equal(result.q0, expected.q0, EPS));
+        assert!(nearly_equal(result.q[0], expected.q[0], EPS));
+        assert!(nearly_equal(result.q[1], expected.q[1], EPS));
+        assert!(nearly_equal(result.q[2], expected.q[2], EPS));
     }
 }

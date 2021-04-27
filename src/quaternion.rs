@@ -473,7 +473,7 @@ impl<T: Float + Signed> Quaternion<T> {
 impl<T: Float + FloatConst> Quaternion<T> {
     /// get the euler angles from the Quaternion
     pub fn to_euler_angles(&self) -> (T, T, T) {
-        rotation_to_euler(self.to_rotation())
+        rotation_to_euler(&self.to_rotation())
     }
 }
 

@@ -33,9 +33,10 @@ use crate::matrix3x3::M33;
 use crate::matrix4x4::M44;
 use crate::m44_new;
 use crate::vector3::V3;
+use crate::vector4::V4;
 use crate::quaternion::Quaternion;
-
-use crate::utils::nearly_equal;
+use crate::traits::LinearAlgebra;
+use crate::utils::{nearly_equal};
 use num::{Float};
 use num::traits::FloatConst;
 
@@ -149,6 +150,7 @@ pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq
     }
 }
 
+// TODO(elsuizo:2021-04-27): handle only valid rotations
 // TODO(elsuizo:2021-04-23): handle all the rotation sequences
 /// Brief.
 ///
@@ -156,13 +158,13 @@ pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq
 ///
 /// Function arguments:
 ///
-/// `r`: Rotation matrix(M33<Float>)
+/// `r`: a reference to a Rotation matrix(M33<Float>)
 ///
 /// Output:
 ///
 /// Euler angles: (yay, pitch, roll)
 ///
-pub fn rotation_to_euler<T: Float + FloatConst>(r: M33<T>) -> (T, T, T) {
+pub fn rotation_to_euler<T: Float + FloatConst>(r: &M33<T>) -> (T, T, T) {
     let one   = T::one();
     let pitch = T::atan2(-r[(2, 0)], (r[(0, 0)] * r[(0, 0)] + r[(1, 0)] * r[(1, 0)]).sqrt());
 
@@ -185,7 +187,19 @@ pub fn rotation_to_euler<T: Float + FloatConst>(r: M33<T>) -> (T, T, T) {
 }
 
 // TODO(elsuizo:2021-04-27): i think that the names are too long...
-pub fn homogeneous_from_rotation<T: Float>(r: M33<T>, p: V3<T>) -> M44<T> {
+/// Brief.
+///
+/// generate a homogeneous matrix from a rotation represented by a Matrix and a translation
+/// represented by a vector
+///
+/// Function arguments:
+///
+/// q: a reference to a M33<Float> (Rotation part)
+///
+/// p: a reference to a  V3<Float> (Translation part)
+///
+///
+pub fn homogeneous_from_rotation<T: Float>(r: &M33<T>, p: &V3<T>) -> M44<T> {
     let zero = T::zero();
     let one  = T::one();
     m44_new!(r[(0, 0)], r[(0, 1)], r[(0, 2)], p[0];
@@ -194,26 +208,115 @@ pub fn homogeneous_from_rotation<T: Float>(r: M33<T>, p: V3<T>) -> M44<T> {
                 zero  ,   zero   ,    zero  , one)
 }
 
-pub fn homogeneous_from_quaternion<T: Float>(q: Quaternion<T>, p: V3<T>) -> M44<T> {
-    homogeneous_from_rotation(q.to_rotation(), p)
+/// Brief.
+///
+/// generate a homogeneous matrix from a rotation represented by a quaternion and a translation
+/// represented by a vector
+///
+/// Function arguments:
+///
+/// q: a reference to a Quaternion<Float> (Rotation part)
+///
+/// p: a reference to a V3<Float> (Translation part)
+///
+///
+pub fn homogeneous_from_quaternion<T: Float>(q: &Quaternion<T>, p: &V3<T>) -> M44<T> {
+    homogeneous_from_rotation(&q.to_rotation(), p)
 }
 
-// TODO(elsuizo:2020-09-20): do the tests
+/// Brief.
+///
+/// get the parts of a homogeneous transformation, the rotation(expresed by a Quaternion) and the
+/// translation (expresed by a vector)
+///
+/// Function arguments:
+/// r: Homogeneus transformation reference (&M44<Float>)
+///
+pub fn get_parts<T: Float + FloatConst>(r: &M44<T>) -> (Quaternion<T>, V3<T>) {
+    let rot = m33_new!(r[(0, 0)], r[(0, 1)], r[(0, 2)];
+                       r[(1, 0)], r[(1, 1)], r[(1, 2)];
+                       r[(2, 0)], r[(2, 1)], r[(2, 2)]);
+
+    let p = V3::new_from(r[(0, 3)], r[(1, 3)], r[(2, 3)]);
+
+    let (yay, pitch, roll) = rotation_to_euler(&rot);
+    let q = Quaternion::from_euler_angles(yay, pitch, roll);
+
+    (q, p)
+}
+
+/// Brief.
+///
+/// get the parts of a homogeneous transformation, the rotation(expresed by a Matrix) and the
+/// translation (expresed by a vector)
+///
+/// Function arguments:
+/// r: Homogeneus transformation reference(&M44<Float>)
+///
+pub fn get_parts_raw<T: Float>(r: &M44<T>) -> (M33<T>, V3<T>) {
+    let rot = m33_new!(r[(0, 0)], r[(0, 1)], r[(0, 2)];
+                       r[(1, 0)], r[(1, 1)], r[(1, 2)];
+                       r[(2, 0)], r[(2, 1)], r[(2, 2)]);
+
+    let p = V3::new_from(r[(0, 3)], r[(1, 3)], r[(2, 3)]);
+
+    (rot, p)
+}
+
+/// Brief.
+///
+/// get the inverse of the homogeneous transformation
+///
+/// Function arguments:
+/// r: Homogeneus transformation reference (&M44<Float>)
+///
+pub fn homogeneous_inverse<T: Float + std::iter::Sum>(r: &M44<T>) -> M44<T> {
+    let one = T::one();
+    let (rot, p) = get_parts_raw(r);
+    let rot_new = rot.transpose();
+    // TODO(elsuizo:2021-04-27): this is because M33<T> and all the matrix dont impl Neg
+    let p_new   = rot_new * -one * p;
+    homogeneous_from_rotation(&rot_new, &p_new)
+}
+
+/// Brief.
+///
+/// transform a vector with the inverse of a given homogeneous transformation
+///
+/// Function arguments:
+/// r: Homogeneus transformation reference (&M44<Float>)
+///
+/// p: reference to vector to trasnform(&V3<T>)
+///
+pub fn homogeneous_inverse_transform<T>(r: &M44<T>, p: &V3<T>) -> V3<T>
+where
+    T: Float + std::iter::Sum + FloatConst
+{
+    let (_, translation) = get_parts(r);
+    let p_trans = *p - translation;
+    let p_new = V4::new_from(p_trans[0], p_trans[1], p_trans[2], T::zero());
+    let result = homogeneous_inverse(r) * p_new;
+    V3::new_from(result[0], result[1], result[2])
+}
+
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
 #[cfg(test)]
 mod test_transformations {
 
-    use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz};
-    use crate::utils::{nearly_equal, is_rotation};
+    use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz, homogeneous_from_quaternion, homogeneous_inverse, homogeneous_inverse_transform};
+    use crate::utils::{nearly_equal, is_rotation, is_rotation_h, compare_vecs};
+    use crate::quaternion::Quaternion;
+    use crate::vector3::V3;
+    use crate::matrix4x4::M44;
     const EPS: f32 = 1e-6;
 
     #[test]
     fn rotation_and_euler_test() {
         let expected = (0.1, 0.2, 0.3);
         let r = euler_to_rotation(expected.0, expected.1, expected.2, None);
-        let result = rotation_to_euler(r);
+        let result = rotation_to_euler(&r);
         assert!(nearly_equal(result.0, expected.0, EPS));
         assert!(nearly_equal(result.1, expected.1, EPS));
         assert!(nearly_equal(result.2, expected.2, EPS));
@@ -237,4 +340,30 @@ mod test_transformations {
         assert!(is_rotation(r));
     }
 
+    #[test]
+    fn homogeneous_transform_test() {
+        let q = Quaternion::rotation_norm_encoded(V3::y_axis() * std::f32::consts::FRAC_PI_2);
+        let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
+        assert!(is_rotation_h(iso_s));
+    }
+
+    #[test]
+    fn homogeneous_inverse_test() {
+        let q = Quaternion::rotation_norm_encoded(V3::y_axis() * std::f32::consts::FRAC_PI_2);
+        let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
+        let result = iso_s * homogeneous_inverse(&iso_s);
+        let expected = M44::identity();
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    // NOTE(elsuizo:2021-04-27): this is the same example from nalgebra:
+    // https://docs.rs/nalgebra/0.26.2/nalgebra/geometry/struct.Isometry.html#method.inverse_transform_point
+    #[test]
+    fn inverse_point_transform_test() {
+        let q = Quaternion::rotation_norm_encoded(V3::y_axis() * std::f32::consts::FRAC_PI_2);
+        let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
+        let result = homogeneous_inverse_transform(&iso_s, &V3::new_from(1.0, 2.0, 3.0));
+        let expected = V3::new_from(0.0, 2.0, 1.0);
+        assert!(compare_vecs(&*result, &*expected, EPS));
+    }
 }

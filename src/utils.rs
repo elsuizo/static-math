@@ -31,6 +31,7 @@
 use num::{Float};
 use crate::matrix3x3::M33;
 use crate::traits::LinearAlgebra;
+use crate::matrix4x4::M44;
 // NOTE(elsuizo:2020-06-02): the following function
 // is a translation of the implementation that is here:
 // https://floating-point-gui.de/errors/comparison/
@@ -73,6 +74,16 @@ pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {
 pub fn is_rotation<T: Float + std::iter::Sum>(r: M33<T>) -> bool {
     let r2 = r * r;
     if nearly_equal(r.det(), T::one(), T::epsilon()) && nearly_equal(r2.det(), T::one(), T::epsilon()) {
+        true
+    } else {
+        false
+    }
+}
+
+pub fn is_rotation_h<T: Float + std::iter::Sum>(r: M44<T>) -> bool {
+    let r2 = r * r;
+    let eps = T::from(1e-6).unwrap();
+    if nearly_equal(r.det(), T::one(), eps) && nearly_equal(r2.det(), T::one(), eps) {
         true
     } else {
         false

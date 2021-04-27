@@ -101,9 +101,6 @@ impl<T: Num + Copy> Quaternion<T> {
     pub fn abs2(&self) -> T {
         self.q0 * self.q0 + self.q[0] * self.q[0] + self.q[1] * self.q[1] + self.q[2] * self.q[2]
     }
-
-    
-
 }
 
 // create the zero Quaternion
@@ -209,23 +206,27 @@ impl<T: Num + Copy + Signed> Quaternion<T> {
 
 // NOTE(elsuizo:2021-04-23): we only need the Float for the sqrt function
 impl<T: Float> Quaternion<T> {
+
+    /// the euclidean norm of the Quaternion
     pub fn norm2(&self) -> T {
         self.dot(*self).sqrt()
     }
-}
 
-impl<T: Float + Signed> Quaternion<T> {
-    pub fn inv(&self) -> Option<Self> {
-        if !self.normalized {
-            let norm_sqr = self.norm2();
-            nearly_equal(norm_sqr, T::zero(), T::epsilon()).then(|| self.conj() / norm_sqr)
-        } else {
-            Some(self.conj())
-        }
+    /// convert the Quaternion to a rotation matrix
+    pub fn to_rotation(&self) -> M33<T> {
+        let (q0, q) = (self.real(), self.imag());
+        let q0_s = q0 * q0;
+        let (q1, q2, q3) = (q[0], q[1], q[2]);
+        let q1_s = q1 * q1;
+        let q2_s = q2 * q2;
+        let q3_s = q3 * q3;
+        let two = T::one() + T::one();
+
+        m33_new!(q0_s + q1_s - q2_s - q3_s, two*q1*q2 - two*q0*q3, two*q1*q3 + two*q0*q2;
+                 two*q1*q2 + two*q0*q3, q0_s - q1_s + q2_s - q3_s, two*q2*q3 - two*q0*q1;
+                 two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
     }
-}
 
-impl<T: Float + FloatConst + Signed> Quaternion<T> {
     /// normalize the Quaternion only if necesary
     pub fn normalize(&self) -> Option<Self> {
         if self.normalized {
@@ -246,7 +247,6 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
     pub fn abs_imag(&self) -> T {
         self.imag().norm2()
     }
-
 
     /// generate a Quaternion that represents a rotation of a angle `theta`
     /// around the axis(normalized) `v`
@@ -273,20 +273,6 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         } else {
             Self::new(one, V3::zeros())
         }
-    }
-
-    pub fn to_rotation(&self) -> M33<T> {
-        let (q0, q) = (self.real(), self.imag());
-        let q0_s = q0 * q0;
-        let (q1, q2, q3) = (q[0], q[1], q[2]);
-        let q1_s = q1 * q1;
-        let q2_s = q2 * q2;
-        let q3_s = q3 * q3;
-        let two = T::one() + T::one();
-
-        m33_new!(q0_s + q1_s - q2_s - q3_s, two*q1*q2 - two*q0*q3, two*q1*q3 + two*q0*q2;
-                 two*q1*q2 + two*q0*q3, q0_s - q1_s + q2_s - q3_s, two*q2*q3 - two*q0*q1;
-                 two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
     }
 
     /// create a quaternion that represents the rotation from a Euler angles
@@ -326,10 +312,6 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         (self.get_angle(), self.get_axis())
     }
 
-    /// get the euler angles from the Quaternion
-    pub fn to_euler_angles(&self) -> (T, T, T) {
-        rotation_to_euler(self.to_rotation())
-    }
 
     /// normalize the Quaternion
     pub fn normalize_q(&self) -> Self {
@@ -353,6 +335,7 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         return (result, a)
     }
 
+    /// get the argument of the Quaternion
     pub fn argq(&self) -> Self {
         let result = Quaternion::new(T::zero(), self.q);
         result.normalize_q()
@@ -384,22 +367,6 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
         } else {
             Self {q0: T::ln(a), q: V3::new_from(arg_angle, T::zero(), T::zero()), normalized: false}
         }
-    }
-
-    /// sin function apply to the current Quaternion
-    pub fn sin(&self) -> Self {
-        let one = T::one();
-        let two = one + one;
-        let l = self.argq();
-        ((*self * l).exp() - (*self * -l).exp())/ (l * two)
-    }
-
-    /// cos function apply to the current Quaternion
-    pub fn cos(&self) -> Self {
-        let one = T::one();
-        let two = one + one;
-        let l = self.argq();
-        ((*self * l).exp() + (*self * -l).exp()) / two
     }
 
     /// sqrt function apply to the current Quaternion
@@ -473,6 +440,40 @@ impl<T: Float + FloatConst + Signed> Quaternion<T> {
             result.q[2] = aux1 * a.q[2] - aux2 * b.q[1];
             return result
         }
+    }
+}
+
+impl<T: Float + Signed> Quaternion<T> {
+    pub fn inv(&self) -> Option<Self> {
+        if !self.normalized {
+            let norm_sqr = self.norm2();
+            nearly_equal(norm_sqr, T::zero(), T::epsilon()).then(|| self.conj() / norm_sqr)
+        } else {
+            Some(self.conj())
+        }
+    }
+
+    /// sin function apply to the current Quaternion
+    pub fn sin(&self) -> Self {
+        let one = T::one();
+        let two = one + one;
+        let l = self.argq();
+        ((*self * l).exp() - (*self * -l).exp())/ (l * two)
+    }
+
+    /// cos function apply to the current Quaternion
+    pub fn cos(&self) -> Self {
+        let one = T::one();
+        let two = one + one;
+        let l = self.argq();
+        ((*self * l).exp() + (*self * -l).exp()) / two
+    }
+}
+
+impl<T: Float + FloatConst> Quaternion<T> {
+    /// get the euler angles from the Quaternion
+    pub fn to_euler_angles(&self) -> (T, T, T) {
+        rotation_to_euler(self.to_rotation())
     }
 }
 

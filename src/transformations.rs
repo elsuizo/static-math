@@ -30,10 +30,15 @@
 //-------------------------------------------------------------------------
 use crate::matrix2x2::M22;
 use crate::matrix3x3::M33;
+use crate::matrix4x4::M44;
+use crate::m44_new;
+use crate::vector3::V3;
+use crate::quaternion::Quaternion;
 
 use crate::utils::nearly_equal;
 use num::{Float};
 use num::traits::FloatConst;
+
 ///
 /// Euler sequences conventions of rotations
 ///
@@ -116,9 +121,13 @@ pub fn rotz<T: Float>(angle: T) -> M33<T> {
 /// XYX, XYZ, XZX, XZY, YXY, YXZ, YZX, YZY, ZXY, ZXZ
 ///
 /// Function arguments:
+///
 /// yay: first euler angle in radians (Float number)
+///
 /// pitch: second euler angle in radians (Float number)
+///
 /// roll: third euler angle in radians (Float number)
+///
 /// s: `Option<EulerSeq>:` Optional Euler sequence if is None compute ZYX
 ///
 /// Output:
@@ -146,9 +155,11 @@ pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq
 /// get the euler angles from a rotation matrix comming from the convention ZYX
 ///
 /// Function arguments:
+///
 /// `r`: Rotation matrix(M33<Float>)
 ///
 /// Output:
+///
 /// Euler angles: (yay, pitch, roll)
 ///
 pub fn rotation_to_euler<T: Float + FloatConst>(r: M33<T>) -> (T, T, T) {
@@ -171,6 +182,20 @@ pub fn rotation_to_euler<T: Float + FloatConst>(r: M33<T>) -> (T, T, T) {
         let roll  = T::atan2(r[(2, 1)], r[(2, 2)]);
         (yay, pitch, roll)
     }
+}
+
+// TODO(elsuizo:2021-04-27): i think that the names are too long...
+pub fn homogeneous_from_rotation<T: Float>(r: M33<T>, p: V3<T>) -> M44<T> {
+    let zero = T::zero();
+    let one  = T::one();
+    m44_new!(r[(0, 0)], r[(0, 1)], r[(0, 2)], p[0];
+             r[(1, 0)], r[(1, 1)], r[(1, 2)], p[1];
+             r[(2, 0)], r[(2, 1)], r[(2, 2)], p[2];
+                zero  ,   zero   ,    zero  , one)
+}
+
+pub fn homogeneous_from_quaternion<T: Float>(q: Quaternion<T>, p: V3<T>) -> M44<T> {
+    homogeneous_from_rotation(q.to_rotation(), p)
 }
 
 // TODO(elsuizo:2020-09-20): do the tests

@@ -34,6 +34,7 @@ use crate::matrix4x4::M44;
 use crate::m44_new;
 use crate::vector3::V3;
 use crate::vector4::V4;
+use crate::vector6::V6;
 use crate::quaternion::Quaternion;
 use crate::traits::LinearAlgebra;
 use crate::utils::{nearly_equal};
@@ -297,6 +298,79 @@ where
     let p_new = V4::new_from(p_trans[0], p_trans[1], p_trans[2], T::zero());
     let result = homogeneous_inverse(r) * p_new;
     V3::new_from(result[0], result[1], result[2])
+}
+
+pub fn skew_from_vec<T: Float>(v: V3<T>) -> M33<T> {
+    let zero = T::zero();
+    m33_new!( zero, -v[2],  v[1];
+              v[2],  zero, -v[0];
+             -v[1],  v[0],  zero)
+}
+
+pub fn skew_scalar<T: Float>(number: T) -> M22<T> {
+    let zero = T::zero();
+    m22_new!(  zero, -number;
+             number,    zero)
+}
+
+/// Create augmented skew-symmetric matrix
+pub fn skew_v3<T: Float>(v: V3<T>) -> M33<T> {
+    let zero = T::zero();
+    m33_new!(zero, -v[2], v[0];
+             v[2],  zero, v[1];
+             zero,  zero, zero)
+}
+
+/// Create augmented skew-symmetric matrix
+pub fn skew_v6<T: Float>(v: V6<T>) -> M44<T> {
+    let zero = T::zero();
+    m44_new!( zero, -v[5],  v[4], v[0];
+              v[5],  zero, -v[3], v[1];
+             -v[4],  v[3],  zero, v[2];
+              zero,  zero,  zero, zero)
+}
+
+// NOTE(elsuizo:2020-05-01): no me gusta como queda ese unwrap ahi feo...
+pub fn vex_m22<T: Float>(m: M22<T>) -> T {
+    T::from(0.5).unwrap() * (m[(1, 0)] - m[(0, 1)])
+}
+
+pub fn vex_m33<T: Float>(m: M33<T>) -> V3<T> {
+    let constant = T::from(0.5).unwrap();
+    V3::new([
+        m[(2, 1)] - m[(1, 2)],
+        m[(0, 2)] - m[(2, 0)],
+        m[(1, 0)] - m[(0, 1)],
+    ]) * constant
+}
+
+/// Create a pose in 2D from a angle(in radians) and a cartesian position (x, y) values
+pub fn ksi<T: Float>(angle: T, x: T, y: T) -> M33<T> {
+    let zero = T::zero();
+    let one = T::one();
+    let (s, c) = angle.sin_cos();
+    m33_new!(   c,   -s,   x;
+                s,    c,   y;
+             zero, zero, one)
+}
+
+/// Create a pure translation homogeneous transformation
+pub fn translation_2d<T: Float>(x: T, y: T) -> M33<T> {
+    let zero = T::zero();
+    let one = T::one();
+    m33_new!( one, zero,   x;
+             zero,  one,   y;
+             zero, zero, one)
+}
+
+/// Create a pure translation homogeneous transformation in 3d
+pub fn translation_3d<T: Float>(x: T, y: T, z: T) -> M44<T> {
+    let zero = T::zero();
+    let one = T::one();
+    m44_new!( one, zero, zero,  x;
+             zero,  one, zero,  y;
+             zero, zero,  one,  z;
+             zero, zero, zero, one)
 }
 
 //-------------------------------------------------------------------------

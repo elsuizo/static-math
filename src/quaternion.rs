@@ -59,6 +59,7 @@ impl<T> Quaternion<T> {
     pub fn new_from(q0: T, q1: T, q2: T, q3: T) -> Self {
         Self{q0, q: V3::new([q1, q2, q3]), normalized: false}
     }
+
 }
 
 impl<T: Num + Copy> Quaternion<T> {
@@ -93,8 +94,8 @@ impl<T: Num + Copy> Quaternion<T> {
     }
 
     /// construct a pure "imaginary" Quaternion
-    pub fn new_imag(q: V3<T>) -> Self {
-        Self{q0: T::zero(), q, normalized: false}
+    pub fn new_imag(q: &V3<T>) -> Self {
+        Self{q0: T::zero(), q: *q, normalized: false}
     }
 
     /// calculate the abs2 of the Quaternion
@@ -390,9 +391,11 @@ impl<T: Float> Quaternion<T> {
     /// https://www.mrpt.org/tutorials/programming/maths-and-geometry/slerp-interpolation/
     ///
     /// Function arguments:
-    /// a: Quaternion(normalized)
-    /// b: Quaternion(normalized)
-    /// t: Float in the closed interval [0.0, 1.0]
+    /// `a`: Quaternion(normalized)
+    ///
+    /// `b`: Quaternion(normalized)
+    ///
+    /// `t`: Float in the closed interval [0.0, 1.0]
     ///
     pub fn slerp(a: Self, b: Self, t: T) -> Self {
         let one = T::one();
@@ -440,6 +443,20 @@ impl<T: Float> Quaternion<T> {
             result.q[2] = aux1 * a.q[2] - aux2 * b.q[1];
             return result
         }
+    }
+
+    /// Brief.
+    ///
+    /// calculate the instantaneous Quaternion derivative representing a Quaternion rotating at
+    /// rate given by a vector rate
+    ///
+    /// Function arguments:
+    /// `rate`: V3<Float>
+    ///
+    pub fn derivative(&self, rate: &V3<T>) -> Self {
+        let one = T::one();
+        let two = one + one;
+        Self::new_imag(rate) * (one / two) * (*self)
     }
 }
 

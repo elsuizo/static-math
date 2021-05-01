@@ -119,6 +119,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
         )
     }
 
+    #[inline(always)]
     fn det(&self) -> T {
         let a1 = self[(0, 0)];
         let a2 = self[(0, 1)];
@@ -164,6 +165,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     }
 
     /// Calculate the inverse
+    // #[inline(always)]
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if !nearly_equal(det, T::zero(), T::epsilon()) {
@@ -271,6 +273,8 @@ impl<T: Num + Copy> M44<T> {
         result
     }
 
+    // NOTE(elsuizo:2021-04-30): with this inline the performance its worse
+    // #[inline(always)]
     pub fn get_submatrix(&self, selected: (usize, usize)) -> M33<T> {
         let mut values: [T; 9] = [T::zero(); 9];
         let mut result: M33<T> = M33::zeros();

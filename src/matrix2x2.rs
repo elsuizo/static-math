@@ -46,18 +46,22 @@ pub struct M22<T>([[T; 2]; 2]);
 
 impl<T> M22<T> {
 
+    #[inline(always)]
     pub const fn new(data_input: [[T; 2]; 2]) -> Self {
         Self(data_input)
     }
 
+    #[inline(always)]
     pub const fn create(a: T, b: T, c: T, d: T) -> Self {
         Self::new([[a, b], [c, d]])
     }
 
+    #[inline(always)]
     pub const fn rows(&self) -> usize {
         self.0.len()
     }
 
+    #[inline(always)]
     pub const fn cols(&self) -> usize {
         self.rows()
     }
@@ -73,18 +77,22 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
         self.rows()
     }
 
+    #[inline(always)]
     fn det(&self) -> T {
         (self[(0, 0)] * self[(1, 1)]) - (self[(1, 0)] * self[(0, 1)])
     }
 
+    #[inline(always)]
     fn transpose(&self) -> M22<T> {
         M22::new([[self[(0, 0)], self[(1, 0)]], [self[(0, 1)], self[(1, 1)]]])
     }
 
+    #[inline(always)]
     fn trace(&self) -> T {
         self[(0, 0)] + self[(1, 1)]
     }
 
+    #[inline(always)]
     fn norm2(&self) -> T {
         let a = self[(0, 0)];
         let b = self[(0, 1)];
@@ -93,6 +101,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
         T::sqrt(a * a + b * b + c * c + d * d)
     }
 
+    #[inline(always)]
     fn inverse(&self) -> Option<Self> {
         let a = self[(0, 0)];
         let b = self[(0, 1)];
@@ -182,6 +191,7 @@ impl<T: Num + Copy> M22<T> {
 impl<T: Num + Copy> Mul<V2<T>> for M22<T> {
     type Output = V2<T>;
 
+    #[inline(always)]
     fn mul(self, rhs: V2<T>) -> V2<T> {
         let a1 = self[(0, 0)];
         let b1 = self[(0, 1)];
@@ -198,6 +208,7 @@ impl<T: Num + Copy> Mul<V2<T>> for M22<T> {
 impl<T: Num + Copy> Add for M22<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn add(self, rhs: Self) -> Self {
         let a1 = self[(0, 0)];
         let b1 = self[(0, 1)];
@@ -214,6 +225,7 @@ impl<T: Num + Copy> Add for M22<T> {
 
 // M22 += M22
 impl<T: Num + Copy> AddAssign for M22<T> {
+    #[inline(always)]
     fn add_assign(&mut self, other: Self) {
         *self = *self + other
     }
@@ -223,6 +235,7 @@ impl<T: Num + Copy> AddAssign for M22<T> {
 impl<T: Num + Copy> Sub for M22<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn sub(self, rhs: Self) -> Self {
         let a1 = self[(0, 0)];
         let b1 = self[(0, 1)];
@@ -322,6 +335,7 @@ impl Mul<M22<f32>> for f32 {
 impl<T: Num + Copy> Mul<T> for M22<T> {
     type Output = M22<T>;
 
+    #[inline(always)]
     fn mul(self, rhs: T) -> M22<T> {
         let a_00 = self[(0, 0)] * rhs;
         let a_01 = self[(0, 1)] * rhs;
@@ -336,6 +350,7 @@ impl<T: Num + Copy> Mul<T> for M22<T> {
 impl<T: Num + Copy> Mul for M22<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn mul(self, rhs: Self) -> Self {
         let a1 = self[(0, 0)];
         let b1 = self[(0, 1)];
@@ -357,6 +372,7 @@ impl<T: Num + Copy> Mul for M22<T> {
 }
 
 impl<T: Num + Copy> Zero for M22<T> {
+    #[inline(always)]
     fn zero() -> M22<T> {
         M22::new([[T::zero(); 2]; 2])
     }

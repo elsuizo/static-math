@@ -119,7 +119,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
         ])
     }
 
-    #[inline]
+    #[inline(always)]
     fn trace(&self) -> T {
         return self[(0, 0)]
             + self[(1, 1)]
@@ -139,7 +139,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
         )
     }
 
-    #[inline]
+    #[inline(always)]
     fn det(&self) -> T {
         let a_00 = self[(0, 0)];
         let a_01 = self[(0, 1)];
@@ -907,6 +907,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
     /// where: Adj = Cofactor.Transpose()
     ///
     /// Cofactor = (-1)^(i+j) * M(i, j).det()
+    #[inline(always)]
     fn inverse(&self) -> Option<Self> {
         let one = T::one();
         let det = self.det();
@@ -1544,6 +1545,7 @@ impl<T: Num + Copy> M66<T> {
 
     /// get the a submatrix from discard row `i` and column `j`
     ///
+    #[inline(always)]
     fn get_submatrix(&self, selected: (usize, usize)) -> M55<T> {
         let mut values: [T; 25] = [T::zero(); 25];
         let mut result: M55<T> = M55::zeros();

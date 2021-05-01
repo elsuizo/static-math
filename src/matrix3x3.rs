@@ -70,6 +70,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
         self.rows()
     }
 
+    #[inline(always)]
     fn transpose(&self) -> M33<T> {
         M33::new([
             [self[(0, 0)], self[(1, 0)], self[(2, 0)]],
@@ -97,6 +98,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     }
 
     /// Calculate the determiant of the matrix
+    #[inline(always)]
     fn det(&self) -> T {
         let a_00 = self[(0, 0)];
         let a_01 = self[(0, 1)];
@@ -113,6 +115,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     }
 
     /// Calculate the inverse
+    #[inline(always)]
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if !nearly_equal(det, T::zero(), T::epsilon()) {
@@ -282,6 +285,7 @@ impl<T: Num + Copy> M33<T> {
 impl<T: Num + Copy> Add for M33<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn add(self, rhs: Self) -> Self {
         M33::new([
             [
@@ -346,6 +350,7 @@ impl<T: Num + Copy> SubAssign for M33<T> {
 impl<T: Num + Copy> Mul<V3<T>> for M33<T> {
     type Output = V3<T>;
 
+    #[inline(always)]
     fn mul(self, rhs: V3<T>) -> V3<T> {
 
         let a_00 = self[(0, 0)];

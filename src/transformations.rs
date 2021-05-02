@@ -274,7 +274,6 @@ pub fn get_parts_raw<T: Float>(r: &M44<T>) -> (M33<T>, V3<T>) {
 pub fn homogeneous_inverse<T: Float + std::iter::Sum + Signed>(r: &M44<T>) -> M44<T> {
     let (rot, p) = get_parts_raw(r);
     let rot_new = rot.transpose();
-    // TODO(elsuizo:2021-04-27): this is because M33<T> and all the matrix dont impl Neg
     let p_new   = -rot_new * p;
     homogeneous_from_rotation(&rot_new, &p_new)
 }

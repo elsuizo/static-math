@@ -29,10 +29,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use std::ops::{Add, Mul, Sub, AddAssign, SubAssign};
+use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
-use num::{Float, One, Zero, Num};
+use num::{Float, One, Zero, Num, Signed};
 use crate::matrix3x3::*;
 use crate::slices_methods::*;
 use crate::traits::LinearAlgebra;
@@ -574,6 +574,36 @@ impl<T: Num + Copy> Mul for M44<T> {
     }
 }
 
+// -M44
+impl<T: Num + Copy + Signed> Neg for M44<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a1  = -self[(0, 0)];
+        let a2  = -self[(0, 1)];
+        let a3  = -self[(0, 2)];
+        let a4  = -self[(0, 3)];
+        let a5  = -self[(1, 0)];
+        let a6  = -self[(1, 1)];
+        let a7  = -self[(1, 2)];
+        let a8  = -self[(1, 3)];
+        let a9  = -self[(2, 0)];
+        let a10 = -self[(2, 1)];
+        let a11 = -self[(2, 2)];
+        let a12 = -self[(2, 3)];
+        let a13 = -self[(3, 0)];
+        let a14 = -self[(3, 1)];
+        let a15 = -self[(3, 2)];
+        let a16 = -self[(3, 3)];
+
+        M44::new([
+            [a1, a2, a3, a4],
+            [a5, a6, a7, a8],
+            [a9, a10, a11, a12],
+            [a13, a14, a15, a16],
+        ])
+    }
+}
 // M44 * V4
 impl<T: Num + Copy> Mul<V4<T>> for M44<T> {
     type Output = V4<T>;

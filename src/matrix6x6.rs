@@ -29,10 +29,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use std::ops::{Add, Mul, Sub, AddAssign, SubAssign};
+use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
-use num::{Float, Num, One, Zero};
+use num::{Float, Num, One, Zero, Signed};
 
 use crate::slices_methods::*;
 use crate::matrix5x5::M55;
@@ -1298,6 +1298,59 @@ impl<T: Num + Copy> Mul<T> for M66<T> {
             [a_40, a_41, a_42, a_43, a_44, a_45],
             [a_50, a_51, a_52, a_53, a_54, a_55],
         ])
+    }
+}
+
+// -M66
+impl<T: Num + Copy + Signed> Neg for M66<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a_00 = -self[(0, 0)];
+        let a_01 = -self[(0, 1)];
+        let a_02 = -self[(0, 2)];
+        let a_03 = -self[(0, 3)];
+        let a_04 = -self[(0, 4)];
+        let a_05 = -self[(0, 5)];
+        let a_10 = -self[(1, 0)];
+        let a_11 = -self[(1, 1)];
+        let a_12 = -self[(1, 2)];
+        let a_13 = -self[(1, 3)];
+        let a_14 = -self[(1, 4)];
+        let a_15 = -self[(1, 5)];
+        let a_20 = -self[(2, 0)];
+        let a_21 = -self[(2, 1)];
+        let a_22 = -self[(2, 2)];
+        let a_23 = -self[(2, 3)];
+        let a_24 = -self[(2, 4)];
+        let a_25 = -self[(2, 5)];
+        let a_30 = -self[(3, 0)];
+        let a_31 = -self[(3, 1)];
+        let a_32 = -self[(3, 2)];
+        let a_33 = -self[(3, 3)];
+        let a_34 = -self[(3, 4)];
+        let a_35 = -self[(3, 5)];
+        let a_40 = -self[(4, 0)];
+        let a_41 = -self[(4, 1)];
+        let a_42 = -self[(4, 2)];
+        let a_43 = -self[(4, 3)];
+        let a_44 = -self[(4, 4)];
+        let a_45 = -self[(4, 5)];
+        let a_50 = -self[(5, 0)];
+        let a_51 = -self[(5, 1)];
+        let a_52 = -self[(5, 2)];
+        let a_53 = -self[(5, 3)];
+        let a_54 = -self[(5, 4)];
+        let a_55 = -self[(5, 5)];
+
+    M66::new([
+        [a_00, a_01, a_02, a_03, a_04, a_05],
+        [a_10, a_11, a_12, a_13, a_14, a_15],
+        [a_20, a_21, a_22, a_23, a_24, a_25],
+        [a_30, a_31, a_32, a_33, a_34, a_35],
+        [a_40, a_41, a_42, a_43, a_44, a_45],
+        [a_50, a_51, a_52, a_53, a_54, a_55],
+    ])
     }
 }
 

@@ -31,10 +31,10 @@
 // imports
 #![macro_use]
 use std::fmt;
-use std::ops::{Add, Mul, Sub, AddAssign, SubAssign};
+use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
-use num::{Float, Num, Zero, One};
+use num::{Float, Num, Zero, One, Signed};
 use crate::vector2::*;
 use crate::traits::LinearAlgebra;
 use crate::slices_methods::*;
@@ -368,6 +368,19 @@ impl<T: Num + Copy> Mul for M22<T> {
         let m10 = c1 * a2 + d1 * c2;
         let m11 = c1 * b2 + d1 * d2;
         M22::new([[m00, m01], [m10, m11]])
+    }
+}
+
+// -M22
+impl<T: Num + Copy + Signed> Neg for M22<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a = -self[(0, 0)];
+        let b = -self[(0, 1)];
+        let c = -self[(1, 0)];
+        let d = -self[(1, 1)];
+        M22::new([[a, b], [c, d]])
     }
 }
 

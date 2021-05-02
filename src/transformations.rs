@@ -38,7 +38,7 @@ use crate::vector6::V6;
 use crate::quaternion::Quaternion;
 use crate::traits::LinearAlgebra;
 use crate::utils::{nearly_equal};
-use num::{Float};
+use num::{Float, Signed};
 use num::traits::FloatConst;
 
 ///
@@ -271,12 +271,11 @@ pub fn get_parts_raw<T: Float>(r: &M44<T>) -> (M33<T>, V3<T>) {
 /// Function arguments:
 /// r: Homogeneus transformation reference (&M44<Float>)
 ///
-pub fn homogeneous_inverse<T: Float + std::iter::Sum>(r: &M44<T>) -> M44<T> {
-    let one = T::one();
+pub fn homogeneous_inverse<T: Float + std::iter::Sum + Signed>(r: &M44<T>) -> M44<T> {
     let (rot, p) = get_parts_raw(r);
     let rot_new = rot.transpose();
     // TODO(elsuizo:2021-04-27): this is because M33<T> and all the matrix dont impl Neg
-    let p_new   = rot_new * -one * p;
+    let p_new   = -rot_new * p;
     homogeneous_from_rotation(&rot_new, &p_new)
 }
 
@@ -291,7 +290,7 @@ pub fn homogeneous_inverse<T: Float + std::iter::Sum>(r: &M44<T>) -> M44<T> {
 ///
 pub fn homogeneous_inverse_transform<T>(r: &M44<T>, p: &V3<T>) -> V3<T>
 where
-    T: Float + std::iter::Sum + FloatConst
+    T: Float + std::iter::Sum + FloatConst + Signed
 {
     let (_, translation) = get_parts(r);
     let p_trans = *p - translation;

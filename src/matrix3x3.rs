@@ -30,12 +30,12 @@
 //-------------------------------------------------------------------------
 #![macro_use]
 use std::fmt;
-use std::ops::{Add, Mul, Sub, SubAssign, AddAssign};
+use std::ops::{Add, Mul, Sub, SubAssign, AddAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
 use crate::utils::nearly_equal;
-use num::{Float, One, Zero, Num};
+use num::{Float, One, Zero, Num, Signed};
 
 use crate::slices_methods::*;
 use crate::vector3::*;
@@ -395,6 +395,7 @@ impl<T: Num + Copy> Mul<T> for M33<T> {
 impl<T: Num + Copy> Mul for M33<T> {
     type Output = Self;
 
+    #[inline]
     fn mul(self, rhs: Self) -> Self {
         let m00 =
             self[(0, 0)] * rhs[(0, 0)] + self[(0, 1)] * rhs[(1, 0)] + self[(0, 2)] * rhs[(2, 0)];
@@ -418,6 +419,25 @@ impl<T: Num + Copy> Mul for M33<T> {
             self[(2, 0)] * rhs[(0, 2)] + self[(2, 1)] * rhs[(1, 2)] + self[(2, 2)] * rhs[(2, 2)];
 
         M33::new([[m00, m01, m02], [m10, m11, m12], [m20, m21, m22]])
+    }
+}
+
+// -M33
+impl<T: Num + Copy + Signed> Neg for M33<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a_00 = -self[(0, 0)];
+        let a_01 = -self[(0, 1)];
+        let a_02 = -self[(0, 2)];
+        let a_10 = -self[(1, 0)];
+        let a_11 = -self[(1, 1)];
+        let a_12 = -self[(1, 2)];
+        let a_20 = -self[(2, 0)];
+        let a_21 = -self[(2, 1)];
+        let a_22 = -self[(2, 2)];
+
+        M33::new([[a_00, a_01, a_02], [a_10, a_11, a_12], [a_20, a_21, a_22]])
     }
 }
 

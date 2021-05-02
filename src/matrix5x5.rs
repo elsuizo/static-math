@@ -28,9 +28,9 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use num::{Float, One, Zero, Num};
+use num::{Float, One, Zero, Num, Signed};
 use std::fmt;
-use std::ops::{Add, Mul, Sub, AddAssign, SubAssign};
+use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::slices_methods::*;
@@ -709,6 +709,46 @@ impl<T: Num + Copy> Mul for M55<T> {
     }
 }
 
+// -M55
+impl<T: Num + Copy + Signed> Neg for M55<T> {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        let a_00 = -self[(0, 0)];
+        let a_01 = -self[(0, 1)];
+        let a_02 = -self[(0, 2)];
+        let a_03 = -self[(0, 3)];
+        let a_04 = -self[(0, 4)];
+        let a_10 = -self[(1, 0)];
+        let a_11 = -self[(1, 1)];
+        let a_12 = -self[(1, 2)];
+        let a_13 = -self[(1, 3)];
+        let a_14 = -self[(1, 4)];
+        let a_20 = -self[(2, 0)];
+        let a_21 = -self[(2, 1)];
+        let a_22 = -self[(2, 2)];
+        let a_23 = -self[(2, 3)];
+        let a_24 = -self[(2, 4)];
+        let a_30 = -self[(3, 0)];
+        let a_31 = -self[(3, 1)];
+        let a_32 = -self[(3, 2)];
+        let a_33 = -self[(3, 3)];
+        let a_34 = -self[(3, 4)];
+        let a_40 = -self[(4, 0)];
+        let a_41 = -self[(4, 1)];
+        let a_42 = -self[(4, 2)];
+        let a_43 = -self[(4, 3)];
+        let a_44 = -self[(4, 4)];
+
+        M55::new([
+            [a_00, a_01, a_02, a_03, a_04],
+            [a_10, a_11, a_12, a_13, a_14],
+            [a_20, a_21, a_22, a_23, a_24],
+            [a_30, a_31, a_32, a_33, a_34],
+            [a_40, a_41, a_42, a_43, a_44],
+        ])
+    }
+}
 impl<T: Num + Copy> Zero for M55<T> {
     fn zero() -> M55<T> {
         M55::new([[T::zero(); 5]; 5])

@@ -33,12 +33,9 @@
 /// This is a implementation of the amazing lecture of the profesor
 /// Gilbert Strang: https://youtu.be/d32WV1rKoVk
 
-#[macro_use]
-extern crate static_math;
-
-use static_math::matrix3x3::M33;
-use static_math::traits::LinearAlgebra;
+use static_math::{M33, m33_new};
 use static_math::slices_methods::check_elements;
+use static_math::traits::LinearAlgebra;
 
 fn convert_to_similar(m: &mut M33<f32>) {
     if let Some((q, r)) = m.qr() {

@@ -28,10 +28,7 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-#[macro_use]
-extern crate static_math;
-
-use static_math::matrix2x2::M22;
+use static_math::{M22, m22_new};
 // i see this tweet and i want prove that
 // https://twitter.com/FlammableMaths/status/1306303462607654914
 fn main() {

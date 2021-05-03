@@ -22,10 +22,7 @@
 //
 // You should have received a copy of the GNU General Public License
 //--------------------------------------------------------------------------
-#[macro_use]
-extern crate static_math;
-
-use static_math::matrix6x6::M66;
+use static_math::{M66, m66_new};
 use static_math::traits::LinearAlgebra;
 
 fn main() {

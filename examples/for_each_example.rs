@@ -28,10 +28,7 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-#[macro_use]
-extern crate static_math;
-
-use static_math::matrix6x6::M66;
+use static_math::{M66, m66_new};
 
 // Apply the closure f to all the elements of the matrix
 fn main() {

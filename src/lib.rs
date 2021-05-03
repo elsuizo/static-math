@@ -28,7 +28,7 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //--------------------------------------------------------------------------
-extern crate num;
+// extern crate num;
 
 pub mod traits;
 pub mod matrix2x2;
@@ -46,3 +46,18 @@ pub mod errors;
 pub mod slices_methods;
 pub mod quaternion;
 pub mod transformations;
+
+//-------------------------------------------------------------------------
+//                        export types
+//-------------------------------------------------------------------------
+pub use matrix2x2::M22;
+pub use matrix3x3::M33;
+pub use matrix4x4::M44;
+pub use matrix5x5::M55;
+pub use matrix6x6::M66;
+pub use vector2::V2;
+pub use vector3::V3;
+pub use vector4::V4;
+pub use vector5::V5;
+pub use vector6::V6;
+pub use quaternion::Quaternion;

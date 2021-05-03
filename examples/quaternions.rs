@@ -28,10 +28,7 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-extern crate static_math;
-
-use static_math::quaternion::Quaternion;
-use static_math::vector3::V3;
+use static_math::{V3, Quaternion};
 
 // In this example we rotate the x axis around the z axis 360 degrees
 // to obtain the x axis again, but the rotation is via a composition of

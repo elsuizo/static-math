@@ -20,4 +20,3 @@ criterion = "0.3"
 [[bench]]
 name = "bench_inverse"
 harness = false
-

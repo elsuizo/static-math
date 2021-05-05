@@ -100,18 +100,9 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     /// Calculate the determiant of the matrix
     #[inline(always)]
     fn det(&self) -> T {
-        let a_00 = self[(0, 0)];
-        let a_01 = self[(0, 1)];
-        let a_02 = self[(0, 2)];
-        let a_10 = self[(1, 0)];
-        let a_11 = self[(1, 1)];
-        let a_12 = self[(1, 2)];
-        let a_20 = self[(2, 0)];
-        let a_21 = self[(2, 1)];
-        let a_22 = self[(2, 2)];
-        a_00 * (a_11 * a_22 - a_21 * a_12)
-            - a_01 * (a_10 * a_22 - a_12 * a_20)
-            + a_02 * (a_10 * a_21 - a_11 * a_20)
+          self[(0, 0)] * (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)])
+        - self[(0, 1)] * (self[(1, 0)] * self[(2, 2)] - self[(1, 2)] * self[(2, 0)])
+        + self[(0, 2)] * (self[(1, 0)] * self[(2, 1)] - self[(1, 1)] * self[(2, 0)])
     }
 
     /// Calculate the inverse
@@ -390,6 +381,45 @@ impl<T: Num + Copy> Mul<T> for M33<T> {
         M33::new([[a_00, a_01, a_02], [a_10, a_11, a_12], [a_20, a_21, a_22]])
     }
 }
+
+// f32 * M33<f32>
+impl Mul<M33<f32>> for f32 {
+    type Output = M33<f32>;
+
+    fn mul(self, rhs: M33<f32>) -> Self::Output {
+        let a_00 = self * rhs[(0, 0)];
+        let a_01 = self * rhs[(0, 1)];
+        let a_02 = self * rhs[(0, 2)];
+        let a_10 = self * rhs[(1, 0)];
+        let a_11 = self * rhs[(1, 1)];
+        let a_12 = self * rhs[(1, 2)];
+        let a_20 = self * rhs[(2, 0)];
+        let a_21 = self * rhs[(2, 1)];
+        let a_22 = self * rhs[(2, 2)];
+
+        M33::new([[a_00, a_01, a_02], [a_10, a_11, a_12], [a_20, a_21, a_22]])
+    }
+}
+
+// f64 * M33<f64>
+impl Mul<M33<f64>> for f64 {
+    type Output = M33<f64>;
+
+    fn mul(self, rhs: M33<f64>) -> Self::Output {
+        let a_00 = self * rhs[(0, 0)];
+        let a_01 = self * rhs[(0, 1)];
+        let a_02 = self * rhs[(0, 2)];
+        let a_10 = self * rhs[(1, 0)];
+        let a_11 = self * rhs[(1, 1)];
+        let a_12 = self * rhs[(1, 2)];
+        let a_20 = self * rhs[(2, 0)];
+        let a_21 = self * rhs[(2, 1)];
+        let a_22 = self * rhs[(2, 2)];
+
+        M33::new([[a_00, a_01, a_02], [a_10, a_11, a_12], [a_20, a_21, a_22]])
+    }
+}
+
 
 // M3 * M3
 impl<T: Num + Copy> Mul for M33<T> {

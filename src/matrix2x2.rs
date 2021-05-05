@@ -52,7 +52,7 @@ impl<T> M22<T> {
     }
 
     #[inline(always)]
-    pub const fn create(a: T, b: T, c: T, d: T) -> Self {
+    pub const fn new_from(a: T, b: T, c: T, d: T) -> Self {
         Self::new([[a, b], [c, d]])
     }
 

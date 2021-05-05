@@ -187,6 +187,18 @@ impl Mul<V3<f32>> for f32 {
     }
 }
 
+// f64 * V3<64>
+impl Mul<V3<f64>> for f64 {
+    type Output = V3<f64>;
+
+    fn mul(self, rhs: V3<f64>) -> Self::Output {
+        let a0 = rhs[0] * self;
+        let a1 = rhs[1] * self;
+        let a2 = rhs[2] * self;
+        V3::new([a0, a1, a2])
+    }
+}
+
 // V3 * V3
 impl<T: Num + Copy> Mul for V3<T> {
     type Output = T;
@@ -384,7 +396,7 @@ mod vector3_test {
     #[test]
     fn mul_const_rhs() {
         let v = V3::new([1.0, 2.0, 3.0]);
-        let result = 2.0 * v;
+        let result: V3<f64> = 2.0 * v;
         let expected = V3::new([2.0, 4.0, 6.0]);
         assert_eq!(
             &result[..],

@@ -1598,7 +1598,6 @@ impl<T: Num + Copy> M66<T> {
 
     /// get the a submatrix from discard row `i` and column `j`
     ///
-    #[inline(always)]
     fn get_submatrix(&self, selected: (usize, usize)) -> M55<T> {
         let mut values: [T; 25] = [T::zero(); 25];
         let mut result: M55<T> = M55::zeros();

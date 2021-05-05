@@ -298,7 +298,7 @@ where
     V3::new_from(result[0], result[1], result[2])
 }
 
-pub fn skew_from_vec<T: Float>(v: V3<T>) -> M33<T> {
+pub fn skew_from_vec<T: Float>(v: &V3<T>) -> M33<T> {
     let zero = T::zero();
     m33_new!( zero, -v[2],  v[1];
               v[2],  zero, -v[0];
@@ -369,6 +369,17 @@ pub fn translation_3d<T: Float>(x: T, y: T, z: T) -> M44<T> {
              zero,  one, zero,  y;
              zero, zero,  one,  z;
              zero, zero, zero, one)
+}
+
+// NOTE(elsuizo:2021-05-04): wide code is better code
+/// $$E = mc^2 $$
+/// $$m = \frac{m_0}{\sqrt{1-\frac{v^2}{c^2}}}$$
+/// Compute the matrix exponential of [omega]theta = [omega theta] (exponential coordinates)
+/// with the Rodriguez formula
+pub fn rotation_from_axis_angle<T: Float>(omega: &V3<T>, theta: T) -> M33<T> {
+    let skew       = skew_from_vec(omega);
+    let (sin, cos) = theta.sin_cos();
+    M33::identity() + skew * sin + skew * skew * (T::one() - cos)
 }
 
 //-------------------------------------------------------------------------

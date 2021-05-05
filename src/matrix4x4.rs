@@ -69,6 +69,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
         self.rows()
     }
 
+    #[inline(always)]
     fn transpose(&self) -> M44<T> {
         M44::new([
             [self[(0, 0)], self[(1, 0)], self[(2, 0)], self[(3, 0)]],
@@ -78,6 +79,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
         ])
     }
 
+    #[inline(always)]
     fn trace(&self) -> T {
         return self[(0, 0)] + self[(1, 1)] + self[(2, 2)] + self[(3, 3)];
     }
@@ -165,35 +167,34 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     }
 
     /// Calculate the inverse
-    // #[inline(always)]
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if !nearly_equal(det, T::zero(), T::epsilon()) {
-            let a1 = self.get_submatrix((0, 0)).det();
-            let a2 = -self.get_submatrix((1, 0)).det();
-            let a3 = self.get_submatrix((2, 0)).det();
-            let a4 = -self.get_submatrix((3, 0)).det();
+            let a1 = self.get_submatrix((0, 0)).det() / det;
+            let a2 = -self.get_submatrix((1, 0)).det() / det;
+            let a3 = self.get_submatrix((2, 0)).det() / det;
+            let a4 = -self.get_submatrix((3, 0)).det() / det;
 
-            let a5 = -self.get_submatrix((0, 1)).det();
-            let a6 = self.get_submatrix((1, 1)).det();
-            let a7 = -self.get_submatrix((2, 1)).det();
-            let a8 = self.get_submatrix((3, 1)).det();
+            let a5 = -self.get_submatrix((0, 1)).det() / det;
+            let a6 = self.get_submatrix((1, 1)).det() / det;
+            let a7 = -self.get_submatrix((2, 1)).det() / det;
+            let a8 = self.get_submatrix((3, 1)).det() / det;
 
-            let a9 = self.get_submatrix((0, 2)).det();
-            let a10 = -self.get_submatrix((1, 2)).det();
-            let a11 = self.get_submatrix((2, 2)).det();
-            let a12 = -self.get_submatrix((3, 2)).det();
+            let a9 = self.get_submatrix((0, 2)).det() / det;
+            let a10 = -self.get_submatrix((1, 2)).det() / det;
+            let a11 = self.get_submatrix((2, 2)).det() / det;
+            let a12 = -self.get_submatrix((3, 2)).det() / det;
 
-            let a13 = -self.get_submatrix((0, 3)).det();
-            let a14 = self.get_submatrix((1, 3)).det();
-            let a15 = -self.get_submatrix((2, 3)).det();
-            let a16 = self.get_submatrix((3, 3)).det();
+            let a13 = -self.get_submatrix((0, 3)).det() / det;
+            let a14 = self.get_submatrix((1, 3)).det() / det;
+            let a15 = -self.get_submatrix((2, 3)).det() / det;
+            let a16 = self.get_submatrix((3, 3)).det() / det;
 
             Some(M44::new([
-                [a1 / det, a2 / det, a3 / det, a4 / det],
-                [a5 / det, a6 / det, a7 / det, a8 / det],
-                [a9 / det, a10 / det, a11 / det, a12 / det],
-                [a13 / det, a14 / det, a15 / det, a16 / det],
+                [a1, a2 , a3 , a4],
+                [a5, a6 , a7 , a8],
+                [a9, a10, a11, a12],
+                [a13, a14, a15, a16],
             ]))
         } else {
             None

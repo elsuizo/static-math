@@ -164,6 +164,7 @@ impl<T: Float + Signed> Div for Quaternion<T> {
 impl<T: Num + Copy> Mul for Quaternion<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn mul(self, rhs: Self) -> Self::Output {
         let q0 = self.q0 * rhs.q0  - self.q * rhs.q;
         let q = rhs.q * self.q0 + self.q * rhs.q0 + self.q.cross(rhs.q);
@@ -176,6 +177,7 @@ impl<T: Num + Copy> Mul for Quaternion<T> {
 // from: Fabian “ryg” Giesen
 impl<T: Num + Copy + Signed> Mul<V3<T>> for Quaternion<T> {
     type Output = V3<T>;
+    #[inline(always)]
     fn mul(self, rhs: V3<T>) -> Self::Output {
         let one = T::one();
         let two = one + one;

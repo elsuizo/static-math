@@ -613,6 +613,7 @@ impl<T: Num + Copy> Mul<V5<T>> for M55<T> {
 
 }
 
+// M55 * M55
 impl<T: Num + Copy> Mul for M55<T> {
     type Output = Self;
 

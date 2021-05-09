@@ -33,7 +33,7 @@ use num::{Float, Zero, Num, Signed};
 use std::ops::{Deref, DerefMut};
 
 use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
-
+use std::ops::BitAnd;
 use crate::slices_methods::{norm_inf, norm_l};
 use crate::errors::VectorErrors;
 use crate::matrix4x4::M44;
@@ -68,6 +68,13 @@ impl<T: Num + Copy> V4<T> {
         Self::new([one, one, one, one])
     }
 
+}
+
+impl BitAnd for V4<bool> {
+    type Output = Self;
+    fn bitand(self, rhs: Self) -> Self::Output {
+        Self::new_from(self[0] & rhs[0], self[1] & rhs[1], self[2] & rhs[2], self[3] & rhs[3])
+    }
 }
 
 impl<T: Num + Copy + std::cmp::PartialOrd> V4<T> {

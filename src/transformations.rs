@@ -298,11 +298,33 @@ where
     V3::new_from(result[0], result[1], result[2])
 }
 
+/// Brief.
+///
+/// Convert a 3d Vector to a so(3) representation
+///
+/// Function arguments:
+/// `v`: V3<Float>
+///
+/// Output: A M33<Float> that is the skew symetric representation of `v`
+///
 pub fn skew_from_vec<T: Float>(v: &V3<T>) -> M33<T> {
     let zero = T::zero();
     m33_new!( zero, -v[2],  v[1];
               v[2],  zero, -v[0];
              -v[1],  v[0],  zero)
+}
+
+/// Brief.
+///
+/// convert an so(3) representation to a 3d vector
+///
+/// Function arguments:
+/// `r`: M33<Float>
+///
+/// Output: A V3<Float>
+///
+pub fn skew_to_vec<T: Float>(r: &M33<T>) -> V3<T> {
+    V3::new_from(r[(2, 1)], r[(0, 2)], r[(1, 0)])
 }
 
 pub fn skew_scalar<T: Float>(number: T) -> M22<T> {
@@ -311,8 +333,22 @@ pub fn skew_scalar<T: Float>(number: T) -> M22<T> {
              number,    zero)
 }
 
+pub fn vex_m22<T: Float>(m: &M22<T>) -> T {
+    m[(1, 0)]
+}
+
+/// Create a pose in 2D from a angle(in radians) and a cartesian position (x, y) values
+pub fn ksi<T: Float>(angle: T, x: T, y: T) -> M33<T> {
+    let zero = T::zero();
+    let one = T::one();
+    let (s, c) = angle.sin_cos();
+    m33_new!(   c,   -s,   x;
+                s,    c,   y;
+             zero, zero, one)
+}
+
 /// Create augmented skew-symmetric matrix
-pub fn skew_v3<T: Float>(v: V3<T>) -> M33<T> {
+pub fn skew_from_vec_aug<T: Float>(v: V3<T>) -> M33<T> {
     let zero = T::zero();
     m33_new!(zero, -v[2], v[0];
              v[2],  zero, v[1];
@@ -328,28 +364,19 @@ pub fn skew_v6<T: Float>(v: V6<T>) -> M44<T> {
               zero,  zero,  zero, zero)
 }
 
-// NOTE(elsuizo:2020-05-01): no me gusta como queda ese unwrap ahi feo...
-pub fn vex_m22<T: Float>(m: M22<T>) -> T {
-    T::from(0.5).unwrap() * (m[(1, 0)] - m[(0, 1)])
-}
-
-pub fn vex_m33<T: Float>(m: M33<T>) -> V3<T> {
-    let constant = T::from(0.5).unwrap();
-    V3::new([
-        m[(2, 1)] - m[(1, 2)],
-        m[(0, 2)] - m[(2, 0)],
-        m[(1, 0)] - m[(0, 1)],
-    ]) * constant
-}
-
-/// Create a pose in 2D from a angle(in radians) and a cartesian position (x, y) values
-pub fn ksi<T: Float>(angle: T, x: T, y: T) -> M33<T> {
-    let zero = T::zero();
-    let one = T::one();
-    let (s, c) = angle.sin_cos();
-    m33_new!(   c,   -s,   x;
-                s,    c,   y;
-             zero, zero, one)
+/// Brief.
+///
+/// Convert a 3d vector of exponential coordinates for rotation into axis-angle
+/// form
+///
+/// Function arguments:
+/// `exp`: V3<Float> 3d vector of exponential coordinates
+///
+/// Output:
+/// (omega_hat, theta)
+///
+pub fn axis_angle<T: Float>(exp: &V3<T>) -> (V3<T>, T) {
+    (exp.normalize().expect("empty vector"), exp.norm2())
 }
 
 /// Create a pure translation homogeneous transformation
@@ -372,14 +399,17 @@ pub fn translation_3d<T: Float>(x: T, y: T, z: T) -> M44<T> {
 }
 
 // NOTE(elsuizo:2021-05-04): wide code is better code
-/// $$E = mc^2 $$
-/// $$m = \frac{m_0}{\sqrt{1-\frac{v^2}{c^2}}}$$
 /// Compute the matrix exponential of [omega]theta = [omega theta] (exponential coordinates)
 /// with the Rodriguez formula
 pub fn rotation_from_axis_angle<T: Float>(omega: &V3<T>, theta: T) -> M33<T> {
     let skew       = skew_from_vec(omega);
     let (sin, cos) = theta.sin_cos();
     M33::identity() + skew * sin + skew * skew * (T::one() - cos)
+}
+
+/// Inverse of a Rotation matrix, where R: SO(3)
+pub fn rotation_inverse<T: Float + std::iter::Sum>(r: &M33<T>) -> M33<T> {
+    r.transpose()
 }
 
 //-------------------------------------------------------------------------

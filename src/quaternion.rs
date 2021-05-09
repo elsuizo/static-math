@@ -41,9 +41,9 @@ use crate::utils::nearly_equal;
 #[derive(Copy, Debug, Clone, PartialEq)]
 pub struct Quaternion<T> {
     /// Scalar part
-    pub q0: T,
+    q0: T,
     /// Imaginary part
-    pub q: V3<T>,
+    q: V3<T>,
     /// flag to signaling if the Quaternion is normalized
     normalized: bool
 }
@@ -51,12 +51,14 @@ pub struct Quaternion<T> {
 impl<T> Quaternion<T> {
 
     /// construct a new Quaternion from a number(real part) and a vector(imag part)
+    #[inline(always)]
     pub const fn new(q0: T, q: V3<T>) -> Self {
         Self{q0, q, normalized: false}
     }
 
     /// construct a new Quaternion zrom four numbers
-    pub fn new_from(q0: T, q1: T, q2: T, q3: T) -> Self {
+    #[inline(always)]
+    pub const fn new_from(q0: T, q1: T, q2: T, q3: T) -> Self {
         Self{q0, q: V3::new([q1, q2, q3]), normalized: false}
     }
 

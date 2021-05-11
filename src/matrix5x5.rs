@@ -30,14 +30,14 @@
 //-------------------------------------------------------------------------
 use num::{Float, One, Zero, Num, Signed};
 use std::fmt;
-use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, Neg};
+use std::ops::{Add, Mul, Div, Sub, AddAssign, SubAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::slices_methods::*;
 use crate::traits::LinearAlgebra;
 use crate::matrix4x4::M44;
 use crate::vector5::V5;
-use crate::utils::nearly_equal;
+use crate::utils::nearly_zero;
 
 //-------------------------------------------------------------------------
 //                        code
@@ -274,7 +274,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
     fn inverse(&self) -> Option<Self> {
         let one = T::one();
         let det = self.det();
-        if !nearly_equal(det, T::zero(), T::epsilon()) {
+        if !nearly_zero(det) {
             let mut cofactors: M55<T> = M55::zeros();
             for i in 0..self.rows() {
                 for j in 0..self.cols() {
@@ -283,7 +283,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
                     cofactors[(j, i)] = sign * self.get_submatrix((i, j)).det();
                 }
             }
-            Some(cofactors * (T::one() / det))
+            Some(cofactors / det)
         } else {
             None
         }
@@ -292,7 +292,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
     /// Calculate de QR factorization of the M55 via gram-schmidt
     /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
-        if !nearly_equal(self.det(), T::zero(), T::epsilon()) {
+        if !nearly_zero(self.det()) {
             let cols = self.get_cols();
             let mut q: [V5<T>; 5] = *M55::zeros().get_cols();
             for i in 0..q.len() {
@@ -563,6 +563,46 @@ impl<T: Num + Copy> Mul<T> for M55<T> {
     }
 }
 
+// M55 / constant
+impl<T: Num + Copy> Div<T> for M55<T> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let a_00 = self[(0, 0)] / rhs;
+        let a_01 = self[(0, 1)] / rhs;
+        let a_02 = self[(0, 2)] / rhs;
+        let a_03 = self[(0, 3)] / rhs;
+        let a_04 = self[(0, 4)] / rhs;
+        let a_10 = self[(1, 0)] / rhs;
+        let a_11 = self[(1, 1)] / rhs;
+        let a_12 = self[(1, 2)] / rhs;
+        let a_13 = self[(1, 3)] / rhs;
+        let a_14 = self[(1, 4)] / rhs;
+        let a_20 = self[(2, 0)] / rhs;
+        let a_21 = self[(2, 1)] / rhs;
+        let a_22 = self[(2, 2)] / rhs;
+        let a_23 = self[(2, 3)] / rhs;
+        let a_24 = self[(2, 4)] / rhs;
+        let a_30 = self[(3, 0)] / rhs;
+        let a_31 = self[(3, 1)] / rhs;
+        let a_32 = self[(3, 2)] / rhs;
+        let a_33 = self[(3, 3)] / rhs;
+        let a_34 = self[(3, 4)] / rhs;
+        let a_40 = self[(4, 0)] / rhs;
+        let a_41 = self[(4, 1)] / rhs;
+        let a_42 = self[(4, 2)] / rhs;
+        let a_43 = self[(4, 3)] / rhs;
+        let a_44 = self[(4, 4)] / rhs;
+
+        M55::new([
+            [a_00, a_01, a_02, a_03, a_04],
+            [a_10, a_11, a_12, a_13, a_14],
+            [a_20, a_21, a_22, a_23, a_24],
+            [a_30, a_31, a_32, a_33, a_34],
+            [a_40, a_41, a_42, a_43, a_44],
+        ])
+    }
+}
 
 // M55 * V5
 impl<T: Num + Copy> Mul<V5<T>> for M55<T> {

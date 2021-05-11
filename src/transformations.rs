@@ -37,13 +37,11 @@ use crate::vector4::V4;
 use crate::vector6::V6;
 use crate::quaternion::Quaternion;
 use crate::traits::LinearAlgebra;
-use crate::utils::{nearly_equal};
+use crate::utils::{nearly_zero, nearly_equal};
 use num::{Float, Signed};
 use num::traits::FloatConst;
 
-///
 /// Euler sequences conventions of rotations
-///
 pub enum EulerSeq {
     XYX,
     XYZ,
@@ -66,9 +64,7 @@ pub fn rot2<T: Float>(angle: T) -> M22<T> {
              s,  c)
 }
 
-/// brief.
-///
-/// compute the rotation around the `x` axis(in cartesian coordinates)
+/// Compute the rotation around the `x` axis(in cartesian coordinates)
 ///
 /// description
 ///
@@ -83,8 +79,6 @@ pub fn rotx<T: Float>(angle: T) -> M33<T> {
              zero,    s,    c)
 }
 
-/// Brief.
-///
 /// Compute the rotation around the `y` axis(in cartesian coordinates)
 ///
 /// Description
@@ -100,8 +94,6 @@ pub fn roty<T: Float>(angle: T) -> M33<T> {
                -s, zero,    c)
 }
 
-/// Brief.
-///
 /// Compute the rotation around the `z` axis(in cartesian coordinates)
 ///
 /// Description
@@ -117,8 +109,6 @@ pub fn rotz<T: Float>(angle: T) -> M33<T> {
              zero, zero,  one)
 }
 
-/// Brief.
-///
 /// Compute the rotation matrix from euler angles with the following conventions:
 /// XYX, XYZ, XZX, XZY, YXY, YXZ, YZX, YZY, ZXY, ZXZ
 ///
@@ -153,9 +143,7 @@ pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq
 
 // TODO(elsuizo:2021-04-27): handle only valid rotations
 // TODO(elsuizo:2021-04-23): handle all the rotation sequences
-/// Brief.
-///
-/// get the euler angles from a rotation matrix comming from the convention ZYX
+/// Get the euler angles from a rotation matrix comming from the convention ZYX
 ///
 /// Function arguments:
 ///
@@ -188,9 +176,7 @@ pub fn rotation_to_euler<T: Float + FloatConst>(r: &M33<T>) -> (T, T, T) {
 }
 
 // TODO(elsuizo:2021-04-27): i think that the names are too long...
-/// Brief.
-///
-/// generate a homogeneous matrix from a rotation represented by a Matrix and a translation
+/// Generate a homogeneous matrix from a rotation represented by a Matrix and a translation
 /// represented by a vector
 ///
 /// Function arguments:
@@ -209,9 +195,15 @@ pub fn homogeneous_from_rotation<T: Float>(r: &M33<T>, p: &V3<T>) -> M44<T> {
                 zero  ,   zero   ,    zero  , one)
 }
 
-/// Brief.
-///
-/// generate a homogeneous matrix from a rotation represented by a quaternion and a translation
+pub fn se3_from_parts<T: Float>(r: &M33<T>, p: &V3<T>) -> M44<T> {
+    let zero = T::zero();
+    m44_new!(r[(0, 0)], r[(0, 1)], r[(0, 2)], p[0];
+             r[(1, 0)], r[(1, 1)], r[(1, 2)], p[1];
+             r[(2, 0)], r[(2, 1)], r[(2, 2)], p[2];
+                zero  ,   zero   ,    zero  , zero)
+}
+
+/// Generate a homogeneous matrix from a rotation represented by a quaternion and a translation
 /// represented by a vector
 ///
 /// Function arguments:
@@ -225,9 +217,7 @@ pub fn homogeneous_from_quaternion<T: Float>(q: &Quaternion<T>, p: &V3<T>) -> M4
     homogeneous_from_rotation(&q.to_rotation(), p)
 }
 
-/// Brief.
-///
-/// get the parts of a homogeneous transformation, the rotation(expresed by a Quaternion) and the
+/// Get the parts of a homogeneous transformation, the rotation(expresed by a Quaternion) and the
 /// translation (expresed by a vector)
 ///
 /// Function arguments:
@@ -246,9 +236,7 @@ pub fn get_parts<T: Float + FloatConst>(r: &M44<T>) -> (Quaternion<T>, V3<T>) {
     (q, p)
 }
 
-/// Brief.
-///
-/// get the parts of a homogeneous transformation, the rotation(expresed by a Matrix) and the
+/// Get the parts of a homogeneous transformation, the rotation(expresed by a Matrix) and the
 /// translation (expresed by a vector)
 ///
 /// Function arguments:
@@ -264,9 +252,7 @@ pub fn get_parts_raw<T: Float>(r: &M44<T>) -> (M33<T>, V3<T>) {
     (rot, p)
 }
 
-/// Brief.
-///
-/// get the inverse of the homogeneous transformation
+/// Get the inverse of the homogeneous transformation
 ///
 /// Function arguments:
 /// r: Homogeneus transformation reference (&M44<Float>)
@@ -278,9 +264,7 @@ pub fn homogeneous_inverse<T: Float + std::iter::Sum + Signed>(r: &M44<T>) -> M4
     homogeneous_from_rotation(&rot_new, &p_new)
 }
 
-/// Brief.
-///
-/// transform a vector with the inverse of a given homogeneous transformation
+/// Transform a vector with the inverse of a given homogeneous transformation
 ///
 /// Function arguments:
 /// r: Homogeneus transformation reference (&M44<Float>)
@@ -298,8 +282,6 @@ where
     V3::new_from(result[0], result[1], result[2])
 }
 
-/// Brief.
-///
 /// Convert a 3d Vector to a so(3) representation
 ///
 /// Function arguments:
@@ -314,9 +296,7 @@ pub fn skew_from_vec<T: Float>(v: &V3<T>) -> M33<T> {
              -v[1],  v[0],  zero)
 }
 
-/// Brief.
-///
-/// convert an so(3) representation to a 3d vector
+/// Convert an so(3) representation to a 3d vector
 ///
 /// Function arguments:
 /// `r`: M33<Float>
@@ -364,8 +344,6 @@ pub fn skew_v6<T: Float>(v: V6<T>) -> M44<T> {
               zero,  zero,  zero, zero)
 }
 
-/// Brief.
-///
 /// Convert a 3d vector of exponential coordinates for rotation into axis-angle
 /// form
 ///
@@ -399,7 +377,7 @@ pub fn translation_3d<T: Float>(x: T, y: T, z: T) -> M44<T> {
 }
 
 // NOTE(elsuizo:2021-05-04): wide code is better code
-/// Compute the matrix exponential of [omega]theta = [omega theta] (exponential coordinates)
+/// Compute the matrix exponential for omega theta(exponential coordinates): so(3) ---> SO(3)
 /// with the Rodriguez formula
 pub fn rotation_from_axis_angle<T: Float>(omega: &V3<T>, theta: T) -> M33<T> {
     let skew       = skew_from_vec(omega);
@@ -407,9 +385,90 @@ pub fn rotation_from_axis_angle<T: Float>(omega: &V3<T>, theta: T) -> M33<T> {
     M33::identity() + skew * sin + skew * skew * (T::one() - cos)
 }
 
+// NOTE(elsuizo:2021-05-09): remember we have problems to Mul to left side with a constant...
+/// Compute the matrix exponential of a matrix in so(3)
+///
+/// Function arguments:
+/// `so3`: M33<T> a screw symetric matrix
+///
+/// Output:
+/// M33<T>: representing the matrix exponential of the input
+///
+pub fn matrix_exponential<T: Float>(so3: &M33<T>) -> M33<T> {
+    let omega_theta = skew_to_vec(so3);
+    let one = T::one();
+    if nearly_zero(omega_theta.norm2()) {
+        return M33::identity();
+    } else {
+        let theta = axis_angle(&omega_theta).1;
+        let omega = *so3 / theta;
+        let (s, c) = theta.sin_cos();
+        return M33::identity() + omega * s + omega * omega * (one - c);
+    }
+}
+
+/// Brief.
+///
+/// Compute the matrix logarithm of a rotation matrix
+///
+/// Function arguments:
+/// `r`: &M33<Float> rotation matrix
+///
+/// Output:
+/// M33<Float>: representing the matrix logarithm of the input
+///
+pub fn matrix_log<T: Float + std::iter::Sum + FloatConst>(r: &M33<T>) -> M33<T> {
+    let one = T::one();
+    let two = one + one;
+    let angle = (r.trace() - one) / two;
+    if angle >= one {
+        return M33::zeros();
+    } else if angle <= -one {
+        if !nearly_zero(one + r[(2, 2)]) {
+            let omega = V3::new_from(r[(0, 2)], r[(1, 2)], one + r[(2, 2)]) * (one / T::sqrt(two * (one + r[(2, 2)])));
+            return skew_from_vec(&(omega * T::PI()))
+        } else if !nearly_zero(one + r[(1, 1)]) {
+            let omega = V3::new_from(r[(0, 1)], one + r[(1, 1)], r[(2, 1)]) * (one / T::sqrt(two * (one + r[(1, 1)])));
+            return skew_from_vec(&(omega * T::PI()))
+        } else {
+            let omega = V3::new_from(one + r[(0, 0)], one + r[(1, 0)], r[(2, 0)]) * (one / T::sqrt(two * (one + r[(0, 0)])));
+            return skew_from_vec(&(omega * T::PI()))
+        }
+    } else {
+        let theta = T::acos(angle);
+        // TODO(elsuizo:2021-05-10): esto esta bien???
+        return (*r - r.transpose()) * (theta / two / T::sin(theta));
+    }
+}
+
 /// Inverse of a Rotation matrix, where R: SO(3)
 pub fn rotation_inverse<T: Float + std::iter::Sum>(r: &M33<T>) -> M33<T> {
     r.transpose()
+}
+
+/// Convert a spatial velocity vector to a M44 matrix in se3 space
+///
+/// Function arguments:
+/// `twist`: V6<Float> representing the "twist"
+///
+/// Output:
+/// M44<Float>: a matrix in the se3 space
+///
+pub fn twist_to_se3<T: Float>(twist: &V6<T>) -> M44<T> {
+    let skew = skew_from_vec(&V3::new_from(twist[0], twist[1], twist[2]));
+    se3_from_parts(&skew, &V3::new_from(twist[3], twist[4], twist[5]))
+}
+
+/// Convert a se3 matrix representation to a spatial velocity vector known as "twist"
+///
+/// Function arguments:
+/// `se3`: M44<Float> a matrix in the se3 space
+///
+/// Output:
+/// V3<Float>: representing spatial velocity vector("twist")
+///
+pub fn se3_to_twist<T: Float>(se3: &M44<T>) -> V6<T> {
+    V6::new_from(se3[(2, 1)], se3[(0, 2)], se3[(1, 0)], se3[(0, 3)], se3[(1, 3)], se3[(2, 3)])
 }
 
 //-------------------------------------------------------------------------
@@ -418,11 +477,17 @@ pub fn rotation_inverse<T: Float + std::iter::Sum>(r: &M33<T>) -> M33<T> {
 #[cfg(test)]
 mod test_transformations {
 
-    use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz, homogeneous_from_quaternion, homogeneous_inverse, homogeneous_inverse_transform};
+    use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz,
+                homogeneous_from_quaternion, homogeneous_inverse,
+                homogeneous_inverse_transform, matrix_log, matrix_exponential, skew_from_vec,
+                twist_to_se3, se3_to_twist};
     use crate::utils::{nearly_equal, is_rotation, is_rotation_h, compare_vecs};
     use crate::quaternion::Quaternion;
     use crate::vector3::V3;
     use crate::matrix4x4::M44;
+    use crate::m44_new;
+    use crate::vector6::V6;
+    use crate::matrix3x3::M33;
     const EPS: f32 = 1e-6;
 
     #[test]
@@ -478,5 +543,54 @@ mod test_transformations {
         let result = homogeneous_inverse_transform(&iso_s, &V3::new_from(1.0, 2.0, 3.0));
         let expected = V3::new_from(0.0, 2.0, 1.0);
         assert!(compare_vecs(&*result, &*expected, EPS));
+    }
+
+    #[test]
+    fn matrix_log_test() {
+        let r = m33_new!(0.0, 0.0, 1.0;
+                         1.0, 0.0, 0.0;
+                         0.0, 1.0, 0.0);
+        let result = matrix_log(&r);
+        let expected = m33_new!(        0.0, -1.20919958,  1.20919958;
+                                 1.20919958,         0.0, -1.20919958;
+                                -1.20919958,  1.20919958,         0.0);
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn matrix_exponential_test() {
+        let so3 = skew_from_vec(&V3::new_from(1.0, 2.0, 3.0));
+        let result = matrix_exponential(&so3);
+        let expected  = m33_new!(-0.69492056,  0.71352099,  0.08929286;
+                                 -0.19200697, -0.30378504,  0.93319235;
+                                  0.69297817,  0.6313497 ,  0.34810748);
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn twist_to_se3_test() {
+        let result = twist_to_se3(&V6::new_from(1.0, 2.0, 3.0, 4.0, 5.0, 6.0));
+        let expected = m44_new!( 0.0, -3.0,  2.0, 4.0;
+                                 3.0,  0.0, -1.0, 5.0;
+                                -2.0,  1.0,  0.0, 6.0;
+                                 0.0,  0.0,  0.0, 0.0);
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn se3_to_twist_test() {
+        let se3 = m44_new!( 0.0, -3.0,  2.0, 4.0;
+                            3.0,  0.0, -1.0, 5.0;
+                           -2.0,  1.0,  0.0, 6.0;
+                            0.0,  0.0,  0.0, 0.0);
+        let result = se3_to_twist(&se3);
+        let expected = V6::new_from(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
     }
 }

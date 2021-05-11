@@ -31,14 +31,14 @@
 // imports
 #![macro_use]
 use std::fmt;
-use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, Neg};
+use std::ops::{Add, Mul, Sub, Div,AddAssign, SubAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use num::{Float, Num, Zero, One, Signed};
 use crate::vector2::*;
 use crate::traits::LinearAlgebra;
 use crate::slices_methods::*;
-use crate::utils::nearly_equal;
+use crate::utils::nearly_zero;
 
 /// A static Matrix of 2x2 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -108,7 +108,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
         let c = self[(1, 0)];
         let d = self[(1, 1)];
         let det = self.det();
-        if !nearly_equal(det, T::zero(), T::epsilon()) {
+        if !nearly_zero(det) {
             Some(M22::new([[d / det, -b / det], [-c / det, a / det]]))
         } else {
             None
@@ -118,7 +118,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
     /// Calculate de QR factorization of the M22 via gram-schmidt
     /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
-        if !nearly_equal(self.det(), T::zero(), T::epsilon()) {
+        if !nearly_zero(self.det()) {
             let cols = self.get_cols();
             let mut q: [V2<T>; 2] = *M22::zeros().get_cols();
             for i in 0..q.len() {
@@ -341,6 +341,20 @@ impl<T: Num + Copy> Mul<T> for M22<T> {
         let a_01 = self[(0, 1)] * rhs;
         let a_10 = self[(1, 0)] * rhs;
         let a_11 = self[(1, 1)] * rhs;
+
+        M22::new([[a_00, a_01], [a_10, a_11]])
+    }
+}
+
+// M22 / constant
+impl<T: Num + Copy> Div<T> for M22<T> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let a_00 = self[(0, 0)] / rhs;
+        let a_01 = self[(0, 1)] / rhs;
+        let a_10 = self[(1, 0)] / rhs;
+        let a_11 = self[(1, 1)] / rhs;
 
         M22::new([[a_00, a_01], [a_10, a_11]])
     }

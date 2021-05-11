@@ -30,11 +30,11 @@
 //-------------------------------------------------------------------------
 #![macro_use]
 use std::fmt;
-use std::ops::{Add, Mul, Sub, SubAssign, AddAssign, Neg};
+use std::ops::{Add, Mul, Div, Sub, SubAssign, AddAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
-use crate::utils::nearly_equal;
+use crate::utils::nearly_zero;
 use num::{Float, One, Zero, Num, Signed};
 
 use crate::slices_methods::*;
@@ -109,7 +109,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     #[inline(always)]
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
-        if !nearly_equal(det, T::zero(), T::epsilon()) {
+        if !nearly_zero(det) {
             let invdet = T::one() / det;
             let mut res = M33::zero();
             res[(0, 0)] = (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)]) * invdet;
@@ -130,7 +130,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
     /// Calculate de QR factorization of the M33 via gram-schmidt
     /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
-        if !nearly_equal(self.det(), T::zero(), T::epsilon()) {
+        if !nearly_zero(self.det()) {
             let cols = self.get_cols();
             let mut q: [V3<T>; 3] = *M33::zeros().get_cols();
             for i in 0..q.len() {
@@ -377,6 +377,25 @@ impl<T: Num + Copy> Mul<T> for M33<T> {
         let a_20 = self[(2, 0)] * rhs;
         let a_21 = self[(2, 1)] * rhs;
         let a_22 = self[(2, 2)] * rhs;
+
+        M33::new([[a_00, a_01, a_02], [a_10, a_11, a_12], [a_20, a_21, a_22]])
+    }
+}
+
+// M33 / constant
+impl<T: Num + Copy> Div<T> for M33<T> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let a_00 = self[(0, 0)] / rhs;
+        let a_01 = self[(0, 1)] / rhs;
+        let a_02 = self[(0, 2)] / rhs;
+        let a_10 = self[(1, 0)] / rhs;
+        let a_11 = self[(1, 1)] / rhs;
+        let a_12 = self[(1, 2)] / rhs;
+        let a_20 = self[(2, 0)] / rhs;
+        let a_21 = self[(2, 1)] / rhs;
+        let a_22 = self[(2, 2)] / rhs;
 
         M33::new([[a_00, a_01, a_02], [a_10, a_11, a_12], [a_20, a_21, a_22]])
     }

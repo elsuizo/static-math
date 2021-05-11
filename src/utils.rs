@@ -55,6 +55,10 @@ pub fn nearly_equal<T: Float>(a: T, b: T, epsilon: T) -> bool {
     }
 }
 
+pub fn nearly_zero<T: Float>(a: T) -> bool {
+    nearly_equal(a, T::zero(), T::epsilon())
+}
+
 // TODO(elsuizo:2020-06-16): this is the only place when i use a Vec
 /// utility function to compare vectors of Floats
 pub fn compare_vecs<T: Float>(v1: &[T], v2: &[T], epsilon: T) -> bool {

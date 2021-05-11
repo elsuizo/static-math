@@ -29,7 +29,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use std::fmt;
-use std::ops::{Add, Mul, Sub, AddAssign, SubAssign, Neg};
+use std::ops::{Add, Mul, Div, Sub, AddAssign, SubAssign, Neg};
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use num::{Float, One, Zero, Num, Signed};
@@ -37,7 +37,7 @@ use crate::matrix3x3::*;
 use crate::slices_methods::*;
 use crate::traits::LinearAlgebra;
 use crate::vector4::V4;
-use crate::utils::nearly_equal;
+use crate::utils::nearly_zero;
 
 //-------------------------------------------------------------------------
 //                        code
@@ -169,7 +169,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     /// Calculate the inverse
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
-        if !nearly_equal(det, T::zero(), T::epsilon()) {
+        if !nearly_zero(det) {
             let a1 = self.get_submatrix((0, 0)).det() / det;
             let a2 = -self.get_submatrix((1, 0)).det() / det;
             let a3 = self.get_submatrix((2, 0)).det() / det;
@@ -204,7 +204,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
     /// Calculate de QR factorization of the M44 via gram-schmidt
     /// orthogonalization process
     fn qr(&self) -> Option<(Self, Self)> {
-        if !nearly_equal(self.det(), T::zero(), T::epsilon()) {
+        if !nearly_zero(self.det()) {
             let cols = self.get_cols();
             let mut q: [V4<T>; 4] = *M44::zeros().get_cols();
             for i in 0..q.len() {
@@ -499,6 +499,37 @@ impl<T: Num + Copy> Mul<T> for M44<T> {
         let a14 = self[(3, 1)] * rhs;
         let a15 = self[(3, 2)] * rhs;
         let a16 = self[(3, 3)] * rhs;
+
+        M44::new([
+            [a1, a2, a3, a4],
+            [a5, a6, a7, a8],
+            [a9, a10, a11, a12],
+            [a13, a14, a15, a16],
+        ])
+    }
+}
+
+// M44 / constant
+impl<T: Num + Copy> Div<T> for M44<T> {
+    type Output = Self;
+
+    fn div(self, rhs: T) -> Self::Output {
+        let a1 = self[(0, 0)] / rhs;
+        let a2 = self[(0, 1)] / rhs;
+        let a3 = self[(0, 2)] / rhs;
+        let a4 = self[(0, 3)] / rhs;
+        let a5 = self[(1, 0)] / rhs;
+        let a6 = self[(1, 1)] / rhs;
+        let a7 = self[(1, 2)] / rhs;
+        let a8 = self[(1, 3)] / rhs;
+        let a9 = self[(2, 0)] / rhs;
+        let a10 = self[(2, 1)] / rhs;
+        let a11 = self[(2, 2)] / rhs;
+        let a12 = self[(2, 3)] / rhs;
+        let a13 = self[(3, 0)] / rhs;
+        let a14 = self[(3, 1)] / rhs;
+        let a15 = self[(3, 2)] / rhs;
+        let a16 = self[(3, 3)] / rhs;
 
         M44::new([
             [a1, a2, a3, a4],

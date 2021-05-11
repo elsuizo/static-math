@@ -67,6 +67,10 @@ impl<T: Num + Copy> V6<T> {
         let one = T::one();
         Self::new([one, one, one, one, one, one])
     }
+
+    // copy_element_from(&mut self, v: V3<T>, sector) {
+    //
+    // }
 }
 
 impl<T: Num + Copy + std::cmp::PartialOrd> V6<T> {

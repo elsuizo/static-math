@@ -31,6 +31,7 @@
 use crate::matrix2x2::M22;
 use crate::matrix3x3::M33;
 use crate::matrix4x4::M44;
+use crate::matrix6x6::M66;
 use crate::m44_new;
 use crate::vector3::V3;
 use crate::vector4::V4;
@@ -471,6 +472,35 @@ pub fn se3_to_twist<T: Float>(se3: &M44<T>) -> V6<T> {
     V6::new_from(se3[(2, 1)], se3[(0, 2)], se3[(1, 0)], se3[(0, 3)], se3[(1, 3)], se3[(2, 3)])
 }
 
+/// Compute the adjoint representation of a homogeneous transformation matrix
+///
+/// Function arguments:
+/// `transform`: M44<Float> a homogeneous transformation matrix
+///
+/// Output:
+/// M66<Float>: the 6x6 matrix representation of the Adjoint of T
+///
+pub fn adjoint<T: Float>(transform: &M44<T>) -> M66<T> {
+    let mut result = M66::zeros();
+    let (r, p) = get_parts_raw(transform);
+    let skew = skew_from_vec(&p);
+    let transform_p = skew * r;
+    result.copy_elements_from(&r, 1);
+    result.copy_elements_from(&r, 4);
+    result.copy_elements_from(&transform_p, 3);
+    result
+}
+
+// NOTE(elsuizo:2021-05-11): we have the cross product define different from numpy
+// for that reason, it is that s.cross(q) = -sxq
+pub fn screw_to_axis<T: Float>(q: &V3<T>, s: &V3<T>, h: T) -> V6<T> {
+    let v = s.cross(*q) + (*s) * h;
+    V6::new_from(s[0], s[1], s[2], v[0], v[1], v[2])
+}
+
+// pub fn axis_angle6<T: Floa>(exp: &V6<T>) -> (V6<T>, T) {
+//
+// }
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
@@ -480,12 +510,14 @@ mod test_transformations {
     use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz,
                 homogeneous_from_quaternion, homogeneous_inverse,
                 homogeneous_inverse_transform, matrix_log, matrix_exponential, skew_from_vec,
-                twist_to_se3, se3_to_twist};
+                twist_to_se3, se3_to_twist, adjoint, screw_to_axis};
     use crate::utils::{nearly_equal, is_rotation, is_rotation_h, compare_vecs};
     use crate::quaternion::Quaternion;
     use crate::vector3::V3;
     use crate::matrix4x4::M44;
     use crate::m44_new;
+    use crate::matrix6x6::M66;
+    use crate::m66_new;
     use crate::vector6::V6;
     use crate::matrix3x3::M33;
     const EPS: f32 = 1e-6;
@@ -585,6 +617,40 @@ mod test_transformations {
                             0.0,  0.0,  0.0, 0.0);
         let result = se3_to_twist(&se3);
         let expected = V6::new_from(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+        assert_eq!(
+            &result[..],
+            &expected[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result[..],
+            &expected[..]
+        );
+    }
+
+    #[test]
+    fn adjoint_test() {
+        let t = m44_new!(1.0, 0.0,  0.0, 0.0;
+                         0.0, 0.0, -1.0, 0.0;
+                         0.0, 1.0,  0.0, 3.0;
+                         0.0, 0.0,  0.0, 1.0);
+
+        let result = adjoint(&t);
+        let expected = m66_new!(1.0, 0.0,  0.0, 0.0, 0.0,  0.0;
+                                0.0, 0.0, -1.0, 0.0, 0.0,  0.0;
+                                0.0, 1.0,  0.0, 0.0, 0.0,  0.0;
+                                0.0, 0.0,  3.0, 1.0, 0.0,  0.0;
+                                3.0, 0.0,  0.0, 0.0, 0.0, -1.0;
+                                0.0, 0.0,  0.0, 0.0, 1.0,  0.0);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn screw_to_axis_test() {
+        let q = V3::new_from(3.0, 0.0, 0.0);
+        let s = V3::new_from(0.0, 0.0, 1.0);
+        let h = 2.0;
+        let result = screw_to_axis(&q, &s, h);
+        let expected = V6::new_from(0.0, 0.0, 1.0, 0.0, -3.0, 2.0);
         assert_eq!(
             &result[..],
             &expected[..],

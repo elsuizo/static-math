@@ -37,6 +37,7 @@ use num::{Float, Num, One, Zero, Signed};
 use crate::slices_methods::*;
 use crate::matrix5x5::M55;
 use crate::vector6::V6;
+use crate::matrix3x3::M33;
 use crate::traits::LinearAlgebra;
 use crate::utils::nearly_zero;
 //-------------------------------------------------------------------------
@@ -1745,6 +1746,53 @@ impl<T: Num + Copy> M66<T> {
             }
         }
         result
+    }
+
+    /// Copy elements from a M33<T> matrix in one of the 4 cuadrants of the actual
+    /// matrix, where the quadrants are enumerated as:
+    /// +---+---+
+    /// | 1 | 2 |
+    /// +---+---+
+    /// | 3 | 4 |
+    /// +---+---+
+    ///
+    /// Function arguments:
+    /// `r`: M33<T> submatrix elements to copy
+    ///
+    /// `quadrant`: number to choose the cuadrant where do the copy of the elements
+    ///
+    pub fn copy_elements_from(&mut self, r: &M33<T>, quadrant: usize) {
+        match quadrant {
+            1 => {
+                for i in 0..3 {
+                    for j in 0..3 {
+                        self[(i, j)] = r[(i, j)];
+                    }
+                }
+            },
+            2 => {
+                for i in 0..3 {
+                    for j in 3..6 {
+                        self[(i, j)] = r[(i, j-3)];
+                    }
+                }
+            },
+            3 => {
+                for i in 3..6 {
+                    for j in 0..3 {
+                        self[(i, j)] = r[(i-3, j)];
+                    }
+                }
+            },
+            4 => {
+                for i in 3..6 {
+                    for j in 3..6 {
+                        self[(i, j)] = r[(i-3, j-3)];
+                    }
+                }
+            },
+            _ => panic!("no more than 4 quadrants !!!")
+        }
     }
 }
 

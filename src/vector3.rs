@@ -67,6 +67,7 @@ impl<T: Num + Copy> V3<T> {
         Self::new([one, one, one])
     }
 
+    // TODO(elsuizo:2021-05-11): we are define the wrong cross product???
     /// calculate the cross product
     pub fn cross(&self, rhs: Self) -> Self {
         let u_x = rhs[0];
@@ -74,8 +75,8 @@ impl<T: Num + Copy> V3<T> {
         let u_z = rhs[2];
 
         Self::new([u_y * self[2] - u_z * self[1],
-                 u_z * self[0] - u_x * self[2],
-                 u_x * self[1] - u_y * self[0]])
+                   u_z * self[0] - u_x * self[2],
+                   u_x * self[1] - u_y * self[0]])
     }
 
     pub fn x_axis() -> Self {

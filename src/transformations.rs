@@ -41,6 +41,7 @@ use crate::traits::LinearAlgebra;
 use crate::utils::{nearly_zero, nearly_equal};
 use num::{Float, Signed};
 use num::traits::FloatConst;
+use crate::slices_methods::norm2;
 
 /// Euler sequences conventions of rotations
 pub enum EulerSeq {
@@ -498,9 +499,25 @@ pub fn screw_to_axis<T: Float>(q: &V3<T>, s: &V3<T>, h: T) -> V6<T> {
     V6::new_from(s[0], s[1], s[2], v[0], v[1], v[2])
 }
 
-// pub fn axis_angle6<T: Floa>(exp: &V6<T>) -> (V6<T>, T) {
-//
-// }
+/// Convert a 6D vector of exponential coordinates into screw axis angle
+///
+/// Function arguments:
+/// `exp`: V6<Float> A 6D vector of exponential coordinates for rigid-body motion S*theta
+///
+/// Output:
+/// (V6<Float, Float) a tuple with the first element the normalized "screw" axis, and the second
+/// tuple element called "theta" representing the distance traveled along/about S
+///
+pub fn axis_angle6<T: Float>(exp: &V6<T>) -> (V6<T>, T) {
+    // NOTE(elsuizo:2021-05-11): here we treat the vector like a slice(to obtain the first three
+    // elements)
+    let theta = norm2(&exp[0..3]);
+    if nearly_zero(theta) {
+        let theta = norm2(&exp[3..6]);
+        return (*exp / theta, theta)
+    }
+    return (*exp / theta, theta)
+}
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
@@ -510,7 +527,7 @@ mod test_transformations {
     use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz,
                 homogeneous_from_quaternion, homogeneous_inverse,
                 homogeneous_inverse_transform, matrix_log, matrix_exponential, skew_from_vec,
-                twist_to_se3, se3_to_twist, adjoint, screw_to_axis};
+                twist_to_se3, se3_to_twist, adjoint, screw_to_axis, axis_angle6};
     use crate::utils::{nearly_equal, is_rotation, is_rotation_h, compare_vecs};
     use crate::quaternion::Quaternion;
     use crate::vector3::V3;
@@ -658,5 +675,20 @@ mod test_transformations {
             &result[..],
             &expected[..]
         );
+    }
+
+    #[test]
+    fn axis_angle6_test() {
+        let v = V6::new_from(1.0, 0.0, 0.0, 1.0, 2.0, 3.0);
+        let result = axis_angle6(&v);
+        let expected = (V6::new_from(1.0, 0.0, 0.0, 1.0, 2.0, 3.0), 1.0);
+        assert_eq!(
+            &result.0[..],
+            &expected.0[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result.0[..],
+            &expected.0[..]
+        );
+        assert!(nearly_equal(result.1, expected.1, EPS));
     }
 }

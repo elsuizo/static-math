@@ -205,6 +205,14 @@ pub fn se3_from_parts<T: Float>(r: &M33<T>, p: &V3<T>) -> M44<T> {
                 zero  ,   zero   ,    zero  , zero)
 }
 
+pub fn se3_get_parts<T: Float>(se3: &M44<T>) -> (M33<T>, V3<T>) {
+    let skew_omega = m33_new!(se3[(0, 0)], se3[(0, 1)], se3[(0, 2)];
+                              se3[(1, 0)], se3[(1, 1)], se3[(1, 2)];
+                              se3[(2, 0)], se3[(2, 1)], se3[(2, 2)]);
+    let v = V3::new_from(se3[(0, 3)], se3[(1, 3)], se3[(2, 3)]);
+    (skew_omega, v)
+}
+
 /// Generate a homogeneous matrix from a rotation represented by a quaternion and a translation
 /// represented by a vector
 ///
@@ -518,6 +526,33 @@ pub fn axis_angle6<T: Float>(exp: &V6<T>) -> (V6<T>, T) {
     }
     return (*exp / theta, theta)
 }
+
+pub fn matrix_exponential6<T: Float>(se3: &M44<T>) -> M44<T> {
+    let zero = T::zero();
+    let one  = T::one();
+    let (skew_omega, v) = se3_get_parts(se3);
+    let omega_theta = skew_to_vec(&skew_omega);
+    // if w = 0 ---> "pitch" == infinity and |v| = 1 ---> theta represents only a linear distance
+    if nearly_zero(omega_theta.norm2()) {
+        m44_new!( one,  zero,  one, v[0];
+                 zero,   one, zero, v[1];
+                 zero,  zero,  one, v[2];
+                 zero,  zero, zero, one)
+    } else {
+        // NOTE(elsuizo:2021-05-11): |w| = 1 ---> theta represents the distance along side the
+        // "screw" axis S
+        let theta = axis_angle(&omega_theta).1;
+        let omega = skew_omega / theta;
+        let mat_exp = matrix_exponential(&skew_omega);
+        let (s, c) = theta.sin_cos();
+        let v_t = (M33::identity() * theta + omega * (one - c) + omega * omega * (theta - s)) * v / theta;
+
+        m44_new!(mat_exp[(0, 0)], mat_exp[(0, 1)], mat_exp[(0, 2)], v_t[0];
+                 mat_exp[(1, 0)], mat_exp[(1, 1)], mat_exp[(1, 2)], v_t[1];
+                 mat_exp[(2, 0)], mat_exp[(2, 1)], mat_exp[(2, 2)], v_t[2];
+                        zero    ,     zero       ,        zero    ,  one)
+    }
+}
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------
@@ -527,7 +562,7 @@ mod test_transformations {
     use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz,
                 homogeneous_from_quaternion, homogeneous_inverse,
                 homogeneous_inverse_transform, matrix_log, matrix_exponential, skew_from_vec,
-                twist_to_se3, se3_to_twist, adjoint, screw_to_axis, axis_angle6};
+                twist_to_se3, se3_to_twist, adjoint, screw_to_axis, axis_angle6, matrix_exponential6};
     use crate::utils::{nearly_equal, is_rotation, is_rotation_h, compare_vecs};
     use crate::quaternion::Quaternion;
     use crate::vector3::V3;
@@ -690,5 +725,20 @@ mod test_transformations {
             &expected.0[..]
         );
         assert!(nearly_equal(result.1, expected.1, EPS));
+    }
+
+    #[test]
+    fn matrix_exponential6_test() {
+        let se3mat = m44_new!(0.0,          0.0,           0.0,          0.0;
+                              0.0,          0.0,   -1.57079632,   2.35619449;
+                              0.0,   1.57079632,           0.0,   2.35619449;
+                              0.0,          0.0,           0.0,          0.0);
+
+        let result = matrix_exponential6(&se3mat);
+        let expected = m44_new!(1.0, 0.0,  0.0, 0.0;
+                                0.0, 0.0, -1.0, 0.0;
+                                0.0, 1.0,  0.0, 3.0;
+                                0.0, 0.0,  0.0, 1.0);
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 }

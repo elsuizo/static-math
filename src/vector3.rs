@@ -74,9 +74,9 @@ impl<T: Num + Copy> V3<T> {
         let u_y = rhs[1];
         let u_z = rhs[2];
 
-        Self::new([u_y * self[2] - u_z * self[1],
-                   u_z * self[0] - u_x * self[2],
-                   u_x * self[1] - u_y * self[0]])
+        Self::new_from(self[1] * u_z - self[2] * u_y,
+                       self[2] * u_x - self[0] * u_z,
+                       self[0] * u_y - self[1] * u_x)
     }
 
     pub fn x_axis() -> Self {
@@ -455,7 +455,7 @@ mod vector3_test {
         let x = V3::new([1.0, 0.0, 0.0]);
         let y = V3::new([0.0, 1.0, 0.0]);
 
-        let result = y.cross(x);
+        let result = x.cross(y);
         // z
         let expected = V3::new([0.0, 0.0, 1.0]);
         assert_eq!(

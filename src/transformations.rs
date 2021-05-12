@@ -500,17 +500,15 @@ pub fn adjoint<T: Float>(transform: &M44<T>) -> M66<T> {
     result
 }
 
-// NOTE(elsuizo:2021-05-11): we have the cross product define different from numpy
-// for that reason, it is that s.cross(q) = -sxq
 pub fn screw_to_axis<T: Float>(q: &V3<T>, s: &V3<T>, h: T) -> V6<T> {
-    let v = s.cross(*q) + (*s) * h;
+    let v = q.cross(*s) + (*s) * h;
     V6::new_from(s[0], s[1], s[2], v[0], v[1], v[2])
 }
 
 /// Convert a 6D vector of exponential coordinates into screw axis angle
 ///
 /// Function arguments:
-/// `exp`: V6<Float> A 6D vector of exponential coordinates for rigid-body motion S*theta
+/// `exp`: V6<Float> A 6D vector of exponential coordinates for rigid-body motion S * theta
 ///
 /// Output:
 /// (V6<Float, Float) a tuple with the first element the normalized "screw" axis, and the second
@@ -532,7 +530,7 @@ pub fn matrix_exponential6<T: Float>(se3: &M44<T>) -> M44<T> {
     let one  = T::one();
     let (skew_omega, v) = se3_get_parts(se3);
     let omega_theta = skew_to_vec(&skew_omega);
-    // if w = 0 ---> "pitch" == infinity and |v| = 1 ---> theta represents only a linear distance
+    // NOTE(elsuizo:2021-05-11): if w = 0 ---> "pitch" == infinity and |v| = 1 ---> theta represents only a linear distance
     if nearly_zero(omega_theta.norm2()) {
         m44_new!( one,  zero,  one, v[0];
                  zero,   one, zero, v[1];

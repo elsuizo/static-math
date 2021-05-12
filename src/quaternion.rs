@@ -169,7 +169,7 @@ impl<T: Num + Copy> Mul for Quaternion<T> {
     #[inline(always)]
     fn mul(self, rhs: Self) -> Self::Output {
         let q0 = self.q0 * rhs.q0  - self.q * rhs.q;
-        let q = rhs.q * self.q0 + self.q * rhs.q0 + rhs.q.cross(self.q);
+        let q = rhs.q * self.q0 + self.q * rhs.q0 + self.q.cross(rhs.q);
         Self::new(q0, q)
     }
 }
@@ -609,10 +609,8 @@ mod test_quaternion {
 
     #[test]
     fn rotate_vec_angle_encode() {
-        // rotation around z 90 degrees
         let q = Quaternion::rotation_norm_encoded(V3::new_from(0.0, 0.0, 90.0f32.to_radians()));
         let x = V3::x_axis();
-        // rotate x around z 90 degrees
         let result = q * x;
         let expected = V3::new_from(0.0, 1.0, 0.0);
         assert!(nearly_equal(result[0], expected[0], EPS));

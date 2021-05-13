@@ -39,7 +39,7 @@ use crate::vector6::V6;
 use crate::quaternion::Quaternion;
 use crate::traits::LinearAlgebra;
 use crate::utils::{nearly_zero, nearly_equal};
-use num::{Float, Signed};
+use num::{Float, Signed, Zero};
 use num::traits::FloatConst;
 use crate::slices_methods::norm2;
 
@@ -525,6 +525,14 @@ pub fn axis_angle6<T: Float>(exp: &V6<T>) -> (V6<T>, T) {
     return (*exp / theta, theta)
 }
 
+/// Computes the matrix logarithm of a homogeneous transformation matrix
+///
+/// Function arguments:
+/// `se3`: M44<Float> in SE(3)
+///
+/// Output:
+/// M44<Float> The matrix logarithm of the input
+///
 pub fn matrix_exponential6<T: Float>(se3: &M44<T>) -> M44<T> {
     let zero = T::zero();
     let one  = T::one();
@@ -548,7 +556,56 @@ pub fn matrix_exponential6<T: Float>(se3: &M44<T>) -> M44<T> {
         m44_new!(mat_exp[(0, 0)], mat_exp[(0, 1)], mat_exp[(0, 2)], v_t[0];
                  mat_exp[(1, 0)], mat_exp[(1, 1)], mat_exp[(1, 2)], v_t[1];
                  mat_exp[(2, 0)], mat_exp[(2, 1)], mat_exp[(2, 2)], v_t[2];
-                        zero    ,     zero       ,        zero    ,  one)
+                          zero  ,     zero       ,       zero     ,  one)
+    }
+}
+
+/// Compute the matrix logarithm of a homogeneous transformation matrix
+///
+/// Function arguments:
+/// `t`: M44<Float> a matrix in SE(3)
+///
+/// Ouput:
+/// M44<Float> the matrix `log` of the input
+///
+pub fn matrix_log6<T: Float + std::iter::Sum + FloatConst>(t: &M44<T>) -> M44<T> {
+    let zero = T::zero();
+    let one = T::one();
+    let two = one + one;
+    let (r, p) = get_parts_raw(t);
+    let omega = matrix_log(&r);
+    // TODO(elsuizo:2021-05-13): maybe here could be better compare with epsilons
+    if omega.is_zero() {
+        m44_new!(zero, zero, zero, p[0];
+                 zero, zero, zero, p[1];
+                 zero, zero, zero, p[2];
+                 zero, zero, zero, zero)
+    } else {
+        let theta = T::acos((r.trace() - one) / two);
+        let cot = one / T::tan(theta / two);
+        let v = (M33::identity() - omega / two + omega * omega * (one / theta - cot / two) / theta) * p;
+        m44_new!(omega[(0, 0)], omega[(0, 1)], omega[(0, 2)], v[0];
+                 omega[(1, 0)], omega[(1, 1)], omega[(1, 2)], v[1];
+                 omega[(2, 0)], omega[(2, 1)], omega[(2, 2)], v[2];
+                      zero    ,     zero     ,      zero    , zero)
+    }
+
+}
+
+/// Returns the Frobenius norm to describe the distance of the transformation from the SO(3)
+/// manifold
+///
+/// Function arguments:
+/// `m`: M33<Float> a 3x3 matrix
+///
+/// Ouput:
+/// A metric describing the distance between the matrix input and the SO(3) manifold
+///
+pub fn distance_to_manifold<T: Float + std::iter::Sum>(m: &M33<T>) -> T {
+    if m.det() > T::zero() {
+        (*m * m.transpose() - M33::identity()).norm2()
+    } else {
+        T::from(1e+9).unwrap()
     }
 }
 //-------------------------------------------------------------------------
@@ -560,7 +617,9 @@ mod test_transformations {
     use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz,
                 homogeneous_from_quaternion, homogeneous_inverse,
                 homogeneous_inverse_transform, matrix_log, matrix_exponential, skew_from_vec,
-                twist_to_se3, se3_to_twist, adjoint, screw_to_axis, axis_angle6, matrix_exponential6};
+                twist_to_se3, se3_to_twist, adjoint, screw_to_axis, axis_angle6, matrix_exponential6,
+                matrix_log6, distance_to_manifold};
+
     use crate::utils::{nearly_equal, is_rotation, is_rotation_h, compare_vecs};
     use crate::quaternion::Quaternion;
     use crate::vector3::V3;
@@ -738,5 +797,32 @@ mod test_transformations {
                                 0.0, 1.0,  0.0, 3.0;
                                 0.0, 0.0,  0.0, 1.0);
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn matrix_log6_test() {
+        let t = m44_new!(1.0, 0.0,  0.0, 0.0;
+                         0.0, 0.0, -1.0, 0.0;
+                         0.0, 1.0,  0.0, 3.0;
+                         0.0, 0.0,  0.0, 1.0);
+        let result = matrix_log6(&t);
+
+        let expected = m44_new!(0.0,        0.0,         0.0,        0.0;
+                                0.0,        0.0, -1.57079633, 2.35619449;
+                                0.0, 1.57079633,         0.0, 2.35619449;
+                                0.0,        0.0,         0.0,        0.0);
+
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
+    }
+
+    #[test]
+    fn distance_to_manifold_test() {
+        let mat = m33_new!(1.0,  0.0,   0.0 ;
+                           0.0,  0.1,  -0.95;
+                           0.0,  1.0,   0.1 );
+        let result = distance_to_manifold(&mat);
+        // NOTE(elsuizo:2021-05-13): this result come from numpy
+        let expected = 0.08835298523536149;
+        assert!(nearly_equal(result, expected, EPS));
     }
 }

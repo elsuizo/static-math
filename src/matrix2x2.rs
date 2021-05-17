@@ -66,6 +66,7 @@ impl<T> M22<T> {
         self.rows()
     }
 
+
 }
 
 impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
@@ -185,6 +186,7 @@ impl<T: Num + Copy> M22<T> {
         }
         result
     }
+
 }
 
 // M22 * V2

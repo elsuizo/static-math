@@ -10,7 +10,7 @@
 // @detail
 //
 // Licence MIT:
-// Copyright <2020> <Martin Noblia>
+// Copyright <2021> <Martin Noblia>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,12 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //--------------------------------------------------------------------------
-#![deny(unsafe_code)]
+// TODO(elsuizo:2021-05-16): fill this section
+//!
+//! static-math
+//!
 
+#![deny(unsafe_code)]
 pub mod traits;
 pub mod matrix2x2;
 pub mod matrix3x3;
@@ -45,6 +49,7 @@ pub mod utils;
 pub mod errors;
 pub mod slices_methods;
 pub mod quaternion;
+pub mod dual_quaternion;
 pub mod transformations;
 
 //-------------------------------------------------------------------------
@@ -61,3 +66,4 @@ pub use vector4::V4;
 pub use vector5::V5;
 pub use vector6::V6;
 pub use quaternion::Quaternion;
+pub use dual_quaternion::DualQuaternion;

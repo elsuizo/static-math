@@ -33,9 +33,10 @@ use std::ops::{Mul, Add, Sub, Neg, Div};
 use num::{Num, Float, Signed, Zero, One};
 use num::traits::FloatConst;
 use crate::vector3::*;
+use crate::vector4::V4;
 use crate::matrix3x3::M33;
 use crate::transformations::rotation_to_euler;
-use crate::utils::nearly_equal;
+use crate::utils::nearly_zero;
 
 /// Quaternion type
 #[derive(Copy, Debug, Clone, PartialEq)]
@@ -50,18 +51,17 @@ pub struct Quaternion<T> {
 
 impl<T> Quaternion<T> {
 
-    /// construct a new Quaternion from a number(real part) and a vector(imag part)
+    /// Construct a new Quaternion from a number(real part) and a vector(imag part)
     #[inline(always)]
     pub const fn new(q0: T, q: V3<T>) -> Self {
         Self{q0, q, normalized: false}
     }
 
-    /// construct a new Quaternion zrom four numbers
+    /// Construct a new Quaternion from four numbers
     #[inline(always)]
     pub const fn new_from(q0: T, q1: T, q2: T, q3: T) -> Self {
         Self{q0, q: V3::new([q1, q2, q3]), normalized: false}
     }
-
 }
 
 impl<T: Num + Copy> Quaternion<T> {
@@ -103,6 +103,11 @@ impl<T: Num + Copy> Quaternion<T> {
     /// calculate the abs2 of the Quaternion
     pub fn abs2(&self) -> T {
         self.q0 * self.q0 + self.q[0] * self.q[0] + self.q[1] * self.q[1] + self.q[2] * self.q[2]
+    }
+
+    /// Construct a new Quternion from a V4
+    pub fn new_from_vec(v: &V4<T>) -> Self {
+        Self{q0: v[0], q: V3::new_from(v[1], v[2], v[3]), normalized: false}
     }
 }
 
@@ -188,6 +193,7 @@ impl<T: Num + Copy + Signed> Mul<V3<T>> for Quaternion<T> {
     }
 }
 
+// q * const
 impl<T: Num + Copy> Mul<T> for Quaternion<T> {
     type Output = Quaternion<T>;
     fn mul(self, rhs: T) -> Self::Output {
@@ -195,6 +201,7 @@ impl<T: Num + Copy> Mul<T> for Quaternion<T> {
     }
 }
 
+// -q
 impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
     type Output = Self;
     #[inline]
@@ -232,13 +239,13 @@ impl<T: Float> Quaternion<T> {
                  two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
     }
 
-    /// normalize the Quaternion only if necesary
+    /// normalize the Quaternion only if necessary
     pub fn normalize(&self) -> Option<Self> {
         if self.normalized {
             Some(*self)
         } else {
             let norm_sqr = self.norm2();
-            if norm_sqr > T::epsilon() {
+            if !nearly_zero(norm_sqr) {
                 let mut result = *self / norm_sqr;
                 result.normalized = true;
                 Some(result)
@@ -272,7 +279,7 @@ impl<T: Float> Quaternion<T> {
         let one = T::one();
         let two = T::from(2.0).unwrap();
         let theta = v.norm2();
-        if !nearly_equal(theta, T::zero(), T::epsilon()) {
+        if !nearly_zero(theta) {
             let (s, c) = (theta / two).sin_cos();
             Self{q0: c, q: v * (s / theta), normalized: true}
         } else {
@@ -468,7 +475,7 @@ impl<T: Float + Signed> Quaternion<T> {
     pub fn inv(&self) -> Option<Self> {
         if !self.normalized {
             let norm_sqr = self.norm2();
-            nearly_equal(norm_sqr, T::zero(), T::epsilon()).then(|| self.conj() / norm_sqr)
+            nearly_zero(norm_sqr).then(|| self.conj() / norm_sqr)
         } else {
             Some(self.conj())
         }

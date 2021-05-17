@@ -292,7 +292,11 @@ where
     V3::new_from(result[0], result[1], result[2])
 }
 
-/// Convert a 3d Vector to a so(3) representation
+///$$ \begin{bmatrix}
+///   a & b \\
+///  c & d
+/// $$\end{bmatrix}
+/// Convert a 3d Vector to a $so(3)$ representation
 ///
 /// Function arguments:
 /// `v`: V3<Float>

@@ -37,6 +37,7 @@ use crate::vector4::V4;
 use crate::matrix3x3::M33;
 use crate::transformations::rotation_to_euler;
 use crate::utils::nearly_zero;
+use crate::traits::LinearAlgebra;
 
 /// Quaternion type
 #[derive(Copy, Debug, Clone, PartialEq)]
@@ -108,6 +109,21 @@ impl<T: Num + Copy> Quaternion<T> {
     /// Construct a new Quternion from a V4
     pub fn new_from_vec(v: &V4<T>) -> Self {
         Self{q0: v[0], q: V3::new_from(v[1], v[2], v[3]), normalized: false}
+    }
+
+    /// convert the Quaternion to a rotation matrix
+    pub fn to_rotation(&self) -> M33<T> {
+        let (q0, q) = (self.real(), self.imag());
+        let q0_s = q0 * q0;
+        let (q1, q2, q3) = (q[0], q[1], q[2]);
+        let q1_s = q1 * q1;
+        let q2_s = q2 * q2;
+        let q3_s = q3 * q3;
+        let two = T::one() + T::one();
+
+        m33_new!(q0_s + q1_s - q2_s - q3_s, two*q1*q2 - two*q0*q3, two*q1*q3 + two*q0*q2;
+                 two*q1*q2 + two*q0*q3, q0_s - q1_s + q2_s - q3_s, two*q2*q3 - two*q0*q1;
+                 two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
     }
 }
 
@@ -216,6 +232,37 @@ impl<T: Num + Copy + Signed> Quaternion<T> {
     }
 }
 
+impl<T: Float + std::iter::Sum> Quaternion<T> {
+
+    pub fn from_rotation(rot: &M33<T>) -> Self {
+        let m = rot.transpose();
+        let zero = T::zero();
+        let one  = T::one();
+        let half = one / (one + one);
+        if m[(2, 2)] < zero {
+            if m[(0, 0)] > m[(1, 1)] {
+                let t = one + m[(0, 0)] - m[(1, 1)] - m[(2, 2)];
+                let q = Self::new_from(m[(1, 2)]-m[(2, 1)],  t,  m[(0, 1)]+m[(1, 0)],  m[(2, 0)]+m[(0, 2)]);
+                return q * half / t.sqrt();
+            } else {
+                let t = one - m[(0, 0)] + m[(1, 1)] - m[(2, 2)];
+                let q = Self::new_from(m[(2, 0)]-m[(0, 2)],  m[(0, 1)]+m[(1, 0)],  t,  m[(1, 2)]+m[(2, 1)]);
+                return q * half / t.sqrt();
+            }
+        } else {
+            if m[(0, 0)] < -m[(1, 1)] {
+                let t = one - m[(0, 0)] - m[(1, 1)] + m[(2, 2)];
+                let q = Self::new_from(m[(0, 1)]-m[(1, 0)],  m[(2, 0)]+m[(0, 2)],  m[(1, 2)]+m[(2, 1)],  t);
+                return q * half / t.sqrt();
+            } else {
+                let t = one + m[(0, 0)] + m[(1, 1)] + m[(2, 2)];
+                let q = Self::new_from(t,  m[(1, 2)]-m[(2, 1)],  m[(2, 0)]-m[(0, 2)],  m[(0, 1)]-m[(1, 0)]);
+                return q * half / t.sqrt();
+            }
+        }
+    }
+}
+
 // NOTE(elsuizo:2021-04-23): we only need the Float for the sqrt function
 impl<T: Float> Quaternion<T> {
 
@@ -224,20 +271,6 @@ impl<T: Float> Quaternion<T> {
         self.dot(*self).sqrt()
     }
 
-    /// convert the Quaternion to a rotation matrix
-    pub fn to_rotation(&self) -> M33<T> {
-        let (q0, q) = (self.real(), self.imag());
-        let q0_s = q0 * q0;
-        let (q1, q2, q3) = (q[0], q[1], q[2]);
-        let q1_s = q1 * q1;
-        let q2_s = q2 * q2;
-        let q3_s = q3 * q3;
-        let two = T::one() + T::one();
-
-        m33_new!(q0_s + q1_s - q2_s - q3_s, two*q1*q2 - two*q0*q3, two*q1*q3 + two*q0*q2;
-                 two*q1*q2 + two*q0*q3, q0_s - q1_s + q2_s - q3_s, two*q2*q3 - two*q0*q1;
-                 two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
-    }
 
     /// normalize the Quaternion only if necessary
     pub fn normalize(&self) -> Option<Self> {

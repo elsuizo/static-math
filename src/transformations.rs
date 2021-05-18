@@ -177,15 +177,14 @@ pub fn rotation_to_euler<T: Float + FloatConst>(r: &M33<T>) -> (T, T, T) {
     }
 }
 
-// TODO(elsuizo:2021-04-27): i think that the names are too long...
 /// Generate a homogeneous matrix from a rotation represented by a Matrix and a translation
 /// represented by a vector
 ///
 /// Function arguments:
 ///
-/// q: a reference to a M33<Float> (Rotation part)
+/// `r`: a reference to a M33<Float> (Rotation part)
 ///
-/// p: a reference to a  V3<Float> (Translation part)
+/// `p`: a reference to a  V3<Float> (Translation part)
 ///
 ///
 pub fn homogeneous_from_rotation<T: Float>(r: &M33<T>, p: &V3<T>) -> M44<T> {
@@ -292,10 +291,6 @@ where
     V3::new_from(result[0], result[1], result[2])
 }
 
-///$$ \begin{bmatrix}
-///   a & b \\
-///  c & d
-/// $$\end{bmatrix}
 /// Convert a 3d Vector to a $so(3)$ representation
 ///
 /// Function arguments:

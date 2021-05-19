@@ -32,6 +32,7 @@ use num::{Float};
 use crate::matrix3x3::M33;
 use crate::traits::LinearAlgebra;
 use crate::matrix4x4::M44;
+use crate::dual_quaternion::DualQuaternion;
 // NOTE(elsuizo:2020-06-02): the following function
 // is a translation of the implementation that is here:
 // https://floating-point-gui.de/errors/comparison/
@@ -92,6 +93,18 @@ pub fn is_rotation_h<T: Float + std::iter::Sum>(r: M44<T>) -> bool {
     } else {
         false
     }
+}
+
+pub fn compare_dual_quaternions<T: Float>(a: DualQuaternion<T>, b: DualQuaternion<T>, epsilon: T) -> bool {
+    nearly_equal(a.real().real(), b.real().real(), epsilon) &&
+    nearly_equal(a.real().imag()[0], b.real().imag()[0], epsilon) &&
+    nearly_equal(a.real().imag()[1], b.real().imag()[1], epsilon) &&
+    nearly_equal(a.real().imag()[2], b.real().imag()[2], epsilon) &&
+
+    nearly_equal(a.dual().real(),    b.dual().real(), epsilon) &&
+    nearly_equal(a.dual().imag()[0], b.dual().imag()[0], epsilon) &&
+    nearly_equal(a.dual().imag()[1], b.dual().imag()[1], epsilon) &&
+    nearly_equal(a.dual().imag()[2], b.dual().imag()[2], epsilon)
 }
 
 //-------------------------------------------------------------------------

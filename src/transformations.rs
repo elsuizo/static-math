@@ -499,6 +499,16 @@ pub fn adjoint<T: Float>(transform: &M44<T>) -> M66<T> {
     result
 }
 
+/// Takes a parametric description of a screw axis and converts it to a normalized screw axis
+///
+/// Function arguments:
+/// `q`: V3<Float> a point lying on the screw axis
+/// `s`: V3<Float> a unit vector in the direction of the screw axis
+/// `h`: Float The pitch of the screw axis
+///
+/// Output:
+/// V6<Float> A normalized screw axis described by the inputs
+///
 pub fn screw_to_axis<T: Float>(q: &V3<T>, s: &V3<T>, h: T) -> V6<T> {
     let v = q.cross(*s) + (*s) * h;
     V6::new_from(s[0], s[1], s[2], v[0], v[1], v[2])
@@ -660,14 +670,16 @@ mod test_transformations {
 
     #[test]
     fn homogeneous_transform_test() {
-        let q = Quaternion::rotation_norm_encoded(V3::y_axis() * std::f32::consts::FRAC_PI_2);
+        let v = V3::y_axis() * std::f32::consts::FRAC_PI_2;
+        let q = Quaternion::rotation_norm_encoded(&v);
         let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
         assert!(is_rotation_h(iso_s));
     }
 
     #[test]
     fn homogeneous_inverse_test() {
-        let q = Quaternion::rotation_norm_encoded(V3::y_axis() * std::f32::consts::FRAC_PI_2);
+        let v = V3::y_axis() * std::f32::consts::FRAC_PI_2;
+        let q = Quaternion::rotation_norm_encoded(&v);
         let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
         let result = iso_s * homogeneous_inverse(&iso_s);
         let expected = M44::identity();
@@ -678,7 +690,8 @@ mod test_transformations {
     // https://docs.rs/nalgebra/0.26.2/nalgebra/geometry/struct.Isometry.html#method.inverse_transform_point
     #[test]
     fn inverse_point_transform_test() {
-        let q = Quaternion::rotation_norm_encoded(V3::y_axis() * std::f32::consts::FRAC_PI_2);
+        let v = V3::y_axis() * std::f32::consts::FRAC_PI_2;
+        let q = Quaternion::rotation_norm_encoded(&v);
         let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
         let result = homogeneous_inverse_transform(&iso_s, &V3::new_from(1.0, 2.0, 3.0));
         let expected = V3::new_from(0.0, 2.0, 1.0);

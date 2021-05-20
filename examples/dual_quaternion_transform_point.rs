@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------
-// @file quaternions.rs
+// @file dual_quaternion_transform_point.rs
 //
-// @date 09/11/20 11:48:54
+// @date 05/20/21 19:39:58
 // @author Martin Noblia
 // @email mnoblia@disroot.org
 //
@@ -10,7 +10,7 @@
 // @detail
 //
 // Licence MIT:
-// Copyright <2020> <Martin Noblia>
+// Copyright <2021> <Martin Noblia>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,27 +28,26 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use static_math::{V3, Quaternion};
+use static_math::{DualQuaternion, Quaternion, V3, V4};
+use static_math::transformations::{homogeneous_from_quaternion};
 
-// In this example we rotate the x axis around the z axis 360 degrees
-// to obtain the x axis again, but the rotation is via a composition of
-// rotations of 90 degrees
+// In this example we transform a point with a homogeneous matrix in SE(3) and with
+// a DualQuaternion to obtain the same result
+// This representation is more compact since there are only 8 elements instead of the 16 of the
+// homogeneous matrix
 fn main() {
 
-    // vector to rotate: x axis: [1, 0, 0]
-    let x = V3::x_axis();
-    // quaternion represent the rotation around the z axis 90 degrees, the angle
-    // is encoded in the vector norm: [0, 0, 90]
-    let v = V3::z_axis() * 90f32.to_radians();
-    let q = Quaternion::rotation_norm_encoded(&v);
-    let r = q * q * q * q * x;
-    println!("r: {:}", r);
-    //-------------------------------------------------------------------------
-    //                        Quaternions and euler angles
-    //-------------------------------------------------------------------------
-    let q = Quaternion::from_euler_angles(0.1, 0.2, 0.3);
-    println!("q: {}", q);
-    let euler_angles = q.to_euler_angles();
-    // this would have to give the same value :)
-    println!("euler_angles: {:?}", euler_angles);
+    let q  = Quaternion::from_euler_angles(10f32.to_radians(), 30f32.to_radians(), 45f32.to_radians());
+    let t = homogeneous_from_quaternion(&q, &V3::new_from(1.0, 2.0, 3.0));
+
+    let p = V4::new_from(1.0, 2.0, 3.0, 0.0);
+    let expected = t * p;
+
+    let p = V3::new_from(1.0, 2.0, 3.0);
+    let dq = DualQuaternion::new_from_homogeneous(&t);
+    let result = dq.transform_point(&p);
+
+    println!("expected: {}", expected);
+    println!("result: {}", result);
 }
+

@@ -179,7 +179,7 @@ impl<T: Float + Signed> Div for Quaternion<T> {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        self * rhs.inv().expect("the input has to be a non zero vector")
+        self * rhs.inverse().expect("the input has to be a non zero vector")
     }
 }
 
@@ -295,7 +295,7 @@ impl<T: Float> Quaternion<T> {
 
     /// generate a Quaternion that represents a rotation of a angle `theta`
     /// around the axis(normalized) `v`
-    pub fn rotation(theta: T, v: V3<T>) -> Self {
+    pub fn rotation(theta: T, v: &V3<T>) -> Self {
         let one = T::one();
         let two = one + one;
         let n   = v.normalize().expect("the input has to be a non zero vector");
@@ -308,13 +308,13 @@ impl<T: Float> Quaternion<T> {
     /// generate a Quaternion that represents a rotation of a angle `theta`
     /// around the axis(normalized) `v`, the angle `theta` is encoded in the
     /// norm of the vector `v`
-    pub fn rotation_norm_encoded(v: V3<T>) -> Self {
+    pub fn rotation_norm_encoded(v: &V3<T>) -> Self {
         let one = T::one();
         let two = T::from(2.0).unwrap();
         let theta = v.norm2();
         if !nearly_zero(theta) {
             let (s, c) = (theta / two).sin_cos();
-            Self{q0: c, q: v * (s / theta), normalized: true}
+            Self{q0: c, q: *v * (s / theta), normalized: true}
         } else {
             Self::new(one, V3::zeros())
         }
@@ -344,7 +344,6 @@ impl<T: Float> Quaternion<T> {
         two * T::atan2(n, self.q0)
     }
 
-    // TODO(elsuizo:2021-04-15): this is with `sin` or `cos` ???
     /// get the axis of rotation from which this Quaternion represent
     pub fn get_axis(&self) -> Option<V3<T>> {
         let qn = self.normalize()?;
@@ -358,6 +357,8 @@ impl<T: Float> Quaternion<T> {
     }
 
 
+    // TODO(elsuizo:2021-05-20): this epsilon comparison could be wrong maybe we need a
+    // nearly_equal here
     /// normalize the Quaternion
     pub fn normalize_q(&self) -> Self {
         let a = self.dot(*self);
@@ -505,10 +506,15 @@ impl<T: Float> Quaternion<T> {
 }
 
 impl<T: Float + Signed> Quaternion<T> {
-    pub fn inv(&self) -> Option<Self> {
+    /// Calculate the inverse of the Quaternion
+    pub fn inverse(&self) -> Option<Self> {
         if !self.normalized {
-            let norm_sqr = self.norm2();
-            nearly_zero(norm_sqr).then(|| self.conj() / norm_sqr)
+            let norm_sqr = self.abs2();
+            if !nearly_zero(norm_sqr) {
+                Some(self.conj() / norm_sqr)
+            } else {
+                None
+            }
         } else {
             Some(self.conj())
         }
@@ -626,7 +632,7 @@ mod test_quaternion {
     // NOTE(elsuizo:2021-04-14): we assume all the values of the angles in radians!!!
     #[test]
     fn rotate_vec() {
-        let q1 = Quaternion::rotation(90.0f32.to_radians(), V3::new_from(0.0, 0.0, 1.0));
+        let q1 = Quaternion::rotation(90.0f32.to_radians(), &V3::new_from(0.0, 0.0, 1.0));
         let x = V3::new_from(1.0, 0.0, 0.0);
         // rotate x around z 90 degrees
         let result = q1 * x;
@@ -638,7 +644,7 @@ mod test_quaternion {
 
     #[test]
     fn rotate_vec_composition_360() {
-        let q1 = Quaternion::rotation(90.0f32.to_radians(), V3::new_from(0.0, 0.0, 1.0));
+        let q1 = Quaternion::rotation(90.0f32.to_radians(), &V3::new_from(0.0, 0.0, 1.0));
         let x = V3::new_from(1.0, 0.0, 0.0);
         // rotate x around z (90 * 4 = 360) degrees
         let result = q1 * q1 * q1 * q1 * x;
@@ -649,7 +655,7 @@ mod test_quaternion {
 
     #[test]
     fn rotate_vec_angle_encode() {
-        let q = Quaternion::rotation_norm_encoded(V3::new_from(0.0, 0.0, 90.0f32.to_radians()));
+        let q = Quaternion::rotation_norm_encoded(&V3::new_from(0.0, 0.0, 90.0f32.to_radians()));
         let x = V3::x_axis();
         let result = q * x;
         let expected = V3::new_from(0.0, 1.0, 0.0);
@@ -660,7 +666,7 @@ mod test_quaternion {
 
     #[test]
     fn convert_rotation_test() {
-        let q = Quaternion::rotation_norm_encoded(V3::new_from(0.0, 0.0, 90.0f32.to_radians()));
+        let q = Quaternion::rotation_norm_encoded(&V3::new_from(0.0, 0.0, 90.0f32.to_radians()));
         let x = V3::x_axis();
         // rotate the x around z axis 360 degrees
         let expected = q * q * q * q * x;
@@ -677,7 +683,7 @@ mod test_quaternion {
     #[test]
     fn inverse_test() {
         let q = Quaternion::new_from(1.0, 1.0, 1.0, 10.0);
-        if let Some(inv) = q.inv() {
+        if let Some(inv) = q.inverse() {
             let result = q * inv;
             let expected = Quaternion::one();
             assert!(nearly_equal(result.q0, expected.q0, EPS));
@@ -699,8 +705,8 @@ mod test_quaternion {
 
     #[test]
     fn slerp_test() {
-        let a = Quaternion::rotation(1.78, V3::new_from(1.0, 2.0, 3.0));
-        let b = Quaternion::rotation(1.78, V3::x_axis());
+        let a = Quaternion::rotation(1.78, &V3::new_from(1.0, 2.0, 3.0));
+        let b = Quaternion::rotation(1.78, &V3::x_axis());
         let result = Quaternion::slerp(a, b, 0.3);
         // NOTE(elsuizo:2021-04-24): this result is from julia language
         let expected = Quaternion::new_from(0.6995922116669001, 0.42947374679735195, 0.31677365769795535, 0.475160486546933);

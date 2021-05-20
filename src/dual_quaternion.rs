@@ -55,6 +55,10 @@ impl<T> DualQuaternion<T> {
     pub const fn new(q_real: Quaternion<T>, q_dual: Quaternion<T>) -> Self {
         Self{q_real, q_dual, normalized: false}
     }
+
+    pub const fn new_from(a: T, b: T, c: T, d: T, e: T, f: T, g: T, h: T) -> Self {
+        Self::new(Quaternion::new_from(a, b, c, d), Quaternion::new_from(e, f, g, h))
+    }
 }
 
 impl<T: Num + Copy> DualQuaternion<T> {
@@ -236,7 +240,7 @@ impl<T: Num + Copy + Signed> DualQuaternion<T> {
 impl<T: Num + Copy> DualQuaternion<T> {
 
     /// Construct a new DualQuaternion from two V4
-    pub fn new_from(q_real: &V4<T>, q_dual: &V4<T>) -> Self {
+    pub fn new_from_vecs(q_real: &V4<T>, q_dual: &V4<T>) -> Self {
         Self::new(Quaternion::new_from_vec(q_real), Quaternion::new_from_vec(q_dual))
     }
 
@@ -289,9 +293,62 @@ mod test_dual_quaternion {
     use crate::dual_quaternion::DualQuaternion;
     use crate::quaternion::Quaternion;
     use crate::vector3::V3;
+    use crate::vector4::V4;
+    use crate::matrix3x3::M33;
     use crate::utils::{nearly_equal, compare_vecs, compare_dual_quaternions};
     use crate::transformations::{homogeneous_from_quaternion, euler_to_rotation};
     const EPS: f32 = 1e-7;
+
+    #[test]
+    fn basic_dual_quaternion_tests() {
+        let dq1 = DualQuaternion::new_from(0.7071067811, 0.7071067811, 0.0, 0.0, -3.535533905, 3.535533905, 1.767766952, -1.767766952);
+        let dq2 = DualQuaternion::new_from_vecs(&V4::new_from(0.7071067811, 0.7071067811, 0.0, 0.0), &V4::new_from(-3.535533905, 3.535533905, 1.767766952, -1.767766952));
+
+        assert!(compare_dual_quaternions(dq1, dq2, EPS))
+    }
+
+    #[test]
+    fn unity_product_dual_quaternion_test() {
+        let unit = DualQuaternion::one();
+        let expected: DualQuaternion<f32> = DualQuaternion::new_from_translation(&V3::z_axis());
+        let result = unit * expected;
+        assert!(compare_dual_quaternions(result, expected, EPS))
+    }
+
+    #[test]
+    fn dual_quaternion_creation_tests() {
+        // create a new DualQuaternion that represents a translation pure transformation
+        let dq: DualQuaternion<f32> = DualQuaternion::new_from_translation(&V3::z_axis());
+        // get the vector of translation and the rotation matrix
+        let result = dq.to_rotation_translation();
+        let result2 = dq.to_quaternion_translation();
+        let expected1 = V3::z_axis();
+
+        assert_eq!(
+            &result.1[..],
+            &expected1[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result.1[..],
+            &expected1[..]
+        );
+
+        assert_eq!(
+            &result2.1[..],
+            &expected1[..],
+            "\nExpected\n{:?}\nfound\n{:?}",
+            &result2.1[..],
+            &expected1[..]
+        );
+
+        let expected2 = M33::identity();
+        assert!(compare_vecs(&result.0.as_vec(), &expected2.as_vec(), EPS));
+
+        let expected3 = Quaternion::one();
+        assert!(nearly_equal(result2.0.real(), expected3.real(), EPS));
+        assert!(nearly_equal(result2.0.imag()[0], expected3.imag()[0], EPS));
+        assert!(nearly_equal(result2.0.imag()[1], expected3.imag()[1], EPS));
+        assert!(nearly_equal(result2.0.imag()[2], expected3.imag()[2], EPS));
+    }
 
     #[test]
     fn test_norm() {

@@ -471,7 +471,7 @@ macro_rules! m22_new {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M22<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!("");
+        println!();
         write!(dest, "|{0:^3.2} {1:^3.2}|\n", self[(0, 0)], self[(0, 1)])?;
         write!(dest, "|{0:^3.2} {1:^3.2}|\n", self[(1, 0)], self[(1, 1)])
     }

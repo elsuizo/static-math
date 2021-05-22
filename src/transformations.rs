@@ -431,22 +431,22 @@ pub fn matrix_log<T: Float + std::iter::Sum + FloatConst>(r: &M33<T>) -> M33<T> 
     let two = one + one;
     let angle = (r.trace() - one) / two;
     if angle >= one {
-        return M33::zeros();
+        M33::zeros()
     } else if angle <= -one {
         if !nearly_zero(one + r[(2, 2)]) {
             let omega = V3::new_from(r[(0, 2)], r[(1, 2)], one + r[(2, 2)]) * (one / T::sqrt(two * (one + r[(2, 2)])));
-            return skew_from_vec(&(omega * T::PI()))
+            skew_from_vec(&(omega * T::PI()))
         } else if !nearly_zero(one + r[(1, 1)]) {
             let omega = V3::new_from(r[(0, 1)], one + r[(1, 1)], r[(2, 1)]) * (one / T::sqrt(two * (one + r[(1, 1)])));
-            return skew_from_vec(&(omega * T::PI()))
+            skew_from_vec(&(omega * T::PI()))
         } else {
             let omega = V3::new_from(one + r[(0, 0)], one + r[(1, 0)], r[(2, 0)]) * (one / T::sqrt(two * (one + r[(0, 0)])));
-            return skew_from_vec(&(omega * T::PI()))
+            skew_from_vec(&(omega * T::PI()))
         }
     } else {
         let theta = T::acos(angle);
         // TODO(elsuizo:2021-05-10): esto esta bien???
-        return (*r - r.transpose()) * (theta / two / T::sin(theta));
+        (*r - r.transpose()) * (theta / two / T::sin(theta))
     }
 }
 
@@ -614,7 +614,7 @@ pub fn distance_to_manifold<T: Float + std::iter::Sum>(m: &M33<T>) -> T {
     if m.det() > T::zero() {
         (*m * m.transpose() - M33::identity()).norm2()
     } else {
-        T::from(1e+9).unwrap()
+        T::infinity()
     }
 }
 //-------------------------------------------------------------------------

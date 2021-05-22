@@ -1884,7 +1884,7 @@ macro_rules! m66_new {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M66<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!("");
+        println!();
         write!(
             dest,
             "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|\n",

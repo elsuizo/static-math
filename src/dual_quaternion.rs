@@ -141,7 +141,6 @@ impl<T: Float + Signed> Div for DualQuaternion<T> {
         Self::new(prod_real, prod_dual)
     }
 }
-
 impl<T: Float + Signed> DualQuaternion<T> {
     /// Convert the `DualQuaternion` to a homogeneus transformation matrix `M44<Float>` in SE(3)
     pub fn to_homogeneous(&self) -> M44<T> {
@@ -158,9 +157,45 @@ impl<T: Float + Signed> DualQuaternion<T> {
             Self::new(q_real_inv, -q_real_inv * self.q_dual * q_real_inv)
         }
     }
+
+    /// Get the screw parameters from this `DualQuaternion` the implementation follow the following
+    /// paper: "Dual Quaternions" by Yan-Bin Jia
+    ///
+    /// Output:
+    /// l: V3<Float> a unit 3d vector that represent one of the plucker coordinates
+    /// m: V3<Float> a vector in 3d that represent the moment of the line l and his norm represent
+    /// the distance from the origin to the line
+    /// theta: Float the amount of rotation around the screw axis l
+    /// d: Float the amount of translation along the screw axis l
+    ///
+    pub fn get_screw_parameters(&self) -> (V3<T>, V3<T>, T, T) {
+        let one = T::one();
+        let two = one + one;
+        let half = one / two;
+        let theta = self.real().get_angle();
+        let t = self.get_translation();
+
+        if !nearly_zero(theta) {
+            let l = self.real().imag() / T::sin(theta / two);
+            let d = t * l;
+            let cot = one / T::tan(theta / two);
+            let m = (t.cross(l) + (t - l * d) * cot) * half;
+            return (l, m, theta, d)
+        } else {
+            let d = t.norm2();
+            let mut l = V3::zero();
+            if !nearly_zero(d) {
+                l = t / d;
+            }
+            let inf = T::infinity();
+            let m = V3::new_from(inf, inf, inf);
+            return (l, m, theta, d)
+        }
+    }
 }
 
 impl<T: Float> DualQuaternion<T> {
+
     /// Create a `DualQuaternion` from an array that encodes a Quaternion and a 3d vecto (V3<Float>)
     pub fn new_from_array(array: [T; 7]) -> Self {
         let one = T::one();
@@ -171,6 +206,7 @@ impl<T: Float> DualQuaternion<T> {
         let q_dual = Quaternion::new_imag(&v_d) * half * q_real;
         Self::new(q_real, q_dual)
     }
+
     /// Create a `DualQuaternion` that represent a pure translation transformation
     pub fn new_from_translation(t: &V3<T>) -> Self {
         let one = T::one();
@@ -203,6 +239,7 @@ impl<T: Float> DualQuaternion<T> {
             return check1 && check2;
         }
     }
+
 }
 
 impl<T: Float + FloatConst + std::iter::Sum> DualQuaternion<T> {
@@ -263,11 +300,16 @@ impl<T: Num + Copy + Signed> DualQuaternion<T> {
 
     /// Get the underlying rotation and translation from the `DualQuaternion`
     pub fn to_rotation_translation(&self) -> (M33<T>, V3<T>) {
+        let r = self.real().to_rotation();
+        let t = self.get_translation();
+        (r, t)
+    }
+
+    /// Get the underlying translation from the `DualQuaternion`
+    pub fn get_translation(&self) -> V3<T> {
         let one = T::one();
         let two = one + one;
-        let r = self.real().to_rotation();
-        let t = (self.dual() * two) * self.real().conj();
-        (r, t.imag())
+        ((self.dual() * two) * self.real().conj()).imag()
     }
 
     /// Get the underlying Quaternion and translation from the `DualQuaternion`
@@ -279,7 +321,7 @@ impl<T: Num + Copy + Signed> DualQuaternion<T> {
         (q, t.imag())
     }
 
-    /// Transform the given point in 3D with the transformation that represent the actual
+    /// Transform the given point in 3D with the transformation that represent this
     /// `DualQuaternion` like a homogeneous transformation in SE(3)
     pub fn transform_point(&self, point: &V3<T>) -> V3<T> {
         let dq_point = Self::new_from_point(point);
@@ -330,7 +372,7 @@ impl<T: Num + Copy> One for DualQuaternion<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for DualQuaternion<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!("");
+        println!();
         write!(dest, "real: {}\ndual: {}", self.q_real, self.q_dual)
     }
 }
@@ -501,9 +543,65 @@ mod test_dual_quaternion {
         let dq = DualQuaternion::new_from_homogeneous(&t);
         let result = dq.transform_point(&p);
 
+        // NOTE(elsuizo:2021-05-22): the transform point with the DualQuaternion should be the same
+        // that the with the homogeneus transformation(the first three elements)
         assert!(nearly_equal(result[0], expected[0], EPS));
         assert!(nearly_equal(result[1], expected[1], EPS));
         assert!(nearly_equal(result[2], expected[2], EPS));
         assert!(nearly_zero(expected[3]));
+    }
+
+    #[test]
+    fn dual_quaternion_get_screw_params_translation_test() {
+        use num::Float;
+        let trans = &V3::new_from(10.0, 3.7, 7.3);
+        let t_pure = DualQuaternion::new_from_translation(&trans);
+        let (l_result, m_result, theta_result, d_result) = t_pure.get_screw_parameters();
+        let inf = f32::infinity();
+        // NOTE(elsuizo:2021-05-22): l should be unit vector
+        assert!(nearly_equal(l_result.norm2(), 1.0, EPS));
+        // NOTE(elsuizo:2021-05-22): we use inf to signaling that m is tooo far
+        assert!(compare_vecs(&*m_result, &*V3::new_from(inf, inf, inf), EPS));
+        // NOTE(elsuizo:2021-05-22): theta should be zero because no rotation in the transformation
+        assert!(nearly_zero(theta_result));
+        // NOTE(elsuizo:2021-05-22): d should be finite
+        assert!(d_result.is_finite());
+        // NOTE(elsuizo:2021-05-22): the amount of distance along the screw axis should be the norm
+        // of the translation vector because this is a translation pure transformation
+        assert!(nearly_equal(d_result, trans.norm2(), EPS))
+    }
+
+    #[test]
+    fn dual_quaternion_screw_params_rotation_test() {
+        let q  = Quaternion::from_euler_angles(73f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let r_pure = DualQuaternion::new_from_rotation(&q);
+        let (l_result, m_result, theta_result, d_result) = r_pure.get_screw_parameters();
+        // NOTE(elsuizo:2021-05-22): l should be a unit vector
+        assert!(nearly_equal(l_result.norm2(), 1.0, EPS));
+        // NOTE(elsuizo:2021-05-22): m should be zero because the moment should be zero
+        assert!(compare_vecs(&*m_result, &*V3::zeros(), EPS));
+        // NOTE(elsuizo:2021-05-22): theta should be equal to the angle of rotation that represent
+        // the Quaternion transformation
+        assert!(nearly_equal(theta_result, q.get_angle(), EPS));
+        // NOTE(elsuizo:2021-05-22): d should be zero because this is a pure rotation
+        // transformation
+        assert!(nearly_zero(d_result));
+    }
+
+    // NOTE(elsuizo:2021-05-22): rotate around the z axis 45 degrees and translate along the z axis
+    // 7 units, this example the l vector should be z_hat, d should be 7, theta should be 45
+    // degrees and m should be zero because the moment is zero
+    // like a screw in the floor that rotate 45 degrees and go 7 units up :)
+    #[test]
+    fn dual_quternion_screw_paras_full() {
+        let v = V3::z_axis() * 45f32.to_radians();
+        let q = Quaternion::rotation_norm_encoded(&v);
+        let trans = V3::new_from(0.0, 0.0, 7.0);
+        let dq_full = DualQuaternion::new_from_rot_trans(&q, &trans);
+        let (l, m, theta, d) = dq_full.get_screw_parameters();
+        assert!(compare_vecs(&*l, &*V3::z_axis(), EPS));
+        assert!(compare_vecs(&*m, &*V3::zeros(), EPS));
+        assert!(nearly_equal(theta, 45f32.to_radians(), EPS));
+        assert!(nearly_equal(d, 7.0, EPS));
     }
 }

@@ -740,7 +740,7 @@ impl<T> IndexMut<(usize, usize)> for M44<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M44<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!("");
+        println!();
         write!(
             dest,
             "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|\n",

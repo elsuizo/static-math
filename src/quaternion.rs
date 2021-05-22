@@ -143,7 +143,7 @@ impl<T: Num + Copy> One for Quaternion<T> {
     /// Create an identity Quaternion
     fn one() -> Self {
         let one = T::one();
-        Self::new(one, V3::zeros())
+        Self{q0: one, q: V3::zeros(), normalized: true}
     }
 }
 
@@ -271,7 +271,6 @@ impl<T: Float> Quaternion<T> {
         self.dot(*self).sqrt()
     }
 
-
     /// normalize the Quaternion only if necessary
     pub fn normalize(&self) -> Option<Self> {
         if self.normalized {
@@ -338,7 +337,8 @@ impl<T: Float> Quaternion<T> {
 
     /// get the angle of representation from this Quaternion
     pub fn get_angle(&self) -> T {
-        let two = T::from(2.0).unwrap();
+        let one = T::one();
+        let two = one + one;
         let n = self.q.norm2();
 
         two * T::atan2(n, self.q0)

@@ -270,7 +270,7 @@ impl<T> DerefMut for V2<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for V2<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        write!(dest, "[{0:^3.2} {1:^3.2}]\n", self[0], self[1])
+        writeln!(dest, "[{0:^3.2} {1:^3.2}]", self[0], self[1])
     }
 }
 

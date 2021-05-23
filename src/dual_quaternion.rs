@@ -141,6 +141,7 @@ impl<T: Float + Signed> Div for DualQuaternion<T> {
         Self::new(prod_real, prod_dual)
     }
 }
+
 impl<T: Float + Signed> DualQuaternion<T> {
     /// Convert the `DualQuaternion` to a homogeneus transformation matrix `M44<Float>` in SE(3)
     pub fn to_homogeneous(&self) -> M44<T> {
@@ -191,6 +192,75 @@ impl<T: Float + Signed> DualQuaternion<T> {
             let m = V3::new_from(inf, inf, inf);
             return (l, m, theta, d)
         }
+    }
+
+    // TODO(elsuizo:2021-05-23): maybe here we need to validate the norm of l
+    /// Create a `DualQuaternion` from the screw parameters
+    ///
+    /// Function arguments:
+    /// `l`: a unit vector that represent the screw axis
+    /// `m`: screw axis moment that its perpendicular to l (m * l = 0) and the norm represent the
+    /// actual moment
+    /// `theta`: screw angle, represent the amount of rotation around the screw axis
+    /// `d`: screw displacement, represent the amount of displacement along the screw axis
+    ///
+    pub fn new_from_screw_parameters(l: &V3<T>, m: &V3<T>, theta: T, d: T) -> Self {
+        let one = T::one();
+        let two = one + one;
+        let (s, c) = (theta / two).sin_cos();
+        let q_real = Quaternion::new(c, *l * s);
+        let q_dual = Quaternion::new(s * (-d / two), *m * s + *l * (d / two) * c);
+        Self::new(q_real, q_dual)
+    }
+
+    // NOTE(elsuizo:2021-05-23): the multiplication looks funky because we dont do products with
+    // constants to the lef size of the multiplications
+
+    /// Compute the power of the `DualQuaternion`
+    ///
+    /// Function arguments:
+    /// `exponent`: Float the exponent to raise the power
+    ///
+    /// Output: Self^(exponent)
+    ///
+    pub fn pow(&self, exponent: T) -> Self {
+        let one = T::one();
+        let two = one + one;
+        let theta = two * T::acos(self.real().real());
+        let (s, c) = (theta / two).sin_cos();
+        if nearly_zero(theta) {
+            Self::new_from_point(&(self.get_translation() * exponent))
+        } else {
+            let s0 = self.real().imag() / s;
+            let d  = self.dual().real() * -two / s;
+            let se = (self.dual().imag() - s0 * (d / two) * c) / s;
+
+            let (s_exp, c_exp) = (exponent * theta / two).sin_cos();
+            let q_real = Quaternion::new(c_exp, s0 * s_exp);
+            let q_dual = Quaternion::new(s_exp * -exponent * d / two, s0 * c_exp * exponent * d / two + se * s_exp);
+            Self::new(q_real, q_dual)
+        }
+    }
+    // TODO(elsuizo:2021-05-23): maybe this clone is not necesary...
+
+    /// Screw Linear Interpolation: is an extension of the spherical linear interpolation (SLERP)
+    /// over Quaternions. It performs a screw motion with constant rotation and translation speeds
+    /// from `begin` to `end`
+    ///
+    /// Function arguments:
+    /// `begin`: `DualQuaternion<Float>` the first "point" for the interpolation
+    /// `end`: `DualQuaternion<Float>` the second "point" for the interpolation
+    /// `tau`: Float in [0, 1] representing how far along and around the screw axis to interpolate
+    ///
+    pub fn screw_lerp(begin: &Self, end: &Self, tau: T) -> Self {
+        let one = T::one();
+        let mut start = begin.clone();
+        // TODO(elsuizo:2021-05-23): this is from the python implementation that refers to a paper
+        // that "ensure we always find closest solution, See Kavan and Zara 2005"
+        if (start.real() * end.real()).real() < T::zero() {
+            start.q_real = begin.real() * -one;
+        }
+        start * (start.inverse() * *end).pow(tau)
     }
 }
 
@@ -603,5 +673,44 @@ mod test_dual_quaternion {
         assert!(compare_vecs(&*m, &*V3::zeros(), EPS));
         assert!(nearly_equal(theta, 45f32.to_radians(), EPS));
         assert!(nearly_equal(d, 7.0, EPS));
+    }
+
+    #[test]
+    fn dual_quaternion_screw_params_test() {
+        let v = V3::z_axis() * 45f32.to_radians();
+        let q = Quaternion::rotation_norm_encoded(&v);
+        let trans = V3::new_from(0.0, 0.0, 7.0);
+        let dq_full = DualQuaternion::new_from_rot_trans(&q, &trans);
+        let (l, m, theta, d) = dq_full.get_screw_parameters();
+        let result = DualQuaternion::new_from_screw_parameters(&l, &m, theta, d);
+
+        assert!(compare_dual_quaternions(dq_full, result, EPS));
+    }
+
+    #[test]
+    fn dual_quaternion_pow_test() {
+        let q  = Quaternion::from_euler_angles(73f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let trans = V3::new_from(0.0, 0.0, 7.0);
+        let dq_full = DualQuaternion::new_from_rot_trans(&q, &trans);
+        let expected = dq_full * dq_full * dq_full;
+        let result = dq_full.pow(3.0);
+
+        assert!(compare_dual_quaternions(expected, result, EPS));
+    }
+
+    #[test]
+    fn dual_quaternion_interpolation_test() {
+        let taus = [0.0, 0.37, 0.73, 1.0];
+        let q  = Quaternion::from_euler_angles(73f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let trans = V3::new_from(0.0, 0.0, 7.0);
+        let dq = DualQuaternion::new_from_rot_trans(&q, &trans).normalize().unwrap();
+        let (l, m, theta, d) = dq.get_screw_parameters();
+
+        for tau in &taus {
+            let result = DualQuaternion::screw_lerp(&DualQuaternion::one(), &dq, *tau);
+            let expected = DualQuaternion::new_from_screw_parameters(&l, &m, *tau * theta, *tau * d);
+            assert!(compare_dual_quaternions(expected, result, EPS));
+        }
+
     }
 }

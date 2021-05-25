@@ -45,6 +45,10 @@ The matrix types `Mnn` (where `n=2..6`) implements the Methods from the
  - `trace()`: trace of the matrix
  - `shape()`: shape of the matrix
 
+ - We have implemented `Quaternion`s (and all the most used methods)
+ - We have implemented `DualQuaternion`s (and all the most used methods in Robotics and graphics like *Screw Linear Interpolation*)
+ - We have implemented in the `transformations.rs` module a wide variety of functions used in Robotics (which conforms to the screw theory)
+
 ## Benchmarks
 
 Using the criterion crate:

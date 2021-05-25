@@ -352,10 +352,9 @@ impl<T: Float> Quaternion<T> {
     }
 
     /// combine the two previous methods: `get_axis` and `get_angle`
-    pub fn axis_angle(&self) -> (T, Option<V3<T>>) {
-        (self.get_angle(), self.get_axis())
+    pub fn axis_angle(&self) -> (Option<V3<T>>, T) {
+        (self.get_axis(), self.get_angle())
     }
-
 
     // TODO(elsuizo:2021-05-20): this epsilon comparison could be wrong maybe we need a
     // nearly_equal here

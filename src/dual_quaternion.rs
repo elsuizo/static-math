@@ -262,6 +262,21 @@ impl<T: Float + Signed> DualQuaternion<T> {
         }
         start * (start.inverse() * *end).pow(tau)
     }
+
+    // TODO(elsuizo:2021-05-24): warning this could be wrong...
+    pub fn log(&self) -> Option<Self> {
+        if self.normalized {
+            let one = T::one();
+            let two = one + one;
+            let half = one / two;
+            let (axis, angle) = self.real().axis_angle();
+            let q_real = Quaternion::new_imag(&(axis.expect("there is no axis") * half * angle));
+            let q_dual = Quaternion::new_imag(&(self.get_translation() * half));
+            Some(DualQuaternion::new(q_real, q_dual))
+        } else {
+            None
+        }
+    }
 }
 
 impl<T: Float> DualQuaternion<T> {
@@ -290,7 +305,7 @@ impl<T: Float> DualQuaternion<T> {
         let half = one / (one + one);
         let q_real = rot.normalize().expect("the quaternion it can't be zero!!!");
         let q_dual = (Quaternion::new_imag(translation) * half) * q_real;
-        Self::new(q_real, q_dual)
+        Self{q_real, q_dual, normalized: true}
     }
 
     pub fn is_normalized(&self) -> bool {

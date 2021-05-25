@@ -1,13 +1,13 @@
 [package]
 name = "static-math"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["elsuizo <mnoblia@disroot.org>"]
 edition = "2018"
 description = "Fast mathematical operations with static arrays, without `unsafe` code"
 repository = "https://github.com/elsuizo/static-math"
 documentation = "https://docs.rs/static-math/"
 license = "MIT"
-keywords = ["linear-algebra",  "matrix-operations", "quaternions", "gamedev", "simulations"]
+keywords = ["linear-algebra",  "matrix-operations", "quaternions", "robotics", "simulations"]
 categories = ["science"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

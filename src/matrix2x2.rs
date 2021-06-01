@@ -130,7 +130,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
             }
-            let basis = V2::new([q[0], q[1]]);
+            let basis = V2::new_from(q[0], q[1]);
             let q     = M22::new_from_vecs(basis);
             let r     = q.transpose() * (*self);
             Some((q, r))

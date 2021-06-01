@@ -141,7 +141,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
             }
-            let basis = V3::new([q[0], q[1], q[2]]);
+            let basis = V3::new_from(q[0], q[1], q[2]);
             let q     = M33::new_from_vecs(basis);
             let r     = q.transpose() * (*self);
             Some((q, r))

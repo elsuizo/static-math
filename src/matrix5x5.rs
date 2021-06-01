@@ -303,7 +303,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M55<T> {
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
             }
-            let basis = V5::new([q[0], q[1], q[2], q[3], q[4]]);
+            let basis = V5::new_from(q[0], q[1], q[2], q[3], q[4]);
             let q     = M55::new_from_vecs(basis);
             let r     = q.transpose() * (*self);
             Some((q, r))

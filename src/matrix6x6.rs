@@ -937,7 +937,7 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M66<T> {
                 q[i] = q_tilde;
             }
             // TODO(elsuizo:2020-08-05): do this with a another for loop
-            let basis = V6::new([q[0], q[1], q[2], q[3], q[4], q[5]]);
+            let basis = V6::new_from(q[0], q[1], q[2], q[3], q[4], q[5]);
             let q     = M66::new_from_vecs(basis);
             let r     = q.transpose() * (*self);
             Some((q, r))

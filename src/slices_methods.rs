@@ -29,7 +29,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use num::{Num, Float, Signed};
-use crate::utils::compare_floats;
+use crate::utils::nearly_equal;
 
 // TODO(elsuizo:2020-08-31): implement the Display trait for this type
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -93,7 +93,7 @@ pub fn project_x_over_y<T: Float + std::iter::Sum>(x: &[T], y: &[T]) -> T {
 pub fn check_elements<T: Float>(v: &[T], tol: T) -> bool {
     let mut result = false;
     for num in v.iter() {
-        result |= compare_floats(*num, T::zero(), tol);
+        result |= nearly_equal(*num, T::zero(), tol);
     }
     result
 }

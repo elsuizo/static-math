@@ -56,7 +56,7 @@ fn main() {
     while !result && counter < max_iterations {
         convert_to_similar(&mut m);
         let lower = m.get_lower_triangular();
-        result = check_elements(&lower, 1e-8);
+        result = check_elements(&lower, 1e-9);
         counter += 1;
     }
 

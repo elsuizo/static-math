@@ -41,8 +41,8 @@ fn main() {
     let (l, m, theta, d) = dq_full.get_screw_parameters();
     println!("l: {}", l);
     println!("m: {}", m);
-    println!("theta: {:?}", theta.to_degrees());
-    println!("d: {:?}", d);
+    println!("theta: {}", theta.to_degrees());
+    println!("d: {}", d);
 }
 
 

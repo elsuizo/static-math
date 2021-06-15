@@ -266,7 +266,7 @@ pub fn get_parts_raw<T: Float>(r: &M44<T>) -> (M33<T>, V3<T>) {
 /// Function arguments:
 /// r: Homogeneus transformation reference (&M44<Float>)
 ///
-pub fn homogeneous_inverse<T: Float + std::iter::Sum + Signed>(r: &M44<T>) -> M44<T> {
+pub fn homogeneous_inverse<T: Float + core::iter::Sum + Signed>(r: &M44<T>) -> M44<T> {
     let (rot, p) = get_parts_raw(r);
     let rot_new = rot.transpose();
     let p_new   = -rot_new * p;
@@ -282,7 +282,7 @@ pub fn homogeneous_inverse<T: Float + std::iter::Sum + Signed>(r: &M44<T>) -> M4
 ///
 pub fn homogeneous_inverse_transform<T>(r: &M44<T>, p: &V3<T>) -> V3<T>
 where
-    T: Float + std::iter::Sum + FloatConst + Signed
+    T: Float + core::iter::Sum + FloatConst + Signed
 {
     let (_, translation) = get_parts(r);
     let p_trans = *p - translation;
@@ -426,7 +426,7 @@ pub fn matrix_exponential<T: Float>(so3: &M33<T>) -> M33<T> {
 /// Output:
 /// M33<Float>: representing the matrix logarithm of the input
 ///
-pub fn matrix_log<T: Float + std::iter::Sum + FloatConst>(r: &M33<T>) -> M33<T> {
+pub fn matrix_log<T: Float + core::iter::Sum + FloatConst>(r: &M33<T>) -> M33<T> {
     let one = T::one();
     let two = one + one;
     let angle = (r.trace() - one) / two;
@@ -451,7 +451,7 @@ pub fn matrix_log<T: Float + std::iter::Sum + FloatConst>(r: &M33<T>) -> M33<T> 
 }
 
 /// Inverse of a Rotation matrix, where R: SO(3)
-pub fn rotation_inverse<T: Float + std::iter::Sum>(r: &M33<T>) -> M33<T> {
+pub fn rotation_inverse<T: Float + core::iter::Sum>(r: &M33<T>) -> M33<T> {
     r.transpose()
 }
 
@@ -577,7 +577,7 @@ pub fn matrix_exponential6<T: Float>(se3: &M44<T>) -> M44<T> {
 /// Ouput:
 /// M44<Float> the matrix `log` of the input
 ///
-pub fn matrix_log6<T: Float + std::iter::Sum + FloatConst>(t: &M44<T>) -> M44<T> {
+pub fn matrix_log6<T: Float + core::iter::Sum + FloatConst>(t: &M44<T>) -> M44<T> {
     let zero = T::zero();
     let one = T::one();
     let two = one + one;
@@ -610,7 +610,7 @@ pub fn matrix_log6<T: Float + std::iter::Sum + FloatConst>(t: &M44<T>) -> M44<T>
 /// Ouput:
 /// A metric describing the distance between the matrix input and the SO(3) manifold
 ///
-pub fn distance_to_manifold<T: Float + std::iter::Sum>(m: &M33<T>) -> T {
+pub fn distance_to_manifold<T: Float + core::iter::Sum>(m: &M33<T>) -> T {
     if m.det() > T::zero() {
         (*m * m.transpose() - M33::identity()).norm2()
     } else {
@@ -670,7 +670,7 @@ mod test_transformations {
 
     #[test]
     fn homogeneous_transform_test() {
-        let v = V3::y_axis() * std::f32::consts::FRAC_PI_2;
+        let v = V3::y_axis() * core::f32::consts::FRAC_PI_2;
         let q = Quaternion::rotation_norm_encoded(&v);
         let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
         assert!(is_rotation_h(iso_s));
@@ -678,7 +678,7 @@ mod test_transformations {
 
     #[test]
     fn homogeneous_inverse_test() {
-        let v = V3::y_axis() * std::f32::consts::FRAC_PI_2;
+        let v = V3::y_axis() * core::f32::consts::FRAC_PI_2;
         let q = Quaternion::rotation_norm_encoded(&v);
         let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
         let result = iso_s * homogeneous_inverse(&iso_s);
@@ -690,7 +690,7 @@ mod test_transformations {
     // https://docs.rs/nalgebra/0.26.2/nalgebra/geometry/struct.Isometry.html#method.inverse_transform_point
     #[test]
     fn inverse_point_transform_test() {
-        let v = V3::y_axis() * std::f32::consts::FRAC_PI_2;
+        let v = V3::y_axis() * core::f32::consts::FRAC_PI_2;
         let q = Quaternion::rotation_norm_encoded(&v);
         let iso_s = homogeneous_from_quaternion(&q, &V3::new_from(0.0, 0.0, 3.0));
         let result = homogeneous_inverse_transform(&iso_s, &V3::new_from(1.0, 2.0, 3.0));

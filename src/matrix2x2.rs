@@ -30,22 +30,21 @@
 //-------------------------------------------------------------------------
 // imports
 #![macro_use]
-use std::fmt;
-use std::ops::{Add, Mul, Sub, Div,AddAssign, SubAssign, Neg};
-use std::ops::{Deref, DerefMut, Index, IndexMut};
+use core::fmt;
+use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
+use core::ops::{Deref, DerefMut, Index, IndexMut};
 
-use num::{Float, Num, Zero, One, Signed};
-use crate::vector2::*;
-use crate::traits::LinearAlgebra;
 use crate::slices_methods::*;
+use crate::traits::LinearAlgebra;
 use crate::utils::nearly_zero;
+use crate::vector2::*;
+use num::{Float, Num, One, Signed, Zero};
 
 /// A static Matrix of 2x2 shape
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct M22<T>([[T; 2]; 2]);
 
 impl<T> M22<T> {
-
     #[inline(always)]
     pub const fn new(data_input: [[T; 2]; 2]) -> Self {
         Self(data_input)
@@ -65,11 +64,9 @@ impl<T> M22<T> {
     pub const fn cols(&self) -> usize {
         self.rows()
     }
-
-
 }
 
-impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
+impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M22<T> {
     fn rows(&self) -> usize {
         self.0.len()
     }
@@ -131,14 +128,13 @@ impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M22<T> {
                 q[i] = q_tilde;
             }
             let basis = V2::new_from(q[0], q[1]);
-            let q     = M22::new_from_vecs(basis);
-            let r     = q.transpose() * (*self);
+            let q = M22::new_from_vecs(basis);
+            let r = q.transpose() * (*self);
             Some((q, r))
         } else {
             None
         }
     }
-
 }
 
 impl<T: Num + Copy> M22<T> {
@@ -186,7 +182,6 @@ impl<T: Num + Copy> M22<T> {
         }
         result
     }
-
 }
 
 // M22 * V2
@@ -299,7 +294,7 @@ impl<T: Num + Copy> M22<T> {
 }
 
 // NOTE(elsuizo:2020-06-10): maybe an error here is better
-impl<T: Float + std::iter::Sum> M22<T> {
+impl<T: Float + core::iter::Sum> M22<T> {
     /// calculate the real eigen values for the matrix
     pub fn real_eigenvals(&self) -> Option<V2<T>> {
         let tau = self.trace();
@@ -471,7 +466,6 @@ macro_rules! m22_new {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M22<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!();
         write!(dest, "|{0:^3.2} {1:^3.2}|\n", self[(0, 0)], self[(0, 1)])?;
         write!(dest, "|{0:^3.2} {1:^3.2}|\n", self[(1, 0)], self[(1, 1)])
     }
@@ -489,8 +483,8 @@ pub const M22_IDENT: M22<f32> = M22::new([[1.0, 0.0], [0.0, 1.0]]);
 
 #[cfg(test)]
 mod test_matrix2x2 {
-    use crate::traits::LinearAlgebra;
     use crate::matrix2x2::M22;
+    use crate::traits::LinearAlgebra;
     use crate::utils::{compare_vecs, nearly_equal};
     use crate::vector2::V2;
 

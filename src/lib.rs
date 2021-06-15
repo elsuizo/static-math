@@ -32,7 +32,7 @@
 //!
 //! static-math
 //!
-
+#![cfg_attr(all(feature = "no-std"), no_std)]
 #![deny(unsafe_code)]
 pub mod traits;
 pub mod matrix2x2;

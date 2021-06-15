@@ -28,9 +28,9 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use std::fmt;
-use std::ops::{Add, Mul, Div, Sub, AddAssign, SubAssign, Neg};
-use std::ops::{Deref, DerefMut, Index, IndexMut};
+use core::fmt;
+use core::ops::{Add, Mul, Div, Sub, AddAssign, SubAssign, Neg};
+use core::ops::{Deref, DerefMut, Index, IndexMut};
 
 use num::{Float, One, Zero, Num, Signed};
 use crate::matrix3x3::*;
@@ -60,7 +60,7 @@ impl<T> M44<T> {
     }
 }
 
-impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M44<T> {
+impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M44<T> {
     fn rows(&self) -> usize {
         self.0.len()
     }
@@ -740,7 +740,6 @@ impl<T> IndexMut<(usize, usize)> for M44<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M44<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!();
         write!(
             dest,
             "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|\n",

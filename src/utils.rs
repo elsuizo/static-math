@@ -62,21 +62,21 @@ pub fn nearly_zero<T: Float>(a: T) -> bool {
 
 // TODO(elsuizo:2020-06-16): this is the only place when i use a Vec
 /// utility function to compare vectors of Floats
-pub fn compare_vecs<T: Float>(v1: &[T], v2: &[T], epsilon: T) -> bool {
-    let v_result: Vec<bool> = v1
-        .iter()
-        .zip(v2)
-        .map(|(a, b)| nearly_equal(*a, *b, epsilon))
-        .collect();
-    v_result.iter().all(|&x| x)
-}
+// pub fn compare_vecs<T: Float>(v1: &[T], v2: &[T], epsilon: T) -> bool {
+//     let v_result: Vec<bool> = v1
+//         .iter()
+//         .zip(v2)
+//         .map(|(a, b)| nearly_equal(*a, *b, epsilon))
+//         .collect();
+//     v_result.iter().all(|&x| x)
+// }
 
 pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {
     Float::abs(num1 - num2) < tol
 }
 
 /// utility function to verify if a Matrix is a propper rotation matrix
-pub fn is_rotation<T: Float + std::iter::Sum>(r: M33<T>) -> bool {
+pub fn is_rotation<T: Float + core::iter::Sum>(r: M33<T>) -> bool {
     let r2 = r * r;
     if nearly_equal(r.det(), T::one(), T::epsilon()) && nearly_equal(r2.det(), T::one(), T::epsilon()) {
         true
@@ -85,7 +85,7 @@ pub fn is_rotation<T: Float + std::iter::Sum>(r: M33<T>) -> bool {
     }
 }
 
-pub fn is_rotation_h<T: Float + std::iter::Sum>(r: M44<T>) -> bool {
+pub fn is_rotation_h<T: Float + core::iter::Sum>(r: M44<T>) -> bool {
     let r2 = r * r;
     let eps = T::from(1e-6).unwrap();
     if nearly_equal(r.det(), T::one(), eps) && nearly_equal(r2.det(), T::one(), eps) {

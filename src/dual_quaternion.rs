@@ -28,7 +28,7 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //--------------------------------------------------------------------------
-use std::fmt;
+use core::fmt;
 use crate::quaternion::Quaternion;
 use crate::vector4::V4;
 use crate::matrix4x4::M44;
@@ -36,7 +36,7 @@ use crate::matrix3x3::M33;
 use crate::vector3::V3;
 use crate::utils::{nearly_zero, nearly_equal};
 use crate::transformations::{get_parts_raw, homogeneous_from_rotation};
-use std::ops::{Mul, Add, Sub, Neg, Div};
+use core::ops::{Mul, Add, Sub, Neg, Div};
 use num::{Num, Float, Signed, Zero, One};
 use num::traits::FloatConst;
 
@@ -327,7 +327,7 @@ impl<T: Float> DualQuaternion<T> {
 
 }
 
-impl<T: Float + FloatConst + std::iter::Sum> DualQuaternion<T> {
+impl<T: Float + FloatConst + core::iter::Sum> DualQuaternion<T> {
 
     /// Normalize the `DualQuaternion` only if necessary
     pub fn normalize(&self) -> Option<Self> {
@@ -457,7 +457,6 @@ impl<T: Num + Copy> One for DualQuaternion<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for DualQuaternion<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!();
         write!(dest, "real: {}\ndual: {}", self.q_real, self.q_dual)
     }
 }

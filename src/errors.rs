@@ -31,7 +31,7 @@
 // use std::fmt;
 // use std::error;
 // TODO(elsuizo:2020-08-11): if we need the eigenvalues
-pub type Result<T1> = ::std::result::Result<T1, EigenvalueError>;
+pub type Result<T1> = ::core::result::Result<T1, EigenvalueError>;
 
 /// Errors from Vectors
 #[derive(Debug)]

@@ -29,9 +29,9 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 #![macro_use]
-use std::fmt;
-use std::ops::{Add, Mul, Div, Sub, SubAssign, AddAssign, Neg};
-use std::ops::{Deref, DerefMut, Index, IndexMut};
+use core::fmt;
+use core::ops::{Add, Mul, Div, Sub, SubAssign, AddAssign, Neg};
+use core::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
 use crate::utils::nearly_zero;
@@ -61,7 +61,7 @@ impl<T> M33<T> {
     }
 }
 
-impl<T: Float + std::iter::Sum> LinearAlgebra<T> for M33<T> {
+impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M33<T> {
     fn rows(&self) -> usize {
         self.0.len()
     }
@@ -550,7 +550,6 @@ impl<T> IndexMut<(usize, usize)> for M33<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M33<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        println!();
         write!(
             dest,
             "|{0:<7.2} {1:^7.2} {2:>7.2}|\n",

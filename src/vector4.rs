@@ -28,12 +28,12 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use std::fmt;
+use core::fmt;
 use num::{Float, Zero, Num, Signed};
-use std::ops::{Deref, DerefMut};
+use core::ops::{Deref, DerefMut};
 
-use std::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
-use std::ops::BitAnd;
+use core::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
+use core::ops::BitAnd;
 use crate::slices_methods::{norm_inf, norm_l};
 use crate::errors::VectorErrors;
 use crate::matrix4x4::M44;
@@ -77,13 +77,13 @@ impl BitAnd for V4<bool> {
     }
 }
 
-impl<T: Num + Copy + std::cmp::PartialOrd> V4<T> {
+impl<T: Num + Copy + core::cmp::PartialOrd> V4<T> {
     pub fn norm_inf(&self) -> T {
         norm_inf(&**self)
     }
 }
 
-impl<T: Num + Copy + Signed + std::iter::Sum> V4<T> {
+impl<T: Num + Copy + Signed + core::iter::Sum> V4<T> {
     pub fn norm_l(&self) -> T {
         norm_l(&**self)
     }

@@ -39,7 +39,7 @@ pub struct MaxMin<T> {
 }
 
 /// generic function to fin min, max values and the position in a slice
-pub fn find_max_min<T: std::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
+pub fn find_max_min<T: core::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
     let mut max = &slice[0];
     let mut min = &slice[0];
 
@@ -55,13 +55,13 @@ pub fn find_max_min<T: std::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
 }
 
 /// calculate the inf-norm of the slice
-pub fn norm_inf<T: Num + Copy + std::cmp::PartialOrd>(slice: &[T]) -> T {
+pub fn norm_inf<T: Num + Copy + core::cmp::PartialOrd>(slice: &[T]) -> T {
     let max_min = find_max_min(slice);
     max_min.max.0
 }
 
 /// calculate the l-norm of the slice
-pub fn norm_l<T: Num + Copy + Signed + std::iter::Sum>(slice: &[T]) -> T {
+pub fn norm_l<T: Num + Copy + Signed + core::iter::Sum>(slice: &[T]) -> T {
     slice.iter().map(|element| element.abs()).sum()
 }
 
@@ -71,7 +71,7 @@ pub fn norm2<T: Float>(slice: &[T]) -> T {
 }
 
 /// calculate the dot product of two slices
-pub fn dot<T: Num + Copy + std::iter::Sum>(slice1: &[T], slice2: &[T]) -> T {
+pub fn dot<T: Num + Copy + core::iter::Sum>(slice1: &[T], slice2: &[T]) -> T {
     slice1.iter().zip(slice2).map(|(&a, &b)| a * b).sum()
 }
 
@@ -86,7 +86,7 @@ pub fn normalize<T: Float>(slice: &mut [T]) {
 }
 
 /// project x in the direction of y
-pub fn project_x_over_y<T: Float + std::iter::Sum>(x: &[T], y: &[T]) -> T {
+pub fn project_x_over_y<T: Float + core::iter::Sum>(x: &[T], y: &[T]) -> T {
     dot(x, y) / dot(y, y)
 }
 

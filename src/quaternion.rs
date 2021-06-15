@@ -28,8 +28,8 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use std::fmt;
-use std::ops::{Mul, Add, Sub, Neg, Div};
+use core::fmt;
+use core::ops::{Mul, Add, Sub, Neg, Div};
 use num::{Num, Float, Signed, Zero, One};
 use num::traits::FloatConst;
 use crate::vector3::*;
@@ -232,7 +232,7 @@ impl<T: Num + Copy + Signed> Quaternion<T> {
     }
 }
 
-impl<T: Float + std::iter::Sum> Quaternion<T> {
+impl<T: Float + core::iter::Sum> Quaternion<T> {
 
     pub fn from_rotation(rot: &M33<T>) -> Self {
         let m = rot.transpose();

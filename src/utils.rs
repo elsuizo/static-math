@@ -60,16 +60,13 @@ pub fn nearly_zero<T: Float>(a: T) -> bool {
     nearly_equal(a, T::zero(), T::epsilon())
 }
 
-// TODO(elsuizo:2020-06-16): this is the only place when i use a Vec
 /// utility function to compare vectors of Floats
-// pub fn compare_vecs<T: Float>(v1: &[T], v2: &[T], epsilon: T) -> bool {
-//     let v_result: Vec<bool> = v1
-//         .iter()
-//         .zip(v2)
-//         .map(|(a, b)| nearly_equal(*a, *b, epsilon))
-//         .collect();
-//     v_result.iter().all(|&x| x)
-// }
+pub fn compare_vecs<T: Float>(v1: &[T], v2: &[T], epsilon: T) -> bool {
+    v1
+    .iter()
+    .zip(v2)
+    .map(|(a, b)| nearly_equal(*a, *b, epsilon)).all(|x| x)
+}
 
 pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {
     Float::abs(num1 - num2) < tol

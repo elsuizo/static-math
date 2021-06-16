@@ -17,6 +17,15 @@ stack memory.
 
 - This crate could be used in an `no-std` environment.
 
+   by enabling the feature `no-std`, for example in your `Cargo.toml`:
+
+   ```toml
+   [dependencies.static-math]
+   default-features = false
+   version = "0.2.0"
+   features = ["no-std"]
+   ```
+
 - You can visualize the matrices
 
 ```text

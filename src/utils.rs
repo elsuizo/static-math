@@ -28,11 +28,11 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use num::{Float};
-use crate::matrix3x3::M33;
-use crate::traits::LinearAlgebra;
-use crate::matrix4x4::M44;
 use crate::dual_quaternion::DualQuaternion;
+use crate::matrix3x3::M33;
+use crate::matrix4x4::M44;
+use crate::traits::LinearAlgebra;
+use num::Float;
 // NOTE(elsuizo:2020-06-02): the following function
 // is a translation of the implementation that is here:
 // https://floating-point-gui.de/errors/comparison/
@@ -45,14 +45,14 @@ pub fn nearly_equal<T: Float>(a: T, b: T, epsilon: T) -> bool {
     let abs_diff = (a - b).abs();
     let zero = T::zero();
     // short-cut, handles infinity
-    if a == b { true }
-
-    else if a == zero || b == zero || (abs_a + abs_b < T::min_value()) {
+    if a == b {
+        true
+    } else if a == zero || b == zero || (abs_a + abs_b < T::min_value()) {
         // a or b is zero or both are extremely close to it
         // relative error is less meaningful here
         abs_diff < epsilon
     } else {
-      abs_diff / T::min(abs_a + abs_b, T::max_value()) < epsilon
+        abs_diff / T::min(abs_a + abs_b, T::max_value()) < epsilon
     }
 }
 
@@ -62,10 +62,10 @@ pub fn nearly_zero<T: Float>(a: T) -> bool {
 
 /// utility function to compare vectors of Floats
 pub fn compare_vecs<T: Float>(v1: &[T], v2: &[T], epsilon: T) -> bool {
-    v1
-    .iter()
-    .zip(v2)
-    .map(|(a, b)| nearly_equal(*a, *b, epsilon)).all(|x| x)
+    v1.iter()
+        .zip(v2)
+        .map(|(a, b)| nearly_equal(*a, *b, epsilon))
+        .all(|x| x)
 }
 
 pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {
@@ -75,7 +75,9 @@ pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {
 /// utility function to verify if a Matrix is a propper rotation matrix
 pub fn is_rotation<T: Float + core::iter::Sum>(r: M33<T>) -> bool {
     let r2 = r * r;
-    if nearly_equal(r.det(), T::one(), T::epsilon()) && nearly_equal(r2.det(), T::one(), T::epsilon()) {
+    if nearly_equal(r.det(), T::one(), T::epsilon())
+        && nearly_equal(r2.det(), T::one(), T::epsilon())
+    {
         true
     } else {
         false
@@ -92,16 +94,19 @@ pub fn is_rotation_h<T: Float + core::iter::Sum>(r: M44<T>) -> bool {
     }
 }
 
-pub fn compare_dual_quaternions<T: Float>(a: DualQuaternion<T>, b: DualQuaternion<T>, epsilon: T) -> bool {
-    nearly_equal(a.real().real(), b.real().real(), epsilon) &&
-    nearly_equal(a.real().imag()[0], b.real().imag()[0], epsilon) &&
-    nearly_equal(a.real().imag()[1], b.real().imag()[1], epsilon) &&
-    nearly_equal(a.real().imag()[2], b.real().imag()[2], epsilon) &&
-
-    nearly_equal(a.dual().real(),    b.dual().real(), epsilon) &&
-    nearly_equal(a.dual().imag()[0], b.dual().imag()[0], epsilon) &&
-    nearly_equal(a.dual().imag()[1], b.dual().imag()[1], epsilon) &&
-    nearly_equal(a.dual().imag()[2], b.dual().imag()[2], epsilon)
+pub fn compare_dual_quaternions<T: Float>(
+    a: DualQuaternion<T>,
+    b: DualQuaternion<T>,
+    epsilon: T,
+) -> bool {
+    nearly_equal(a.real().real(), b.real().real(), epsilon)
+        && nearly_equal(a.real().imag()[0], b.real().imag()[0], epsilon)
+        && nearly_equal(a.real().imag()[1], b.real().imag()[1], epsilon)
+        && nearly_equal(a.real().imag()[2], b.real().imag()[2], epsilon)
+        && nearly_equal(a.dual().real(), b.dual().real(), epsilon)
+        && nearly_equal(a.dual().imag()[0], b.dual().imag()[0], epsilon)
+        && nearly_equal(a.dual().imag()[1], b.dual().imag()[1], epsilon)
+        && nearly_equal(a.dual().imag()[2], b.dual().imag()[2], epsilon)
 }
 
 //-------------------------------------------------------------------------

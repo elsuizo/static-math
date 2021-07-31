@@ -29,11 +29,11 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use core::fmt;
-use num::{Float, Zero, Num, Signed};
 use core::ops::{Deref, DerefMut};
+use num::{Float, Num, Signed, Zero};
 
-use core::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
-use crate::slices_methods::{norm_l, norm_inf};
+use crate::slices_methods::{norm_inf, norm_l};
+use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 
 use crate::errors::VectorErrors;
 use crate::matrix3x3::M33;
@@ -50,13 +50,14 @@ impl<T> V3<T> {
     }
 
     /// create a new V3 from numbers
-    pub fn new_from(a: T, b: T, c: T) -> Self {
+    pub const fn new_from(a: T, b: T, c: T) -> Self {
         Self::new([a, b, c])
     }
 }
 
 impl<T: Num + Copy> V3<T> {
     /// create a V3 with all elements zero
+    #[inline(always)]
     pub fn zeros() -> Self {
         <Self as Zero>::zero()
     }
@@ -74,9 +75,11 @@ impl<T: Num + Copy> V3<T> {
         let u_y = rhs[1];
         let u_z = rhs[2];
 
-        Self::new_from(self[1] * u_z - self[2] * u_y,
-                       self[2] * u_x - self[0] * u_z,
-                       self[0] * u_y - self[1] * u_x)
+        Self::new_from(
+            self[1] * u_z - self[2] * u_y,
+            self[2] * u_x - self[0] * u_z,
+            self[0] * u_y - self[1] * u_x,
+        )
     }
 
     pub fn x_axis() -> Self {
@@ -96,8 +99,6 @@ impl<T: Num + Copy> V3<T> {
         let zero = T::zero();
         Self::new_from(zero, zero, one)
     }
-
-
 }
 
 impl<T: Num + Copy + core::cmp::PartialOrd> V3<T> {
@@ -115,21 +116,17 @@ impl<T: Num + Copy + Signed + core::iter::Sum> V3<T> {
 impl<T: Num + Copy + Signed> Neg for V3<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn neg(self) -> Self {
-        let a = self[0];
-        let b = self[1];
-        let c = self[2];
-        V3::new([-a, -b, -c])
+        V3::new_from(-self[0], -self[1], -self[2])
     }
 }
 
 impl<T: Float> V3<T> {
     /// calculate the euclidean norm of the V3
+    #[inline(always)]
     pub fn norm2(&self) -> T {
-        let a = self[0];
-        let b = self[1];
-        let c = self[2];
-        T::sqrt(a * a + b * b + c * c)
+        T::sqrt(self[0] * self[0] + self[1] * self[1] + self[2] * self[2])
     }
 
     /// normalize the current V3
@@ -156,11 +153,9 @@ impl<T: Float> V3<T> {
 impl<T: Num + Copy> Mul<T> for V3<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn mul(self, rhs: T) -> Self::Output {
-        let a0 = self[0] * rhs;
-        let a1 = self[1] * rhs;
-        let a2 = self[2] * rhs;
-        V3::new([a0, a1, a2])
+        V3::new_from(self[0] * rhs, self[1] * rhs, self[2] * rhs)
     }
 }
 
@@ -168,11 +163,9 @@ impl<T: Num + Copy> Mul<T> for V3<T> {
 impl<T: Num + Copy> Div<T> for V3<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn div(self, rhs: T) -> Self::Output {
-        let a0 = self[0] / rhs;
-        let a1 = self[1] / rhs;
-        let a2 = self[2] / rhs;
-        V3::new([a0, a1, a2])
+        V3::new_from(self[0] / rhs, self[1] / rhs, self[2] / rhs)
     }
 }
 
@@ -192,11 +185,9 @@ impl Mul<V3<f32>> for f32 {
 impl Mul<V3<f64>> for f64 {
     type Output = V3<f64>;
 
+    #[inline(always)]
     fn mul(self, rhs: V3<f64>) -> Self::Output {
-        let a0 = rhs[0] * self;
-        let a1 = rhs[1] * self;
-        let a2 = rhs[2] * self;
-        V3::new([a0, a1, a2])
+        V3::new_from(rhs[0] * self, rhs[1] * self, rhs[2] * self)
     }
 }
 
@@ -204,16 +195,9 @@ impl Mul<V3<f64>> for f64 {
 impl<T: Num + Copy> Mul for V3<T> {
     type Output = T;
 
+    #[inline(always)]
     fn mul(self, rhs: Self) -> T {
-        let a1 = self[0];
-        let a2 = self[1];
-        let a3 = self[2];
-
-        let b1 = rhs[0];
-        let b2 = rhs[1];
-        let b3 = rhs[2];
-
-        a1 * b1 + a2 * b2 + a3 * b3
+        self[0] * rhs[0] + self[1] * rhs[1] + self[2] * rhs[2]
     }
 }
 
@@ -248,16 +232,9 @@ impl<T: Num + Copy> Mul<M33<T>> for V3<T> {
 impl<T: Num + Copy> Sub for V3<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn sub(self, rhs: Self) -> Self {
-        let v0 = self[0];
-        let v1 = self[1];
-        let v2 = self[2];
-
-        let a0 = rhs[0];
-        let a1 = rhs[1];
-        let a2 = rhs[2];
-
-        V3::new([v0 - a0, v1 - a1, v2 - a2])
+        V3::new_from(self[0] - rhs[0], self[1] - rhs[1], self[2] - rhs[2])
     }
 }
 
@@ -272,16 +249,9 @@ impl<T: Num + Copy> SubAssign for V3<T> {
 impl<T: Num + Copy> Add for V3<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn add(self, rhs: Self) -> Self {
-        let v1 = self[0];
-        let v2 = self[1];
-        let v3 = self[2];
-
-        let a1 = rhs[0];
-        let a2 = rhs[1];
-        let a3 = rhs[2];
-
-        V3::new([v1 + a1, v2 + a2, v3 + a3])
+        V3::new_from(self[0] + rhs[0], self[1] + rhs[1], self[2] + rhs[2])
     }
 }
 
@@ -294,8 +264,9 @@ impl<T: Num + Copy> AddAssign for V3<T> {
 
 // impl the Zero trait
 impl<T: Num + Copy> Zero for V3<T> {
+    #[inline(always)]
     fn zero() -> V3<T> {
-        V3::new([T::zero(); 3])
+        V3::new_from(T::zero(), T::zero(), T::zero())
     }
 
     fn is_zero(&self) -> bool {
@@ -329,7 +300,11 @@ impl<T> From<[T; 3]> for V3<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for V3<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(dest, "[{0:^3.2} {1:^3.2} {2:^3.2}]", self[0], self[1], self[2])
+        writeln!(
+            dest,
+            "[{0:^3.2} {1:^3.2} {2:^3.2}]",
+            self[0], self[1], self[2]
+        )
     }
 }
 

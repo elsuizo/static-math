@@ -41,6 +41,7 @@ use crate::traits::LinearAlgebra;
 
 /// Quaternion type
 #[derive(Copy, Debug, Clone, PartialEq)]
+#[repr(C)]
 pub struct Quaternion<T> {
     /// Scalar part
     q0: T,
@@ -58,10 +59,10 @@ impl<T> Quaternion<T> {
         Self{q0, q, normalized: false}
     }
 
-    /// Construct a new Quaternion from four numbers
+    /// Construct a new Quaternion from raw four numbers
     #[inline(always)]
     pub const fn new_from(q0: T, q1: T, q2: T, q3: T) -> Self {
-        Self{q0, q: V3::new([q1, q2, q3]), normalized: false}
+        Self{q0, q: V3::new_from(q1, q2, q3), normalized: false}
     }
 }
 
@@ -121,9 +122,9 @@ impl<T: Num + Copy> Quaternion<T> {
         let q3_s = q3 * q3;
         let two = T::one() + T::one();
 
-        m33_new!(q0_s + q1_s - q2_s - q3_s, two*q1*q2 - two*q0*q3, two*q1*q3 + two*q0*q2;
-                 two*q1*q2 + two*q0*q3, q0_s - q1_s + q2_s - q3_s, two*q2*q3 - two*q0*q1;
-                 two*q1*q3 - two*q0*q2, two*q2*q3 + two*q0*q1, q0_s - q1_s - q2_s + q3_s)
+        m33_new!(q0_s + q1_s - q2_s - q3_s, two * q1 * q2 - two * q0 * q3, two * q1 * q3 + two * q0 * q2;
+                 two * q1 * q2 + two * q0 * q3, q0_s - q1_s + q2_s - q3_s, two * q2 * q3 - two * q0 * q1;
+                 two * q1 * q3 - two * q0 * q2, two * q2 * q3 + two * q0 * q1, q0_s - q1_s - q2_s + q3_s)
     }
 }
 
@@ -150,6 +151,7 @@ impl<T: Num + Copy> One for Quaternion<T> {
 // q + q
 impl<T: Num + Copy> Add for Quaternion<T> {
     type Output = Self;
+    #[inline]
     fn add(self, rhs: Self) -> Self {
         Self::new(self.q0 + rhs.q0, self.q + rhs.q)
     }
@@ -158,6 +160,7 @@ impl<T: Num + Copy> Add for Quaternion<T> {
 // q - q
 impl<T: Num + Copy> Sub for Quaternion<T> {
     type Output = Self;
+    #[inline]
     fn sub(self, rhs: Self) -> Self {
         Self::new(self.q0 - rhs.q0, self.q - rhs.q)
     }
@@ -167,10 +170,9 @@ impl<T: Num + Copy> Sub for Quaternion<T> {
 impl<T: Num + Copy> Div<T> for Quaternion<T> {
     type Output = Self;
 
+    #[inline]
     fn div(self, rhs: T) -> Self::Output {
-        let q0 = self.q0 / rhs;
-        let q  = self.q / rhs;
-        Self::new(q0, q)
+        Self::new(self.q0 / rhs, self.q / rhs)
     }
 }
 
@@ -189,9 +191,7 @@ impl<T: Num + Copy> Mul for Quaternion<T> {
 
     #[inline(always)]
     fn mul(self, rhs: Self) -> Self::Output {
-        let q0 = self.q0 * rhs.q0  - self.q * rhs.q;
-        let q = rhs.q * self.q0 + self.q * rhs.q0 + self.q.cross(rhs.q);
-        Self::new(q0, q)
+        Self::new(self.q0 * rhs.q0  - self.q * rhs.q, rhs.q * self.q0 + self.q * rhs.q0 + self.q.cross(rhs.q))
     }
 }
 
@@ -226,7 +226,9 @@ impl<T: Num + Copy + Signed> Neg for Quaternion<T> {
     }
 }
 
+// *Quaternion<T> (conjugate)
 impl<T: Num + Copy + Signed> Quaternion<T> {
+    #[inline]
     pub fn conj(&self) -> Self {
         Self::new(self.q0, -self.q)
     }
@@ -263,7 +265,6 @@ impl<T: Float + core::iter::Sum> Quaternion<T> {
     }
 }
 
-// NOTE(elsuizo:2021-04-23): we only need the Float for the sqrt function
 impl<T: Float> Quaternion<T> {
 
     /// the euclidean norm of the Quaternion

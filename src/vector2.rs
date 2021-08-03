@@ -43,16 +43,14 @@ use crate::matrix2x2::*;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct V2<T>([T; 2]);
 
-// NOTE(elsuizo:2020-06-27): whit this definition you could create a new vector
-// of any types
 impl<T> V2<T> {
     /// create a new V2 from a static array
-    pub fn new(input: [T; 2]) -> Self {
+    pub const fn new(input: [T; 2]) -> Self {
         Self(input)
     }
 
-    /// create a new V2 from numbers
-    pub fn new_from(a: T, b: T) -> Self {
+    /// create a new V2 from raw numbers
+    pub const fn new_from(a: T, b: T) -> Self {
         Self::new([a, b])
     }
 }
@@ -86,23 +84,17 @@ impl<T: Num + Copy + Signed + core::iter::Sum> V2<T> {
 impl<T: Num + Copy + Signed> Neg for V2<T> {
     type Output = Self;
 
+    #[inline]
     fn neg(self) -> Self {
-        let a = self[0];
-        let b = self[1];
-        V2::new([-a, -b])
+        Self::new_from(-self[0], -self[1])
     }
 }
 
-// NOTE(elsuizo:2020-06-27): this impl must be whith the Float trait because
-// the use of the sqrt method
 impl<T: Float> V2<T> {
 
     /// calculate the euclidean norm of the V2
     pub fn norm2(&self) -> T {
-        let a = self[0];
-        let b = self[1];
-
-        T::sqrt(a * a + b * b)
+        T::sqrt(self[0] * self[0] + self[1] * self[1])
     }
 
     /// normalize the current V2 and return a new one
@@ -124,14 +116,9 @@ impl<T: Float> V2<T> {
 impl<T: Num + Copy> Mul for V2<T> {
     type Output = T;
 
+    #[inline]
     fn mul(self, rhs: Self) -> T {
-        let a1 = self[0];
-        let a2 = self[1];
-
-        let b1 = rhs[0];
-        let b2 = rhs[1];
-
-        a1 * b1 + a2 * b2
+        self[0] * rhs[0] + self[1] * rhs[1]
     }
 }
 
@@ -140,10 +127,9 @@ impl<T: Num + Copy> Mul for V2<T> {
 impl<T: Num + Copy> Mul<T> for V2<T> {
     type Output = V2<T>;
 
+    #[inline]
     fn mul(self, rhs: T) -> V2<T> {
-        let a0 = self[0] * rhs;
-        let a1 = self[1] * rhs;
-        V2::new([a0, a1])
+        Self::new_from(self[0] * rhs, self[1] * rhs)
     }
 }
 
@@ -151,10 +137,9 @@ impl<T: Num + Copy> Mul<T> for V2<T> {
 impl<T: Num + Copy> Div<T> for V2<T> {
     type Output = Self;
 
+    #[inline]
     fn div(self, rhs: T) -> Self::Output {
-        let a0 = self[0] / rhs;
-        let a1 = self[1] / rhs;
-        V2::new([a0, a1])
+        Self::new_from(self[0] / rhs, self[1] / rhs)
     }
 }
 
@@ -172,10 +157,9 @@ impl<T: Num + Copy> Div<T> for V2<T> {
 impl Mul<V2<f32>> for f32 {
     type Output = V2<f32>;
 
+    #[inline]
     fn mul(self, rhs: V2<f32>) -> V2<f32> {
-        let a0 = self * rhs[0];
-        let a1 = self * rhs[1];
-        V2::new([a0, a1])
+        V2::new_from(self * rhs[0], self * rhs[1])
     }
 }
 
@@ -183,15 +167,10 @@ impl Mul<V2<f32>> for f32 {
 impl<T: Num + Copy> Mul<M22<T>> for V2<T> {
     type Output = V2<T>;
 
+    #[inline]
     fn mul(self, rhs: M22<T>) -> V2<T> {
-        let a1 = rhs[(0, 0)];
-        let b1 = rhs[(0, 1)];
-        let c1 = rhs[(1, 0)];
-        let d1 = rhs[(1, 1)];
-
-        let v1 = self[0];
-        let v2 = self[1];
-        V2::new([v1 * a1 + v2 * c1, v1 * b1 + v2 * d1])
+        Self::new_from(self[0] * rhs[(0, 0)] + self[1] * rhs[(1, 0)],
+                     self[0] * rhs[(0, 1)] + self[1] * rhs[(1, 1)])
     }
 }
 
@@ -199,19 +178,15 @@ impl<T: Num + Copy> Mul<M22<T>> for V2<T> {
 impl<T: Num + Copy> Sub for V2<T> {
     type Output = Self;
 
+    #[inline]
     fn sub(self, rhs: Self) -> Self {
-        let v0 = self[0];
-        let v1 = self[1];
-
-        let a0 = rhs[0];
-        let a1 = rhs[1];
-
-        V2::new([v0 - a0, v1 - a1])
+        Self::new_from(self[0] - rhs[0], self[1] - rhs[1])
     }
 }
 
 // V2 -= V2
 impl<T: Num + Copy> SubAssign for V2<T> {
+    #[inline]
     fn sub_assign(&mut self, other: Self) {
         *self = *self - other
     }
@@ -220,15 +195,9 @@ impl<T: Num + Copy> SubAssign for V2<T> {
 // V2 + V2
 impl<T: Num + Copy> Add for V2<T> {
     type Output = Self;
-
+    #[inline]
     fn add(self, rhs: Self) -> Self {
-        let a1 = self[0];
-        let a2 = self[1];
-
-        let b1 = rhs[0];
-        let b2 = rhs[1];
-
-        V2::new([a1 + b1, a2 + b2])
+        Self::new_from(self[0] + rhs[0], self[1] + rhs[1])
     }
 }
 
@@ -241,8 +210,9 @@ impl<T: Num + Copy> AddAssign for V2<T> {
 
 // Zero trait
 impl<T: Num + Copy> Zero for V2<T> {
+    #[inline]
     fn zero() -> V2<T> {
-        V2::new([T::zero(); 2])
+        Self::new_from(T::zero(), T::zero())
     }
 
     fn is_zero(&self) -> bool {

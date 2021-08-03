@@ -916,7 +916,7 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M66<T> {
                     cofactors[(j, i)] = sign * self.get_submatrix((i, j)).det();
                 }
             }
-            Some(cofactors / det)
+            Some(cofactors * det.recip())
         } else {
             None
         }

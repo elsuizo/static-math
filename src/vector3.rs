@@ -49,7 +49,7 @@ impl<T> V3<T> {
         Self(input)
     }
 
-    /// create a new V3 from numbers
+    /// create a new V3 from raw numbers
     pub const fn new_from(a: T, b: T, c: T) -> Self {
         Self::new([a, b, c])
     }
@@ -65,35 +65,34 @@ impl<T: Num + Copy> V3<T> {
     /// create a V3 with all elements one
     pub fn ones() -> Self {
         let one = T::one();
-        Self::new([one, one, one])
+        Self::new_from(one, one, one)
     }
 
-    // TODO(elsuizo:2021-05-11): we are define the wrong cross product???
     /// calculate the cross product
+    #[inline]
     pub fn cross(&self, rhs: Self) -> Self {
-        let u_x = rhs[0];
-        let u_y = rhs[1];
-        let u_z = rhs[2];
-
         Self::new_from(
-            self[1] * u_z - self[2] * u_y,
-            self[2] * u_x - self[0] * u_z,
-            self[0] * u_y - self[1] * u_x,
+            self[1] * rhs[2] - self[2] * rhs[1],
+            self[2] * rhs[0] - self[0] * rhs[2],
+            self[0] * rhs[1] - self[1] * rhs[0],
         )
     }
 
+    /// create a unitary x axis vector
     pub fn x_axis() -> Self {
         let one = T::one();
         let zero = T::zero();
         Self::new_from(one, zero, zero)
     }
 
+    /// create a unitary y axis vector
     pub fn y_axis() -> Self {
         let one = T::one();
         let zero = T::zero();
         Self::new_from(zero, one, zero)
     }
 
+    /// create a unitary z axis vector
     pub fn z_axis() -> Self {
         let one = T::one();
         let zero = T::zero();
@@ -118,7 +117,7 @@ impl<T: Num + Copy + Signed> Neg for V3<T> {
 
     #[inline(always)]
     fn neg(self) -> Self {
-        V3::new_from(-self[0], -self[1], -self[2])
+        Self::new_from(-self[0], -self[1], -self[2])
     }
 }
 
@@ -155,7 +154,7 @@ impl<T: Num + Copy> Mul<T> for V3<T> {
 
     #[inline(always)]
     fn mul(self, rhs: T) -> Self::Output {
-        V3::new_from(self[0] * rhs, self[1] * rhs, self[2] * rhs)
+        Self::new_from(self[0] * rhs, self[1] * rhs, self[2] * rhs)
     }
 }
 
@@ -165,7 +164,7 @@ impl<T: Num + Copy> Div<T> for V3<T> {
 
     #[inline(always)]
     fn div(self, rhs: T) -> Self::Output {
-        V3::new_from(self[0] / rhs, self[1] / rhs, self[2] / rhs)
+        Self::new_from(self[0] / rhs, self[1] / rhs, self[2] / rhs)
     }
 }
 
@@ -173,11 +172,9 @@ impl<T: Num + Copy> Div<T> for V3<T> {
 impl Mul<V3<f32>> for f32 {
     type Output = V3<f32>;
 
+    #[inline(always)]
     fn mul(self, rhs: V3<f32>) -> Self::Output {
-        let a0 = rhs[0] * self;
-        let a1 = rhs[1] * self;
-        let a2 = rhs[2] * self;
-        V3::new([a0, a1, a2])
+        V3::new_from(rhs[0] * self, rhs[1] * self, rhs[2] * self)
     }
 }
 
@@ -205,26 +202,12 @@ impl<T: Num + Copy> Mul for V3<T> {
 impl<T: Num + Copy> Mul<M33<T>> for V3<T> {
     type Output = V3<T>;
 
+    #[inline]
     fn mul(self, rhs: M33<T>) -> V3<T> {
-        let a11 = rhs[(0, 0)];
-        let a12 = rhs[(0, 1)];
-        let a13 = rhs[(0, 2)];
-        let a21 = rhs[(1, 0)];
-        let a22 = rhs[(1, 1)];
-        let a23 = rhs[(1, 2)];
-        let a31 = rhs[(2, 0)];
-        let a32 = rhs[(2, 1)];
-        let a33 = rhs[(2, 2)];
-
-        let v1 = self[0];
-        let v2 = self[1];
-        let v3 = self[2];
-
-        V3::new([
-            a11 * v1 + a12 * v2 + a13 * v3,
-            a21 * v1 + a22 * v2 + a23 * v3,
-            a31 * v1 + a32 * v2 + a33 * v3,
-        ])
+        Self::new_from(
+            rhs[(0, 0)] * self[0] + rhs[(0, 1)] * self[1] + rhs[(0, 2)] * self[2],
+            rhs[(1, 0)] * self[0] + rhs[(1, 1)] * self[1] + rhs[(1, 2)] * self[2],
+            rhs[(2, 0)] * self[0] + rhs[(2, 1)] * self[1] + rhs[(2, 2)] * self[2])
     }
 }
 
@@ -234,12 +217,13 @@ impl<T: Num + Copy> Sub for V3<T> {
 
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self {
-        V3::new_from(self[0] - rhs[0], self[1] - rhs[1], self[2] - rhs[2])
+        Self::new_from(self[0] - rhs[0], self[1] - rhs[1], self[2] - rhs[2])
     }
 }
 
 // V3 -= V3
 impl<T: Num + Copy> SubAssign for V3<T> {
+    #[inline(always)]
     fn sub_assign(&mut self, other: Self) {
         *self = *self - other
     }
@@ -251,12 +235,13 @@ impl<T: Num + Copy> Add for V3<T> {
 
     #[inline(always)]
     fn add(self, rhs: Self) -> Self {
-        V3::new_from(self[0] + rhs[0], self[1] + rhs[1], self[2] + rhs[2])
+        Self::new_from(self[0] + rhs[0], self[1] + rhs[1], self[2] + rhs[2])
     }
 }
 
 // V3 += V3
 impl<T: Num + Copy> AddAssign for V3<T> {
+    #[inline(always)]
     fn add_assign(&mut self, other: Self) {
         *self = *self + other
     }
@@ -266,7 +251,7 @@ impl<T: Num + Copy> AddAssign for V3<T> {
 impl<T: Num + Copy> Zero for V3<T> {
     #[inline(always)]
     fn zero() -> V3<T> {
-        V3::new_from(T::zero(), T::zero(), T::zero())
+        Self::new_from(T::zero(), T::zero(), T::zero())
     }
 
     fn is_zero(&self) -> bool {

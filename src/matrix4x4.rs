@@ -47,15 +47,15 @@ use crate::utils::nearly_zero;
 pub struct M44<T>([[T; 4]; 4]);
 
 impl<T> M44<T> {
-    pub fn new(data_input: [[T; 4]; 4]) -> M44<T> {
+    pub const fn new(data_input: [[T; 4]; 4]) -> M44<T> {
         M44(data_input)
     }
 
-    pub fn rows(&self) -> usize {
+    pub const fn rows(&self) -> usize {
         self.0.len()
     }
 
-    pub fn cols(&self) -> usize {
+    pub const fn cols(&self) -> usize {
         self.rows()
     }
 }
@@ -170,25 +170,25 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M44<T> {
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if !nearly_zero(det) {
-            let a1 = self.get_submatrix((0, 0)).det() / det;
-            let a2 = -self.get_submatrix((1, 0)).det() / det;
-            let a3 = self.get_submatrix((2, 0)).det() / det;
-            let a4 = -self.get_submatrix((3, 0)).det() / det;
+            let a1 = self.get_submatrix((0, 0)).det() * det.recip();
+            let a2 = -self.get_submatrix((1, 0)).det() * det.recip();
+            let a3 = self.get_submatrix((2, 0)).det() * det.recip();
+            let a4 = -self.get_submatrix((3, 0)).det() * det.recip();
 
-            let a5 = -self.get_submatrix((0, 1)).det() / det;
-            let a6 = self.get_submatrix((1, 1)).det() / det;
-            let a7 = -self.get_submatrix((2, 1)).det() / det;
-            let a8 = self.get_submatrix((3, 1)).det() / det;
+            let a5 = -self.get_submatrix((0, 1)).det() * det.recip();
+            let a6 = self.get_submatrix((1, 1)).det() * det.recip();
+            let a7 = -self.get_submatrix((2, 1)).det() * det.recip();
+            let a8 = self.get_submatrix((3, 1)).det() * det.recip();
 
-            let a9 = self.get_submatrix((0, 2)).det() / det;
-            let a10 = -self.get_submatrix((1, 2)).det() / det;
-            let a11 = self.get_submatrix((2, 2)).det() / det;
-            let a12 = -self.get_submatrix((3, 2)).det() / det;
+            let a9 = self.get_submatrix((0, 2)).det() * det.recip();
+            let a10 = -self.get_submatrix((1, 2)).det() * det.recip();
+            let a11 = self.get_submatrix((2, 2)).det() * det.recip();
+            let a12 = -self.get_submatrix((3, 2)).det() * det.recip();
 
-            let a13 = -self.get_submatrix((0, 3)).det() / det;
-            let a14 = self.get_submatrix((1, 3)).det() / det;
-            let a15 = -self.get_submatrix((2, 3)).det() / det;
-            let a16 = self.get_submatrix((3, 3)).det() / det;
+            let a13 = -self.get_submatrix((0, 3)).det() * det.recip();
+            let a14 = self.get_submatrix((1, 3)).det() * det.recip();
+            let a15 = -self.get_submatrix((2, 3)).det() * det.recip();
+            let a16 = self.get_submatrix((3, 3)).det() * det.recip();
 
             Some(M44::new([
                 [a1, a2 , a3 , a4],
@@ -640,6 +640,7 @@ impl<T: Num + Copy + Signed> Neg for M44<T> {
 impl<T: Num + Copy> Mul<V4<T>> for M44<T> {
     type Output = V4<T>;
 
+    #[inline]
     fn mul(self, rhs: V4<T>) -> V4<T> {
         let a_00 = self[(0, 0)];
         let a_01 = self[(0, 1)];
@@ -663,12 +664,10 @@ impl<T: Num + Copy> Mul<V4<T>> for M44<T> {
         let c = rhs[2];
         let d = rhs[3];
 
-        let v0 = a_00 * a + a_01 * b + a_02 * c + a_03 * d;
-        let v1 = a_10 * a + a_11 * b + a_12 * c + a_13 * d;
-        let v2 = a_20 * a + a_21 * b + a_22 * c + a_23 * d;
-        let v3 = a_30 * a + a_31 * b + a_32 * c + a_33 * d;
-
-        V4::new([v0, v1, v2, v3])
+        V4::new_from(a_00 * a + a_01 * b + a_02 * c + a_03 * d,
+                     a_10 * a + a_11 * b + a_12 * c + a_13 * d,
+                     a_20 * a + a_21 * b + a_22 * c + a_23 * d,
+                     a_30 * a + a_31 * b + a_32 * c + a_33 * d)
     }
 
 }

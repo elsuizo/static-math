@@ -46,12 +46,12 @@ pub struct V6<T>([T; 6]);
 
 impl<T> V6<T> {
     /// create a new V6 from a static array
-    pub fn new(input: [T; 6]) -> Self {
+    pub const fn new(input: [T; 6]) -> Self {
         V6(input)
     }
 
-    /// create a new V6 from numbers
-    pub fn new_from(a: T, b: T, c: T, d: T, e: T, f: T) -> Self {
+    /// create a new V6 from raw numbers
+    pub const fn new_from(a: T, b: T, c: T, d: T, e: T, f: T) -> Self {
         Self::new([a, b, c, d, e, f])
     }
 }
@@ -67,10 +67,6 @@ impl<T: Num + Copy> V6<T> {
         let one = T::one();
         Self::new([one, one, one, one, one, one])
     }
-
-    // copy_element_from(&mut self, v: V3<T>, sector) {
-    //
-    // }
 }
 
 impl<T: Num + Copy + core::cmp::PartialOrd> V6<T> {
@@ -88,27 +84,18 @@ impl<T: Num + Copy + Signed + core::iter::Sum> V6<T> {
 impl<T: Num + Copy + Signed> Neg for V6<T> {
     type Output = Self;
 
+    #[inline]
     fn neg(self) -> Self {
-        let a = self[0];
-        let b = self[1];
-        let c = self[2];
-        let d = self[3];
-        let e = self[4];
-        let f = self[5];
-        V6::new([-a, -b, -c, -d, -e, -f])
+        Self::new_from(-self[0], -self[1], -self[2], -self[3], -self[4], -self[5])
     }
 }
 
 impl<T: Float> V6<T> {
     /// calculate the euclidean norm of the V6
+    #[inline]
     pub fn norm2(&self) -> T {
-        let a = self[0];
-        let b = self[1];
-        let c = self[2];
-        let d = self[3];
-        let e = self[4];
-        let f = self[5];
-        T::sqrt(a * a + b * b + c * c + d * d + e * e + f * f)
+        T::sqrt(self[0] * self[0] + self[1] * self[1] + self[2] * self[2]
+                + self[3] * self[3] + self[4] * self[4] + self[5] * self[5])
     }
 
     /// normalize the current V6 and return a new one
@@ -131,14 +118,10 @@ impl<T: Float> V6<T> {
 impl<T: Num + Copy> Mul<T> for V6<T> {
     type Output = V6<T>;
 
+    #[inline]
     fn mul(self, rhs: T) -> V6<T> {
-        let a0 = self[0] * rhs;
-        let a1 = self[1] * rhs;
-        let a2 = self[2] * rhs;
-        let a3 = self[3] * rhs;
-        let a4 = self[4] * rhs;
-        let a5 = self[5] * rhs;
-        V6::new([a0, a1, a2, a3, a4, a5])
+        Self::new_from(self[0] * rhs, self[1] * rhs, self[2] * rhs,
+                       self[3] * rhs, self[4] * rhs, self[5] * rhs)
     }
 }
 
@@ -146,14 +129,10 @@ impl<T: Num + Copy> Mul<T> for V6<T> {
 impl<T: Num + Copy> Div<T> for V6<T> {
     type Output = Self;
 
+    #[inline]
     fn div(self, rhs: T) -> Self::Output {
-        let a0 = self[0] / rhs;
-        let a1 = self[1] / rhs;
-        let a2 = self[2] / rhs;
-        let a3 = self[3] / rhs;
-        let a4 = self[4] / rhs;
-        let a5 = self[5] / rhs;
-        V6::new([a0, a1, a2, a3, a4, a5])
+        Self::new_from(self[0] / rhs, self[1] / rhs, self[2] / rhs,
+                       self[3] / rhs, self[4] / rhs, self[5] / rhs)
     }
 }
 
@@ -161,37 +140,21 @@ impl<T: Num + Copy> Div<T> for V6<T> {
 impl Mul<V6<f32>> for f32 {
     type Output = V6<f32>;
 
+    #[inline]
     fn mul(self, rhs: V6<f32>) -> V6<f32> {
-        let a0 = self * rhs[0];
-        let a1 = self * rhs[1];
-        let a2 = self * rhs[2];
-        let a3 = self * rhs[3];
-        let a4 = self * rhs[4];
-        let a5 = self * rhs[5];
-        V6::new([a0, a1, a2, a3, a4, a5])
+        V6::new_from(self * rhs[0], self * rhs[1], self * rhs[2],
+                     self * rhs[3], self * rhs[4], self * rhs[5])
     }
 }
 
-// V6 * V6
+// V6 * V6(dot product)
 impl<T: Num + Copy> Mul for V6<T> {
     type Output = T;
 
+    #[inline]
     fn mul(self, rhs: Self) -> T {
-        let a0 = self[0];
-        let a1 = self[1];
-        let a2 = self[2];
-        let a3 = self[3];
-        let a4 = self[4];
-        let a5 = self[5];
-
-        let b0 = rhs[0];
-        let b1 = rhs[1];
-        let b2 = rhs[2];
-        let b3 = rhs[3];
-        let b4 = rhs[4];
-        let b5 = rhs[5];
-
-        a0 * b0 + a1 * b1 + a2 * b2 + a3 * b3 + a4 * b4 + a5 * b5
+        self[0] * rhs[0] + self[1] * rhs[1] + self[2] * rhs[2] + self[3] * rhs[3]
+        + self[4] * rhs[4] + self[5] * rhs[5]
     }
 }
 
@@ -259,27 +222,16 @@ impl<T: Num + Copy> Mul<M66<T>> for V6<T> {
 impl<T: Num + Copy> Sub for V6<T> {
     type Output = Self;
 
+    #[inline]
     fn sub(self, rhs: Self) -> Self {
-        let v0 = self[0];
-        let v1 = self[1];
-        let v2 = self[2];
-        let v3 = self[3];
-        let v4 = self[4];
-        let v5 = self[5];
-
-        let a0 = rhs[0];
-        let a1 = rhs[1];
-        let a2 = rhs[2];
-        let a3 = rhs[3];
-        let a4 = rhs[4];
-        let a5 = rhs[5];
-
-        V6::new([v0 - a0, v1 - a1, v2 - a2, v3 - a3, v4 - a4, v5 - a5])
+        Self::new_from(self[0] - rhs[0], self[1] - rhs[1], self[2] - rhs[2],
+                       self[3] - rhs[3], self[4] - rhs[4], self[5] - rhs[5])
     }
 }
 
 // V6 -= V6
 impl<T: Num + Copy> SubAssign for V6<T> {
+    #[inline]
     fn sub_assign(&mut self, other: Self) {
         *self = *self - other
     }
@@ -289,27 +241,16 @@ impl<T: Num + Copy> SubAssign for V6<T> {
 impl<T: Num + Copy> Add for V6<T> {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: Self) -> Self {
-        let v0 = self[0];
-        let v1 = self[1];
-        let v2 = self[2];
-        let v3 = self[3];
-        let v4 = self[4];
-        let v5 = self[5];
-
-        let a0 = rhs[0];
-        let a1 = rhs[1];
-        let a2 = rhs[2];
-        let a3 = rhs[3];
-        let a4 = rhs[4];
-        let a5 = rhs[5];
-
-        V6::new([v0 + a0, v1 + a1, v2 + a2, v3 + a3, v4 + a4, v5 + a5])
+        Self::new_from(self[0] + rhs[0], self[1] + rhs[1], self[2] + rhs[2],
+                       self[3] + rhs[3], self[4] + rhs[4], self[5] + rhs[5])
     }
 }
 
 // V6 += V6
 impl<T: Num + Copy> AddAssign for V6<T> {
+    #[inline]
     fn add_assign(&mut self, other: Self) {
         *self = *self + other
     }

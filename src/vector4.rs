@@ -46,12 +46,12 @@ pub struct V4<T>([T; 4]);
 
 impl<T> V4<T> {
     /// create a new V4 from a static array
-    pub fn new(input: [T; 4]) -> Self {
+    pub const fn new(input: [T; 4]) -> Self {
         Self(input)
     }
 
-    /// create a new V4 from numbers
-    pub fn new_from(a: T, b: T, c: T, d: T) -> Self {
+    /// create a new V4 from raw numbers
+    pub const fn new_from(a: T, b: T, c: T, d: T) -> Self {
         Self::new([a, b, c, d])
     }
 }
@@ -77,38 +77,35 @@ impl BitAnd for V4<bool> {
     }
 }
 
+// norm inf
 impl<T: Num + Copy + core::cmp::PartialOrd> V4<T> {
     pub fn norm_inf(&self) -> T {
         norm_inf(&**self)
     }
 }
 
+// norm l
 impl<T: Num + Copy + Signed + core::iter::Sum> V4<T> {
     pub fn norm_l(&self) -> T {
         norm_l(&**self)
     }
 }
 
+// -V4
 impl<T: Num + Copy + Signed> Neg for V4<T> {
     type Output = Self;
 
+    #[inline]
     fn neg(self) -> Self {
-        let a = self[0];
-        let b = self[1];
-        let c = self[2];
-        let d = self[3];
-        V4::new([-a, -b, -c, -d])
+        V4::new_from(-self[0], -self[1], -self[2], -self[3])
     }
 }
 
 impl<T: Float> V4<T> {
     /// calculate the euclidean norm of the V4
+    #[inline]
     pub fn norm2(&self) -> T {
-        let a = self[0];
-        let b = self[1];
-        let c = self[2];
-        let d = self[3];
-        T::sqrt(a * a + b * b + c * c + d * d)
+        T::sqrt(self[0] * self[0] + self[1] * self[1] + self[2] * self[2] + self[3] * self[3])
     }
 
     /// normalize the current vector and return a new one
@@ -127,22 +124,13 @@ impl<T: Float> V4<T> {
     }
 }
 
-// V4 * V4
+// V4 * V4(dot product)
 impl<T: Num + Copy> Mul for V4<T> {
     type Output = T;
 
+    #[inline]
     fn mul(self, rhs: Self) -> T {
-        let a1 = self[0];
-        let a2 = self[1];
-        let a3 = self[2];
-        let a4 = self[3];
-
-        let b1 = rhs[0];
-        let b2 = rhs[1];
-        let b3 = rhs[2];
-        let b4 = rhs[3];
-
-        a1 * b1 + a2 * b2 + a3 * b3 + a4 * b4
+        self[0] * rhs[0] + self[1] * rhs[1] + self[2] * rhs[2] + self[3] * rhs[3]
     }
 }
 
@@ -150,25 +138,20 @@ impl<T: Num + Copy> Mul for V4<T> {
 impl<T: Num + Copy> Mul<T> for V4<T> {
     type Output = V4<T>;
 
+    #[inline(always)]
     fn mul(self, rhs: T) -> V4<T> {
-        let a0 = self[0] * rhs;
-        let a1 = self[1] * rhs;
-        let a2 = self[2] * rhs;
-        let a3 = self[3] * rhs;
-        V4::new([a0, a1, a2, a3])
+        Self::new_from(self[0] * rhs, self[1] * rhs, self[2] * rhs, self[3] * rhs)
     }
 }
 
+// NOTE(elsuizo:2021-08-03): this should panics if rhs == zero
 // V4 / const
 impl<T: Num + Copy> Div<T> for V4<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn div(self, rhs: T) -> Self::Output {
-        let a0 = self[0] / rhs;
-        let a1 = self[1] / rhs;
-        let a2 = self[2] / rhs;
-        let a3 = self[3] / rhs;
-        V4::new([a0, a1, a2, a3])
+        Self::new_from(self[0] / rhs, self[1] / rhs, self[2] / rhs, self[3] / rhs)
     }
 }
 
@@ -176,12 +159,9 @@ impl<T: Num + Copy> Div<T> for V4<T> {
 impl Mul<V4<f32>> for f32 {
     type Output = V4<f32>;
 
+    #[inline]
     fn mul(self, rhs: V4<f32>) -> V4<f32> {
-        let a0 = self * rhs[0];
-        let a1 = self * rhs[1];
-        let a2 = self * rhs[2];
-        let a3 = self * rhs[3];
-        V4::new([a0, a1, a2, a3])
+        V4::new_from(self * rhs[0], self * rhs[1], self * rhs[2], self * rhs[3])
     }
 }
 
@@ -189,35 +169,14 @@ impl Mul<V4<f32>> for f32 {
 impl<T: Num + Copy> Mul<M44<T>> for V4<T> {
     type Output = V4<T>;
 
+    #[inline]
     fn mul(self, rhs: M44<T>) -> V4<T> {
-        let a11 = rhs[(0, 0)];
-        let a12 = rhs[(0, 1)];
-        let a13 = rhs[(0, 2)];
-        let a14 = rhs[(0, 3)];
-        let a21 = rhs[(1, 0)];
-        let a22 = rhs[(1, 1)];
-        let a23 = rhs[(1, 2)];
-        let a24 = rhs[(1, 3)];
-        let a31 = rhs[(2, 0)];
-        let a32 = rhs[(2, 1)];
-        let a33 = rhs[(2, 2)];
-        let a34 = rhs[(2, 3)];
-        let a41 = rhs[(3, 0)];
-        let a42 = rhs[(3, 1)];
-        let a43 = rhs[(3, 2)];
-        let a44 = rhs[(3, 3)];
-
-        let v1 = self[0];
-        let v2 = self[1];
-        let v3 = self[2];
-        let v4 = self[3];
-
-        V4::new([
-            v1 * a11 + v2 * a21 + v3 * a31 + v4 * a41,
-            v1 * a12 + v2 * a22 + v3 * a32 + v4 * a42,
-            v1 * a13 + v2 * a23 + v3 * a33 + v4 * a43,
-            v1 * a14 + v2 * a24 + v3 * a34 + v4 * a44,
-        ])
+        Self::new_from(
+            self[0] * rhs[(0, 0)] + self[1] * rhs[(1, 0)] + self[2] * rhs[(2, 0)] + self[3] * rhs[(3, 0)],
+            self[0] * rhs[(0, 1)] + self[1] * rhs[(1, 1)] + self[2] * rhs[(2, 1)] + self[3] * rhs[(3, 1)],
+            self[0] * rhs[(0, 2)] + self[1] * rhs[(1, 2)] + self[2] * rhs[(2, 2)] + self[3] * rhs[(3, 2)],
+            self[0] * rhs[(0, 3)] + self[1] * rhs[(1, 3)] + self[2] * rhs[(2, 3)] + self[3] * rhs[(3, 3)],
+        )
     }
 }
 
@@ -225,18 +184,9 @@ impl<T: Num + Copy> Mul<M44<T>> for V4<T> {
 impl<T: Num + Copy> Sub for V4<T> {
     type Output = Self;
 
+    #[inline]
     fn sub(self, rhs: Self) -> Self {
-        let v0 = self[0];
-        let v1 = self[1];
-        let v2 = self[2];
-        let v3 = self[3];
-
-        let a0 = rhs[0];
-        let a1 = rhs[1];
-        let a2 = rhs[2];
-        let a3 = rhs[3];
-
-        V4::new([v0 - a0, v1 - a1, v2 - a2, v3 - a3])
+        V4::new_from(self[0] - rhs[0], self[1] - rhs[1], self[2] - rhs[2], self[3] - rhs[3])
     }
 }
 
@@ -251,29 +201,22 @@ impl<T: Num + Copy> SubAssign for V4<T> {
 impl<T: Num + Copy> Add for V4<T> {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: Self) -> Self {
-        let v1 = self[0];
-        let v2 = self[1];
-        let v3 = self[2];
-        let v4 = self[3];
-
-        let a1 = rhs[0];
-        let a2 = rhs[1];
-        let a3 = rhs[2];
-        let a4 = rhs[3];
-
-        V4::new([v1 + a1, v2 + a2, v3 + a3, v4 + a4])
+        V4::new_from(self[0] + rhs[0], self[1] + rhs[1], self[2] + rhs[2], self[3] + rhs[3])
     }
 }
 
 // V4 += V4
 impl<T: Num + Copy> AddAssign for V4<T> {
+    #[inline]
     fn add_assign(&mut self, other: Self) {
         *self = *self + other
     }
 }
 
 impl<T: Num + Copy> Zero for V4<T> {
+    #[inline]
     fn zero() -> V4<T> {
         V4::new([T::zero(); 4])
     }
@@ -496,6 +439,14 @@ mod vector4_test {
         let v = V4::new_from(1, -1, 1, -1);
         let result = v.norm_l();
         let expected = 4;
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn product_lhs_f32_test() {
+        let v = V4::new_from(1.0f32, 2.0, 3.0, 4.0);
+        let result = 2.0f32 * v;
+        let expected = V4::new_from(2.0, 4.0, 6.0, 8.0);
         assert_eq!(result, expected);
     }
 }

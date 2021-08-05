@@ -29,14 +29,14 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use static_math::{V3, Quaternion};
-
+use static_math::vector3::X_AXIS;
 // In this example we rotate the x axis around the z axis 360 degrees
 // to obtain the x axis again, but the rotation is via a composition of
 // rotations of 90 degrees
 fn main() {
 
     // vector to rotate: x axis: [1, 0, 0]
-    let x = V3::x_axis();
+    let x = X_AXIS;
     // quaternion represent the rotation around the z axis 90 degrees, the angle
     // is encoded in the vector norm: [0, 0, 90]
     let v = V3::z_axis() * 90f32.to_radians();

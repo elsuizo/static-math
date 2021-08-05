@@ -79,8 +79,9 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M33<T> {
         ])
     }
 
+    #[inline(always)]
     fn trace(&self) -> T {
-        return self[(0, 0)] + self[(1, 1)] + self[(2, 2)];
+        self[(0, 0)] + self[(1, 1)] + self[(2, 2)]
     }
 
     fn norm2(&self) -> T {
@@ -97,7 +98,7 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M33<T> {
         )
     }
 
-    /// Calculate the determiant of the matrix
+    /// Calculate the determinant of the matrix
     #[inline(always)]
     fn det(&self) -> T {
           self[(0, 0)] * (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)])
@@ -110,7 +111,7 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M33<T> {
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if !nearly_zero(det) {
-            let invdet = T::one() / det;
+            let invdet = det.recip();
             let mut res = M33::zero();
             res[(0, 0)] = (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)]) * invdet;
             res[(0, 1)] = (self[(0, 2)] * self[(2, 1)] - self[(0, 1)] * self[(2, 2)]) * invdet;
@@ -135,8 +136,8 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M33<T> {
             let mut q: [V3<T>; 3] = *M33::zeros().get_cols();
             for i in 0..q.len() {
                 let mut q_tilde = cols[i];
-                for k in 0..i {
-                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                for elem in q.iter().take(i) {
+                    q_tilde -= *elem * project_x_over_y(&*cols[i], &**elem);
                 }
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
@@ -550,23 +551,24 @@ impl<T> IndexMut<(usize, usize)> for M33<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M33<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        write!(
+        println!();
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:>7.2}|",
             self[(0, 0)],
             self[(0, 1)],
             self[(0, 2)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:>7.2}|",
             self[(1, 0)],
             self[(1, 1)],
             self[(1, 2)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:>7.2}|",
             self[(2, 0)],
             self[(2, 1)],
             self[(2, 2)]

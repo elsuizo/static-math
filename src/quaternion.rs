@@ -177,11 +177,12 @@ impl<T: Num + Copy> Div<T> for Quaternion<T> {
 }
 
 // q / q
+#[allow(clippy::suspicious_arithmetic_impl)]
 impl<T: Float + Signed> Div for Quaternion<T> {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        self * rhs.inverse().expect("the input has to be a non zero vector")
+        self * rhs.inverse().unwrap()
     }
 }
 
@@ -236,6 +237,8 @@ impl<T: Num + Copy + Signed> Quaternion<T> {
 
 impl<T: Float + core::iter::Sum> Quaternion<T> {
 
+    // TODO(elsuizo:2021-08-05): test all the cases for this method
+    /// convert a rotation matrix M33 to a Quaternion
     pub fn from_rotation(rot: &M33<T>) -> Self {
         let m = rot.transpose();
         let zero = T::zero();
@@ -244,23 +247,21 @@ impl<T: Float + core::iter::Sum> Quaternion<T> {
         if m[(2, 2)] < zero {
             if m[(0, 0)] > m[(1, 1)] {
                 let t = one + m[(0, 0)] - m[(1, 1)] - m[(2, 2)];
-                let q = Self::new_from(m[(1, 2)]-m[(2, 1)],  t,  m[(0, 1)]+m[(1, 0)],  m[(2, 0)]+m[(0, 2)]);
-                return q * half / t.sqrt();
+                let q = Self::new_from(m[(1, 2)] - m[(2, 1)], t, m[(0, 1)] + m[(1, 0)],  m[(2, 0)] + m[(0, 2)]);
+                q * half / t.sqrt()
             } else {
                 let t = one - m[(0, 0)] + m[(1, 1)] - m[(2, 2)];
-                let q = Self::new_from(m[(2, 0)]-m[(0, 2)],  m[(0, 1)]+m[(1, 0)],  t,  m[(1, 2)]+m[(2, 1)]);
-                return q * half / t.sqrt();
+                let q = Self::new_from(m[(2, 0)] - m[(0, 2)],  m[(0, 1)] + m[(1, 0)], t, m[(1, 2)] + m[(2, 1)]);
+                q * half / t.sqrt()
             }
+        } else if m[(0, 0)] < -m[(1, 1)] {
+            let t = one - m[(0, 0)] - m[(1, 1)] + m[(2, 2)];
+            let q = Self::new_from(m[(0, 1)]-m[(1, 0)],  m[(2, 0)] + m[(0, 2)],  m[(1, 2)] + m[(2, 1)], t);
+            q * half / t.sqrt()
         } else {
-            if m[(0, 0)] < -m[(1, 1)] {
-                let t = one - m[(0, 0)] - m[(1, 1)] + m[(2, 2)];
-                let q = Self::new_from(m[(0, 1)]-m[(1, 0)],  m[(2, 0)]+m[(0, 2)],  m[(1, 2)]+m[(2, 1)],  t);
-                return q * half / t.sqrt();
-            } else {
-                let t = one + m[(0, 0)] + m[(1, 1)] + m[(2, 2)];
-                let q = Self::new_from(t,  m[(1, 2)]-m[(2, 1)],  m[(2, 0)]-m[(0, 2)],  m[(0, 1)]-m[(1, 0)]);
-                return q * half / t.sqrt();
-            }
+            let t = one + m[(0, 0)] + m[(1, 1)] + m[(2, 2)];
+            let q = Self::new_from(t,  m[(1, 2)]-m[(2, 1)], m[(2, 0)] - m[(0, 2)], m[(0, 1)] - m[(1, 0)]);
+            q * half / t.sqrt()
         }
     }
 }
@@ -295,13 +296,13 @@ impl<T: Float> Quaternion<T> {
 
     /// generate a Quaternion that represents a rotation of a angle `theta`
     /// around the axis(normalized) `v`
-    pub fn rotation(theta: T, v: &V3<T>) -> Self {
+    pub fn rotation(theta: T, vector: &V3<T>) -> Self {
         let one = T::one();
         let two = one + one;
-        let n   = v.normalize().expect("the input has to be a non zero vector");
-        let (s, c) = (theta / two).sin_cos();
-        let q0  = c;
-        let q   = n * s;
+        let normalized = vector.normalize().expect("the input has to be a non zero vector");
+        let (sin, cos) = (theta / two).sin_cos();
+        let q0  = cos;
+        let q   = normalized * sin;
         Self{q0, q, normalized: true}
     }
 
@@ -378,7 +379,7 @@ impl<T: Float> Quaternion<T> {
         let a = self.norm2();
         let mut result = *self / a;
         result.normalized = true;
-        return (result, a)
+        (result, a)
     }
 
     /// get the argument of the Quaternion
@@ -429,8 +430,6 @@ impl<T: Float> Quaternion<T> {
 
     // TODO(elsuizo:2021-04-24): maybe here its better a error for the corner cases
 
-    /// Brief.
-    ///
     /// Spherical Linear Interpolation between two Quaternions
     /// this implementation follow this implementations:
     /// https://www.mrpt.org/tutorials/programming/maths-and-geometry/slerp-interpolation/
@@ -444,11 +443,12 @@ impl<T: Float> Quaternion<T> {
     ///
     pub fn slerp(a: Self, b: Self, t: T) -> Self {
         let one = T::one();
+        let mut result = Quaternion::zero();
         // calculate the angle betwen two unit Quaternions via dot product
         let mut cos_half_theta = a.dot(b);
         // if a = b or a = -b then theta(the angle between) = 0 then we can return a
         if cos_half_theta.abs() >= one {
-            return a;
+            return a
         }
         let mut reverse_a = false;
         // allways follow the shortest path
@@ -461,33 +461,24 @@ impl<T: Float> Quaternion<T> {
         // TODO(elsuizo:2021-04-24): maybe here the comparison could be with epsilon
         if sin_half_theta.abs() < T::from(0.001).unwrap() {
             if !reverse_a {
-                let mut result = Quaternion::zero();
                 result.q0   = (one - t) * a.q0 + t * b.q0;
                 result.q[0] = (one - t) * a.q[0] + t * b.q[0];
                 result.q[1] = (one - t) * a.q[1] + t * b.q[2];
                 result.q[2] = (one - t) * a.q[2] + t * b.q[1];
-                return result
             }
+            return result
         }
         let aux1 = T::sin((one - t) * half_theta) / sin_half_theta;
         let aux2 = T::sin(t * half_theta) / sin_half_theta;
-
         // this part handle the correct orientation
         if !reverse_a {
-            let mut result = Quaternion::zero();
-            result.q0   = aux1 * a.q0   + aux2 * b.q0;
-            result.q[0] = aux1 * a.q[0] + aux2 * b.q[0];
-            result.q[1] = aux1 * a.q[1] + aux2 * b.q[2];
-            result.q[2] = aux1 * a.q[2] + aux2 * b.q[1];
-            return result
+            result.q0 = aux1 * a.q0 + aux2 * b.q0;
+            result.q  = a.q * aux1 + b.q * aux2;
         } else {
-            let mut result = Quaternion::zero();
-            result.q0   = aux1 * a.q0   - aux2 * b.q0;
-            result.q[0] = aux1 * a.q[0] - aux2 * b.q[0];
-            result.q[1] = aux1 * a.q[1] - aux2 * b.q[2];
-            result.q[2] = aux1 * a.q[2] - aux2 * b.q[1];
-            return result
+            result.q0 = aux1 * a.q0 - aux2 * b.q0;
+            result.q  = a.q * aux1 - b.q * aux2;
         }
+        result
     }
 
     /// Brief.
@@ -568,6 +559,8 @@ mod test_quaternion {
     use crate::vector3::V3;
     use crate::quaternion::Quaternion;
     use crate::utils::{nearly_equal};
+    use crate::utils::compare_vecs;
+    use crate::transformations::{rotx, roty};
 
     // NOTE(elsuizo:2021-04-23): this could be more small but the rotation accumulates error in
     // sucesives runs
@@ -694,6 +687,17 @@ mod test_quaternion {
     }
 
     #[test]
+    fn division_test() {
+        let q = Quaternion::new_from(10.0, 3.0, 7.0, 1.0);
+        let result = q / q;
+        let expected = Quaternion::one();
+        assert!(nearly_equal(result.q0, expected.q0, EPS));
+        assert!(nearly_equal(result.q[0], expected.q[0], EPS));
+        assert!(nearly_equal(result.q[1], expected.q[1], EPS));
+        assert!(nearly_equal(result.q[2], expected.q[2], EPS));
+    }
+
+    #[test]
     fn euler_and_quaternions() {
         let expected = (0.1, 0.2, 0.3);
         let q = Quaternion::from_euler_angles(expected.0, expected.1, expected.2);
@@ -714,5 +718,14 @@ mod test_quaternion {
         assert!(nearly_equal(result.q[0], expected.q[0], EPS));
         assert!(nearly_equal(result.q[1], expected.q[1], EPS));
         assert!(nearly_equal(result.q[2], expected.q[2], EPS));
+    }
+
+    // NOTE(elsuizo:2021-08-05): convert to Quaternion and back to rotation
+    #[test]
+    fn to_rotation_test() {
+        let expected = rotx(20f32.to_radians()) * roty(30f32.to_radians());
+        let q = Quaternion::from_rotation(&expected);
+        let result = q.to_rotation();
+        assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
 }

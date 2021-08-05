@@ -81,7 +81,7 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M44<T> {
 
     #[inline(always)]
     fn trace(&self) -> T {
-        return self[(0, 0)] + self[(1, 1)] + self[(2, 2)] + self[(3, 3)];
+        self[(0, 0)] + self[(1, 1)] + self[(2, 2)] + self[(3, 3)]
     }
 
     fn norm2(&self) -> T {
@@ -170,25 +170,26 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M44<T> {
     fn inverse(&self) -> Option<Self> {
         let det = self.det();
         if !nearly_zero(det) {
-            let a1 = self.get_submatrix((0, 0)).det() * det.recip();
-            let a2 = -self.get_submatrix((1, 0)).det() * det.recip();
-            let a3 = self.get_submatrix((2, 0)).det() * det.recip();
-            let a4 = -self.get_submatrix((3, 0)).det() * det.recip();
+            let det_recip = det.recip();
+            let a1 = self.get_submatrix((0, 0)).det() * det_recip;
+            let a2 = -self.get_submatrix((1, 0)).det() * det_recip;
+            let a3 = self.get_submatrix((2, 0)).det() * det_recip;
+            let a4 = -self.get_submatrix((3, 0)).det() * det_recip;
 
-            let a5 = -self.get_submatrix((0, 1)).det() * det.recip();
-            let a6 = self.get_submatrix((1, 1)).det() * det.recip();
-            let a7 = -self.get_submatrix((2, 1)).det() * det.recip();
-            let a8 = self.get_submatrix((3, 1)).det() * det.recip();
+            let a5 = -self.get_submatrix((0, 1)).det() * det_recip;
+            let a6 = self.get_submatrix((1, 1)).det() * det_recip;
+            let a7 = -self.get_submatrix((2, 1)).det() * det_recip;
+            let a8 = self.get_submatrix((3, 1)).det() * det_recip;
 
-            let a9 = self.get_submatrix((0, 2)).det() * det.recip();
-            let a10 = -self.get_submatrix((1, 2)).det() * det.recip();
-            let a11 = self.get_submatrix((2, 2)).det() * det.recip();
-            let a12 = -self.get_submatrix((3, 2)).det() * det.recip();
+            let a9 = self.get_submatrix((0, 2)).det() * det_recip;
+            let a10 = -self.get_submatrix((1, 2)).det() * det_recip;
+            let a11 = self.get_submatrix((2, 2)).det() * det_recip;
+            let a12 = -self.get_submatrix((3, 2)).det() * det_recip;
 
-            let a13 = -self.get_submatrix((0, 3)).det() * det.recip();
-            let a14 = self.get_submatrix((1, 3)).det() * det.recip();
-            let a15 = -self.get_submatrix((2, 3)).det() * det.recip();
-            let a16 = self.get_submatrix((3, 3)).det() * det.recip();
+            let a13 = -self.get_submatrix((0, 3)).det() * det_recip;
+            let a14 = self.get_submatrix((1, 3)).det() * det_recip;
+            let a15 = -self.get_submatrix((2, 3)).det() * det_recip;
+            let a16 = self.get_submatrix((3, 3)).det() * det_recip;
 
             Some(M44::new([
                 [a1, a2 , a3 , a4],
@@ -209,8 +210,8 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M44<T> {
             let mut q: [V4<T>; 4] = *M44::zeros().get_cols();
             for i in 0..q.len() {
                 let mut q_tilde = cols[i];
-                for k in 0..i {
-                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                for elem in q.iter().take(i) {
+                    q_tilde -= *elem * project_x_over_y(&*cols[i], &**elem);
                 }
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
@@ -739,33 +740,34 @@ impl<T> IndexMut<(usize, usize)> for M44<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M44<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        write!(
+        println!();
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|",
             self[(0, 0)],
             self[(0, 1)],
             self[(0, 2)],
             self[(0, 3)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|",
             self[(1, 0)],
             self[(1, 1)],
             self[(1, 2)],
             self[(1, 3)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|",
             self[(2, 0)],
             self[(2, 1)],
             self[(2, 2)],
             self[(2, 3)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:>7.2}|",
             self[(3, 0)],
             self[(3, 1)],
             self[(3, 2)],

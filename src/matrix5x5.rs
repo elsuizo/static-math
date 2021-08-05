@@ -271,6 +271,7 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M55<T> {
     /// where Adj = Cofactor.Transpose()
     /// Cofactor = (-1)^(i+j) M(i, j).det()
     ///
+    #[inline(always)]
     fn inverse(&self) -> Option<Self> {
         let one = T::one();
         let det = self.det();
@@ -297,8 +298,8 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M55<T> {
             let mut q: [V5<T>; 5] = *M55::zeros().get_cols();
             for i in 0..q.len() {
                 let mut q_tilde = cols[i];
-                for k in 0..i {
-                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                for elem in q.iter().take(i) {
+                    q_tilde -= *elem * project_x_over_y(&*cols[i], &**elem);
                 }
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
@@ -636,17 +637,11 @@ impl<T: Num + Copy> Mul<V5<T>> for M55<T> {
         let a_43 = self[(4, 3)];
         let a_44 = self[(4, 4)];
 
-        let a = rhs[0];
-        let b = rhs[1];
-        let c = rhs[2];
-        let d = rhs[3];
-        let e = rhs[4];
-
-        let v0 = a_00 * a + a_01 * b + a_02 * c + a_03 * d + a_04 * e;
-        let v1 = a_10 * a + a_11 * b + a_12 * c + a_13 * d + a_14 * e;
-        let v2 = a_20 * a + a_21 * b + a_22 * c + a_23 * d + a_24 * e;
-        let v3 = a_30 * a + a_31 * b + a_32 * c + a_33 * d + a_34 * e;
-        let v4 = a_40 * a + a_41 * b + a_42 * c + a_43 * d + a_44 * e;
+        let v0 = a_00 * rhs[0] + a_01 * rhs[1] + a_02 * rhs[2] + a_03 * rhs[3] + a_04 * rhs[4];
+        let v1 = a_10 * rhs[0] + a_11 * rhs[1] + a_12 * rhs[2] + a_13 * rhs[3] + a_14 * rhs[4];
+        let v2 = a_20 * rhs[0] + a_21 * rhs[1] + a_22 * rhs[2] + a_23 * rhs[3] + a_24 * rhs[4];
+        let v3 = a_30 * rhs[0] + a_31 * rhs[1] + a_32 * rhs[2] + a_33 * rhs[3] + a_34 * rhs[4];
+        let v4 = a_40 * rhs[0] + a_41 * rhs[1] + a_42 * rhs[2] + a_43 * rhs[3] + a_44 * rhs[4];
 
         V5::new([v0, v1, v2, v3, v4])
     }
@@ -1004,45 +999,46 @@ impl<T> IndexMut<(usize, usize)> for M55<T> {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M55<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        write!(
+        println!();
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|",
             self[(0, 0)],
             self[(0, 1)],
             self[(0, 2)],
             self[(0, 3)],
             self[(0, 4)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|",
             self[(1, 0)],
             self[(1, 1)],
             self[(1, 2)],
             self[(1, 3)],
             self[(1, 4)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|",
             self[(2, 0)],
             self[(2, 1)],
             self[(2, 2)],
             self[(2, 3)],
             self[(2, 4)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|",
             self[(3, 0)],
             self[(3, 1)],
             self[(3, 2)],
             self[(3, 3)],
             self[(3, 4)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:>7.2}|",
             self[(4, 0)],
             self[(4, 1)],
             self[(4, 2)],

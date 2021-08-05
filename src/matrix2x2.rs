@@ -92,22 +92,17 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M22<T> {
 
     #[inline(always)]
     fn norm2(&self) -> T {
-        let a = self[(0, 0)];
-        let b = self[(0, 1)];
-        let c = self[(1, 0)];
-        let d = self[(1, 1)];
-        T::sqrt(a * a + b * b + c * c + d * d)
+        T::sqrt(self[(0, 0)] * self[(0, 0)] + self[(0, 1)] * self[(0, 1)] +
+                self[(1, 0)] * self[(1, 0)] + self[(1, 1)] * self[(1, 1)])
     }
 
     #[inline(always)]
     fn inverse(&self) -> Option<Self> {
-        let a = self[(0, 0)];
-        let b = self[(0, 1)];
-        let c = self[(1, 0)];
-        let d = self[(1, 1)];
         let det = self.det();
         if !nearly_zero(det) {
-            Some(M22::new([[d / det, -b / det], [-c / det, a / det]]))
+            let det_recip = det.recip();
+            Some(M22::new([[self[(1, 1)] * det_recip, -self[(0, 1)] * det_recip],
+                          [-self[(1, 0)] * det_recip, self[(0, 0)] * det_recip]]))
         } else {
             None
         }
@@ -121,8 +116,8 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M22<T> {
             let mut q: [V2<T>; 2] = *M22::zeros().get_cols();
             for i in 0..q.len() {
                 let mut q_tilde = cols[i];
-                for k in 0..i {
-                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                for elem in q.iter().take(i) {
+                    q_tilde -= *elem * project_x_over_y(&*cols[i], &**elem);
                 }
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
@@ -190,14 +185,8 @@ impl<T: Num + Copy> Mul<V2<T>> for M22<T> {
 
     #[inline(always)]
     fn mul(self, rhs: V2<T>) -> V2<T> {
-        let a1 = self[(0, 0)];
-        let b1 = self[(0, 1)];
-        let c1 = self[(1, 0)];
-        let d1 = self[(1, 1)];
-
-        let v1 = rhs[0];
-        let v2 = rhs[1];
-        V2::new([a1 * v1 + b1 * v2, c1 * v1 + d1 * v2])
+        V2::new_from(self[(0, 0)] * rhs[0] + self[(0, 1)] * rhs[1],
+                     self[(1, 0)] * rhs[0] + self[(1, 1)] * rhs[1])
     }
 }
 
@@ -207,16 +196,8 @@ impl<T: Num + Copy> Add for M22<T> {
 
     #[inline(always)]
     fn add(self, rhs: Self) -> Self {
-        let a1 = self[(0, 0)];
-        let b1 = self[(0, 1)];
-        let c1 = self[(1, 0)];
-        let d1 = self[(1, 1)];
-
-        let a2 = rhs[(0, 0)];
-        let b2 = rhs[(0, 1)];
-        let c2 = rhs[(1, 0)];
-        let d2 = rhs[(1, 1)];
-        M22::new([[a1 + a2, b1 + b2], [c1 + c2, d1 + d2]])
+        Self::new([[self[(0, 0)] + rhs[(0, 0)], self[(0, 1)] + rhs[(0, 1)]],
+                   [self[(1, 0)] + rhs[(1, 0)], self[(1, 1)] + rhs[(1, 1)]]])
     }
 }
 
@@ -234,21 +215,14 @@ impl<T: Num + Copy> Sub for M22<T> {
 
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self {
-        let a1 = self[(0, 0)];
-        let b1 = self[(0, 1)];
-        let c1 = self[(1, 0)];
-        let d1 = self[(1, 1)];
-
-        let a2 = rhs[(0, 0)];
-        let b2 = rhs[(0, 1)];
-        let c2 = rhs[(1, 0)];
-        let d2 = rhs[(1, 1)];
-        M22::new([[a1 - a2, b1 - b2], [c1 - c2, d1 - d2]])
+        Self::new([[self[(0, 0)] - rhs[(0, 0)], self[(0, 1)] - rhs[(0, 1)]],
+                   [self[(1, 0)] - rhs[(1, 0)], self[(1, 1)] - rhs[(1, 1)]]])
     }
 }
 
 // M22 -= M22
 impl<T: Num + Copy> SubAssign for M22<T> {
+    #[inline]
     fn sub_assign(&mut self, other: Self) {
         *self = *self - other
     }
@@ -318,13 +292,10 @@ impl<T: Float + core::iter::Sum> M22<T> {
 impl Mul<M22<f32>> for f32 {
     type Output = M22<f32>;
 
+    #[inline]
     fn mul(self, rhs: M22<f32>) -> M22<f32> {
-        let a_00 = rhs[(0, 0)] * self;
-        let a_01 = rhs[(0, 1)] * self;
-        let a_10 = rhs[(1, 0)] * self;
-        let a_11 = rhs[(1, 1)] * self;
-
-        M22::new([[a_00, a_01], [a_10, a_11]])
+        M22::new([[rhs[(0, 0)] * self, rhs[(0, 1)] * self],
+                  [rhs[(1, 0)] * self, rhs[(1, 1)] * self]])
     }
 }
 
@@ -334,12 +305,8 @@ impl<T: Num + Copy> Mul<T> for M22<T> {
 
     #[inline(always)]
     fn mul(self, rhs: T) -> M22<T> {
-        let a_00 = self[(0, 0)] * rhs;
-        let a_01 = self[(0, 1)] * rhs;
-        let a_10 = self[(1, 0)] * rhs;
-        let a_11 = self[(1, 1)] * rhs;
-
-        M22::new([[a_00, a_01], [a_10, a_11]])
+        Self::new([[self[(0, 0)] * rhs, self[(0, 1)] * rhs],
+                   [self[(1, 0)] * rhs, self[(1, 1)] * rhs]])
     }
 }
 
@@ -348,12 +315,8 @@ impl<T: Num + Copy> Div<T> for M22<T> {
     type Output = Self;
 
     fn div(self, rhs: T) -> Self::Output {
-        let a_00 = self[(0, 0)] / rhs;
-        let a_01 = self[(0, 1)] / rhs;
-        let a_10 = self[(1, 0)] / rhs;
-        let a_11 = self[(1, 1)] / rhs;
-
-        M22::new([[a_00, a_01], [a_10, a_11]])
+        Self::new([[self[(0, 0)] / rhs, self[(0, 1)] / rhs],
+                   [self[(1, 0)] / rhs, self[(1, 1)] / rhs]])
     }
 }
 
@@ -373,12 +336,8 @@ impl<T: Num + Copy> Mul for M22<T> {
         let c2 = rhs[(1, 0)];
         let d2 = rhs[(1, 1)];
 
-        let m00 = a1 * a2 + b1 * c2;
-        let m01 = a1 * b2 + b1 * d2;
-
-        let m10 = c1 * a2 + d1 * c2;
-        let m11 = c1 * b2 + d1 * d2;
-        M22::new([[m00, m01], [m10, m11]])
+        Self::new([[a1 * a2 + b1 * c2, a1 * b2 + b1 * d2],
+                   [c1 * a2 + d1 * c2, c1 * b2 + d1 * d2]])
     }
 }
 
@@ -386,12 +345,10 @@ impl<T: Num + Copy> Mul for M22<T> {
 impl<T: Num + Copy + Signed> Neg for M22<T> {
     type Output = Self;
 
+    #[inline(always)]
     fn neg(self) -> Self {
-        let a = -self[(0, 0)];
-        let b = -self[(0, 1)];
-        let c = -self[(1, 0)];
-        let d = -self[(1, 1)];
-        M22::new([[a, b], [c, d]])
+        Self::new([[-self[(0, 0)], -self[(0, 1)]],
+                   [-self[(1, 0)], -self[(1, 1)]]])
     }
 }
 
@@ -466,8 +423,9 @@ macro_rules! m22_new {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M22<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        write!(dest, "|{0:^3.2} {1:^3.2}|\n", self[(0, 0)], self[(0, 1)])?;
-        write!(dest, "|{0:^3.2} {1:^3.2}|\n", self[(1, 0)], self[(1, 1)])
+        println!();
+        writeln!(dest, "|{0:^3.2} {1:^3.2}|", self[(0, 0)], self[(0, 1)])?;
+        writeln!(dest, "|{0:^3.2} {1:^3.2}|", self[(1, 0)], self[(1, 1)])
     }
 }
 

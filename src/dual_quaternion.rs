@@ -55,10 +55,6 @@ impl<T> DualQuaternion<T> {
     pub const fn new(q_real: Quaternion<T>, q_dual: Quaternion<T>) -> Self {
         Self{q_real, q_dual, normalized: false}
     }
-
-    pub const fn new_from(a: T, b: T, c: T, d: T, e: T, f: T, g: T, h: T) -> Self {
-        Self::new(Quaternion::new_from(a, b, c, d), Quaternion::new_from(e, f, g, h))
-    }
 }
 
 impl<T: Num + Copy> DualQuaternion<T> {
@@ -181,7 +177,7 @@ impl<T: Float + Signed> DualQuaternion<T> {
             let d = t * l;
             let cot = one / T::tan(theta / two);
             let m = (t.cross(l) + (t - l * d) * cot) * half;
-            return (l, m, theta, d)
+            (l, m, theta, d)
         } else {
             let d = t.norm2();
             let mut l = V3::zero();
@@ -190,26 +186,31 @@ impl<T: Float + Signed> DualQuaternion<T> {
             }
             let inf = T::infinity();
             let m = V3::new_from(inf, inf, inf);
-            return (l, m, theta, d)
+            (l, m, theta, d)
         }
     }
 
+    // TODO(elsuizo:2021-08-04): change the name parameters to a more descriptives(no single
+    // letters)
     // TODO(elsuizo:2021-05-23): maybe here we need to validate the norm of l
     /// Create a `DualQuaternion` from the screw parameters
     ///
     /// Function arguments:
     /// `l`: a unit vector that represent the screw axis
+    ///
     /// `m`: screw axis moment that its perpendicular to l (m * l = 0) and the norm represent the
     /// actual moment
+    ///
     /// `theta`: screw angle, represent the amount of rotation around the screw axis
+    ///
     /// `d`: screw displacement, represent the amount of displacement along the screw axis
     ///
     pub fn new_from_screw_parameters(l: &V3<T>, m: &V3<T>, theta: T, d: T) -> Self {
         let one = T::one();
         let two = one + one;
-        let (s, c) = (theta / two).sin_cos();
-        let q_real = Quaternion::new(c, *l * s);
-        let q_dual = Quaternion::new(s * (-d / two), *m * s + *l * (d / two) * c);
+        let (sin, cos) = (theta / two).sin_cos();
+        let q_real = Quaternion::new(cos, *l * sin);
+        let q_dual = Quaternion::new(sin * (-d / two), *m * sin + *l * (d / two) * cos);
         Self::new(q_real, q_dual)
     }
 
@@ -254,7 +255,7 @@ impl<T: Float + Signed> DualQuaternion<T> {
     ///
     pub fn screw_lerp(begin: &Self, end: &Self, tau: T) -> Self {
         let one = T::one();
-        let mut start = begin.clone();
+        let mut start = *begin;
         // TODO(elsuizo:2021-05-23): this is from the python implementation that refers to a paper
         // that "ensure we always find closest solution, See Kavan and Zara 2005"
         if (start.real() * end.real()).real() < T::zero() {
@@ -310,10 +311,10 @@ impl<T: Float> DualQuaternion<T> {
 
     pub fn is_normalized(&self) -> bool {
         if self.normalized {
-            return true;
+            true
         } else {
             if nearly_zero(self.real().norm2()) {
-                return true;
+                return true
             }
             let check1 = nearly_equal(self.real().norm2(), T::one(), T::epsilon());
             let dual_norm = self.dual() / self.real().norm2();
@@ -321,7 +322,7 @@ impl<T: Float> DualQuaternion<T> {
                          nearly_equal(dual_norm.imag()[0], self.dual().imag()[0], T::epsilon()) &&
                          nearly_equal(dual_norm.imag()[1], self.dual().imag()[1], T::epsilon()) &&
                          nearly_equal(dual_norm.imag()[2], self.dual().imag()[2], T::epsilon());
-            return check1 && check2;
+            check1 && check2
         }
     }
 
@@ -476,14 +477,6 @@ mod test_dual_quaternion {
     use crate::utils::{nearly_equal, nearly_zero, compare_vecs, compare_dual_quaternions};
     use crate::transformations::{homogeneous_from_quaternion, euler_to_rotation};
     const EPS: f32 = 1e-4;
-
-    #[test]
-    fn basic_dual_quaternion_tests() {
-        let dq1 = DualQuaternion::new_from(0.7071067811, 0.7071067811, 0.0, 0.0, -3.535533905, 3.535533905, 1.767766952, -1.767766952);
-        let dq2 = DualQuaternion::new_from_vecs(&V4::new_from(0.7071067811, 0.7071067811, 0.0, 0.0), &V4::new_from(-3.535533905, 3.535533905, 1.767766952, -1.767766952));
-
-        assert!(compare_dual_quaternions(dq1, dq2, EPS))
-    }
 
     #[test]
     fn unity_product_dual_quaternion_test() {

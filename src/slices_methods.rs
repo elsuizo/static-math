@@ -46,9 +46,9 @@ pub fn find_max_min<T: core::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
     let mut max_pos: usize = 0;
     let mut min_pos: usize = 0;
 
-    for index in 1..slice.len() {
-        if slice[index] < *min { min = &slice[index]; min_pos = index;}
-        if slice[index] > *max { max = &slice[index]; max_pos = index;}
+    for (index, element) in slice.iter().enumerate().skip(1) {
+        if element < min { min = element; min_pos = index; }
+        if element > max { max = element; max_pos = index; }
     }
 
     MaxMin{max: (*max, max_pos), min: (*min, min_pos)}

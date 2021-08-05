@@ -407,12 +407,12 @@ pub fn matrix_exponential<T: Float>(so3: &M33<T>) -> M33<T> {
     let omega_theta = skew_to_vec(so3);
     let one = T::one();
     if nearly_zero(omega_theta.norm2()) {
-        return M33::identity();
+        M33::identity()
     } else {
         let theta = axis_angle(&omega_theta).1;
         let omega = *so3 / theta;
         let (s, c) = theta.sin_cos();
-        return M33::identity() + omega * s + omega * omega * (one - c);
+        M33::identity() + omega * s + omega * omega * (one - c)
     }
 }
 
@@ -531,7 +531,7 @@ pub fn axis_angle6<T: Float>(exp: &V6<T>) -> (V6<T>, T) {
         let theta = norm2(&exp[3..6]);
         return (*exp / theta, theta)
     }
-    return (*exp / theta, theta)
+    (*exp / theta, theta)
 }
 
 /// Computes the matrix logarithm of a homogeneous transformation matrix

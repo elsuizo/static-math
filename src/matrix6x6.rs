@@ -930,8 +930,8 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M66<T> {
             let mut q: [V6<T>; 6] = *M66::zeros().get_cols();
             for i in 0..q.len() {
                 let mut q_tilde = cols[i];
-                for k in 0..i {
-                    q_tilde -= q[k] * project_x_over_y(&*cols[i], &*q[k]);
+                for elem in q.iter().take(i) {
+                    q_tilde -= *elem * project_x_over_y(&*cols[i], &**elem);
                 }
                 normalize(&mut *q_tilde);
                 q[i] = q_tilde;
@@ -1407,64 +1407,29 @@ impl<T: Num + Copy + Signed> Neg for M66<T> {
 impl<T: Num + Copy> Mul<V6<T>> for M66<T> {
     type Output = V6<T>;
 
+    #[inline]
     fn mul(self, rhs: V6<T>) -> V6<T> {
 
-        let a_00 = self[(0, 0)];
-        let a_01 = self[(0, 1)];
-        let a_02 = self[(0, 2)];
-        let a_03 = self[(0, 3)];
-        let a_04 = self[(0, 4)];
-        let a_05 = self[(0, 5)];
-        let a_10 = self[(1, 0)];
-        let a_11 = self[(1, 1)];
-        let a_12 = self[(1, 2)];
-        let a_13 = self[(1, 3)];
-        let a_14 = self[(1, 4)];
-        let a_15 = self[(1, 5)];
-        let a_20 = self[(2, 0)];
-        let a_21 = self[(2, 1)];
-        let a_22 = self[(2, 2)];
-        let a_23 = self[(2, 3)];
-        let a_24 = self[(2, 4)];
-        let a_25 = self[(2, 5)];
-        let a_30 = self[(3, 0)];
-        let a_31 = self[(3, 1)];
-        let a_32 = self[(3, 2)];
-        let a_33 = self[(3, 3)];
-        let a_34 = self[(3, 4)];
-        let a_35 = self[(3, 5)];
-        let a_40 = self[(4, 0)];
-        let a_41 = self[(4, 1)];
-        let a_42 = self[(4, 2)];
-        let a_43 = self[(4, 3)];
-        let a_44 = self[(4, 4)];
-        let a_45 = self[(4, 5)];
-        let a_50 = self[(5, 0)];
-        let a_51 = self[(5, 1)];
-        let a_52 = self[(5, 2)];
-        let a_53 = self[(5, 3)];
-        let a_54 = self[(5, 4)];
-        let a_55 = self[(5, 5)];
+        let rhs_0 = rhs[0];
+        let rhs_1 = rhs[1];
+        let rhs_2 = rhs[2];
+        let rhs_3 = rhs[3];
+        let rhs_4 = rhs[4];
+        let rhs_5 = rhs[5];
 
-        let a = rhs[0];
-        let b = rhs[1];
-        let c = rhs[2];
-        let d = rhs[3];
-        let e = rhs[4];
-        let f = rhs[5];
+        let v0 = self[(0, 0)] * rhs_0 + self[(0, 1)] * rhs_1 + self[(0, 2)] * rhs_2 + self[(0, 3)] * rhs_3 + self[(0, 4)] * rhs_4 + self[(0, 5)] * rhs_5;
+        let v1 = self[(1, 0)] * rhs_0 + self[(1, 1)] * rhs_1 + self[(1, 2)] * rhs_2 + self[(1, 3)] * rhs_3 + self[(1, 4)] * rhs_4 + self[(1, 5)] * rhs_5;
+        let v2 = self[(2, 0)] * rhs_0 + self[(2, 1)] * rhs_1 + self[(2, 2)] * rhs_2 + self[(2, 3)] * rhs_3 + self[(2, 4)] * rhs_4 + self[(2, 5)] * rhs_5;
+        let v3 = self[(3, 0)] * rhs_0 + self[(3, 1)] * rhs_1 + self[(3, 2)] * rhs_2 + self[(3, 3)] * rhs_3 + self[(3, 4)] * rhs_4 + self[(3, 5)] * rhs_5;
+        let v4 = self[(4, 0)] * rhs_0 + self[(4, 1)] * rhs_1 + self[(4, 2)] * rhs_2 + self[(4, 3)] * rhs_3 + self[(4, 4)] * rhs_4 + self[(4, 5)] * rhs_5;
+        let v5 = self[(5, 0)] * rhs_0 + self[(5, 1)] * rhs_1 + self[(5, 2)] * rhs_2 + self[(5, 3)] * rhs_3 + self[(5, 4)] * rhs_4 + self[(5, 5)] * rhs_5;
 
-        let v0 = a_00 * a + a_01 * b + a_02 * c + a_03 * d + a_04 * e + a_05 * f;
-        let v1 = a_10 * a + a_11 * b + a_12 * c + a_13 * d + a_14 * e + a_15 * f;
-        let v2 = a_20 * a + a_21 * b + a_22 * c + a_23 * d + a_24 * e + a_25 * f;
-        let v3 = a_30 * a + a_31 * b + a_32 * c + a_33 * d + a_34 * e + a_35 * f;
-        let v4 = a_40 * a + a_41 * b + a_42 * c + a_43 * d + a_44 * e + a_45 * f;
-        let v5 = a_50 * a + a_51 * b + a_52 * c + a_53 * d + a_54 * e + a_55 * f;
-
-        V6::new([v0, v1, v2, v3, v4, v5])
+        V6::new_from(v0, v1, v2, v3, v4, v5)
     }
 
 }
 
+// M66 * M66
 impl<T: Num + Copy> Mul for M66<T> {
     type Output = Self;
 
@@ -1808,6 +1773,7 @@ impl<T: Num + Copy> Zero for M66<T> {
 
 impl<T: Num + Copy> One for M66<T> {
     /// Create an identity matrix
+    #[inline]
     fn one() -> M66<T> {
         let one = T::one();
         let zero = T::zero();
@@ -1884,9 +1850,10 @@ macro_rules! m66_new {
 //-------------------------------------------------------------------------
 impl<T: Num + fmt::Display> fmt::Display for M66<T> {
     fn fmt(&self, dest: &mut fmt::Formatter) -> fmt::Result {
-        write!(
+        println!();
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|",
             self[(0, 0)],
             self[(0, 1)],
             self[(0, 2)],
@@ -1894,9 +1861,9 @@ impl<T: Num + fmt::Display> fmt::Display for M66<T> {
             self[(0, 4)],
             self[(0, 5)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|",
             self[(1, 0)],
             self[(1, 1)],
             self[(1, 2)],
@@ -1904,9 +1871,9 @@ impl<T: Num + fmt::Display> fmt::Display for M66<T> {
             self[(1, 4)],
             self[(1, 5)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|",
             self[(2, 0)],
             self[(2, 1)],
             self[(2, 2)],
@@ -1914,9 +1881,9 @@ impl<T: Num + fmt::Display> fmt::Display for M66<T> {
             self[(2, 4)],
             self[(2, 5)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|",
             self[(3, 0)],
             self[(3, 1)],
             self[(3, 2)],
@@ -1924,9 +1891,9 @@ impl<T: Num + fmt::Display> fmt::Display for M66<T> {
             self[(3, 4)],
             self[(3, 5)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|",
             self[(4, 0)],
             self[(4, 1)],
             self[(4, 2)],
@@ -1934,9 +1901,9 @@ impl<T: Num + fmt::Display> fmt::Display for M66<T> {
             self[(4, 4)],
             self[(4, 5)]
         )?;
-        write!(
+        writeln!(
             dest,
-            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|\n",
+            "|{0:<7.2} {1:^7.2} {2:^7.2} {3:^7.2} {4:^7.2} {5:>7.2}|",
             self[(5, 0)],
             self[(5, 1)],
             self[(5, 2)],

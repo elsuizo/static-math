@@ -62,6 +62,7 @@ pub use matrix5x5::M55;
 pub use matrix6x6::M66;
 pub use vector2::V2;
 pub use vector3::V3;
+// pub use vector3::X_AXIS;
 pub use vector4::V4;
 pub use vector5::V5;
 pub use vector6::V6;

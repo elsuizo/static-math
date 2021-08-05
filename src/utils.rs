@@ -56,6 +56,7 @@ pub fn nearly_equal<T: Float>(a: T, b: T, epsilon: T) -> bool {
     }
 }
 
+#[inline(always)]
 pub fn nearly_zero<T: Float>(a: T) -> bool {
     nearly_equal(a, T::zero(), T::epsilon())
 }
@@ -75,23 +76,13 @@ pub fn compare_floats<T: Float>(num1: T, num2: T, tol: T) -> bool {
 /// utility function to verify if a Matrix is a propper rotation matrix
 pub fn is_rotation<T: Float + core::iter::Sum>(r: M33<T>) -> bool {
     let r2 = r * r;
-    if nearly_equal(r.det(), T::one(), T::epsilon())
-        && nearly_equal(r2.det(), T::one(), T::epsilon())
-    {
-        true
-    } else {
-        false
-    }
+    nearly_equal(r.det(), T::one(), T::epsilon()) && nearly_equal(r2.det(), T::one(), T::epsilon())
 }
 
 pub fn is_rotation_h<T: Float + core::iter::Sum>(r: M44<T>) -> bool {
     let r2 = r * r;
     let eps = T::from(1e-6).unwrap();
-    if nearly_equal(r.det(), T::one(), eps) && nearly_equal(r2.det(), T::one(), eps) {
-        true
-    } else {
-        false
-    }
+    nearly_equal(r.det(), T::one(), eps) && nearly_equal(r2.det(), T::one(), eps)
 }
 
 pub fn compare_dual_quaternions<T: Float>(

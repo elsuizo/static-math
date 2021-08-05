@@ -51,8 +51,8 @@ impl<T> V6<T> {
     }
 
     /// create a new V6 from raw numbers
-    pub const fn new_from(a: T, b: T, c: T, d: T, e: T, f: T) -> Self {
-        Self::new([a, b, c, d, e, f])
+    pub const fn new_from(num1: T, num2: T, num3: T, num4: T, num5: T, num6: T) -> Self {
+        Self::new([num1, num2, num3, num4, num5, num6])
     }
 }
 

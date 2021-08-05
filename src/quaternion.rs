@@ -432,9 +432,11 @@ impl<T: Float> Quaternion<T> {
 
     /// Spherical Linear Interpolation between two Quaternions
     /// this implementation follow this implementations:
-    /// https://www.mrpt.org/tutorials/programming/maths-and-geometry/slerp-interpolation/
+    ///
+    /// <https://www.mrpt.org/tutorials/programming/maths-and-geometry/slerp-interpolation/>
     ///
     /// Function arguments:
+    ///
     /// `a`: Quaternion(normalized)
     ///
     /// `b`: Quaternion(normalized)
@@ -481,12 +483,11 @@ impl<T: Float> Quaternion<T> {
         result
     }
 
-    /// Brief.
-    ///
-    /// calculate the instantaneous Quaternion derivative representing a Quaternion rotating at
+    /// Calculate the instantaneous Quaternion derivative representing a Quaternion rotating at
     /// rate given by a vector rate
     ///
     /// Function arguments:
+    ///
     /// `rate`: V3<Float>
     ///
     pub fn derivative(&self, rate: &V3<T>) -> Self {

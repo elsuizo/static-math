@@ -60,6 +60,10 @@ pub enum EulerSeq {
 //                        transformations
 //-------------------------------------------------------------------------
 /// Compute rotation matrix from a angle in radians
+///
+/// Input:
+///
+/// `angle` - angle of rotation in radians
 pub fn rot2<T: Float>(angle: T) -> M22<T> {
     let (s, c) = angle.sin_cos();
     m22_new!(c, -s;
@@ -68,9 +72,9 @@ pub fn rot2<T: Float>(angle: T) -> M22<T> {
 
 /// Compute the rotation around the `x` axis(in cartesian coordinates)
 ///
-/// description
+/// Input:
 ///
-/// * `angle` - angle of rotation in radians
+/// `angle` - angle of rotation in radians
 ///
 pub fn rotx<T: Float>(angle: T) -> M33<T> {
     let one = T::one();
@@ -83,9 +87,9 @@ pub fn rotx<T: Float>(angle: T) -> M33<T> {
 
 /// Compute the rotation around the `y` axis(in cartesian coordinates)
 ///
-/// Description
+/// Input:
 ///
-/// * `angle` - Angle of rotation in radians
+/// `angle` - Angle of rotation in radians
 ///
 pub fn roty<T: Float>(angle: T) -> M33<T> {
     let one = T::one();
@@ -98,9 +102,9 @@ pub fn roty<T: Float>(angle: T) -> M33<T> {
 
 /// Compute the rotation around the `z` axis(in cartesian coordinates)
 ///
-/// Description
+/// Input:
 ///
-/// * `angle` - Angle of rotation in radians
+/// `angle` - Angle of rotation in radians
 ///
 pub fn rotz<T: Float>(angle: T) -> M33<T> {
     let one = T::one();
@@ -122,10 +126,11 @@ pub fn rotz<T: Float>(angle: T) -> M33<T> {
 ///
 /// roll: third euler angle in radians (Float number)
 ///
-/// s: `Option<EulerSeq>:` Optional Euler sequence if is None compute ZYX
+/// `s`: `Option<EulerSeq>:` Optional Euler sequence if is None compute ZYX
 ///
 /// Output:
-/// r: Rotation matrix(`M33<Float>`)
+///
+/// `r`: Rotation matrix(`M33<Float>`)
 ///
 pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq>) -> M33<T> {
     match s {
@@ -149,7 +154,7 @@ pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq
 ///
 /// Function arguments:
 ///
-/// `r`: a reference to a Rotation matrix(M33<Float>)
+/// `r`: a reference to a Rotation matrix(`M33<Float>`)
 ///
 /// Output:
 ///
@@ -182,9 +187,9 @@ pub fn rotation_to_euler<T: Float + FloatConst>(r: &M33<T>) -> (T, T, T) {
 ///
 /// Function arguments:
 ///
-/// `r`: a reference to a M33<Float> (Rotation part)
+/// `r`: a reference to a `M33<Float>` (Rotation part)
 ///
-/// `p`: a reference to a  V3<Float> (Translation part)
+/// `p`: a reference to a  `V3<Float>` (Translation part)
 ///
 ///
 pub fn homogeneous_from_rotation<T: Float>(r: &M33<T>, p: &V3<T>) -> M44<T> {
@@ -217,9 +222,9 @@ pub fn se3_get_parts<T: Float>(se3: &M44<T>) -> (M33<T>, V3<T>) {
 ///
 /// Function arguments:
 ///
-/// q: a reference to a Quaternion<Float> (Rotation part)
+/// `q`: a reference to a `Quaternion<Float>` (Rotation part)
 ///
-/// p: a reference to a V3<Float> (Translation part)
+/// `p`: a reference to a `V3<Float>` (Translation part)
 ///
 ///
 pub fn homogeneous_from_quaternion<T: Float>(q: &Quaternion<T>, p: &V3<T>) -> M44<T> {
@@ -230,7 +235,8 @@ pub fn homogeneous_from_quaternion<T: Float>(q: &Quaternion<T>, p: &V3<T>) -> M4
 /// translation (expresed by a vector)
 ///
 /// Function arguments:
-/// r: Homogeneus transformation reference (&M44<Float>)
+///
+/// `r`: Homogeneus transformation reference (`&M44<Float>`)
 ///
 pub fn get_parts<T: Float + FloatConst>(r: &M44<T>) -> (Quaternion<T>, V3<T>) {
     let rot = m33_new!(r[(0, 0)], r[(0, 1)], r[(0, 2)];
@@ -345,6 +351,14 @@ pub fn skew_from_vec_aug<T: Float>(v: V3<T>) -> M33<T> {
 }
 
 /// Create augmented skew-symmetric matrix
+///
+/// Input:
+///
+/// `v`: vector(`V6<Float>`)
+///
+/// Output:
+///
+/// skew-symetric augmented matrix(`M44<Float>`)
 pub fn skew_v6<T: Float>(v: V6<T>) -> M44<T> {
     let zero = T::zero();
     m44_new!( zero, -v[5],  v[4], v[0];

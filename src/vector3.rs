@@ -296,9 +296,14 @@ impl<T: Num + fmt::Display> fmt::Display for V3<T> {
 //-------------------------------------------------------------------------
 //                        constants
 //-------------------------------------------------------------------------
-pub const X_AXIS: V3<f32> = V3::new_from(1.0, 0.0, 0.0);
-pub const Y_AXIS: V3<f32> = V3::new_from(0.0, 1.0, 0.0);
-pub const Z_AXIS: V3<f32> = V3::new_from(0.0, 0.0, 1.0);
+/// constant `x` axis
+pub const X_AXIS: V3<f32>   = V3::new_from(1.0, 0.0, 0.0);
+/// constant `y` axis
+pub const Y_AXIS: V3<f32>   = V3::new_from(0.0, 1.0, 0.0);
+/// constant `z` axis
+pub const Z_AXIS: V3<f32>   = V3::new_from(0.0, 0.0, 1.0);
+/// constant `V3` zeros
+pub const V3_ZEROS: V3<f32> = V3::new_from(0.0, 0.0, 0.0);
 //-------------------------------------------------------------------------
 //                        tests
 //-------------------------------------------------------------------------

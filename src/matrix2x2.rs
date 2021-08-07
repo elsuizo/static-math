@@ -433,8 +433,8 @@ impl<T: Num + fmt::Display> fmt::Display for M22<T> {
 //                        constants
 //-------------------------------------------------------------------------
 // TODO(elsuizo): no se si me sirve esto pero lo podriamos dejar
-pub const M22_ZEROS: M22<f32> = M22::new([[0.0, 0.0], [0.0, 0.0]]);
-pub const M22_IDENT: M22<f32> = M22::new([[1.0, 0.0], [0.0, 1.0]]);
+pub const M22_ZEROS: M22<f32> = m22_new!(0.0, 0.0; 0.0, 0.0);
+pub const M22_IDENT: M22<f32> = m22_new!(1.0, 0.0; 0.0, 1.0);
 //-------------------------------------------------------------------------
 //                        testing
 //-------------------------------------------------------------------------

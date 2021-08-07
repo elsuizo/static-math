@@ -59,7 +59,6 @@ impl<T> M66<T> {
     }
 }
 
-
 impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M66<T> {
     #[inline]
     fn rows(&self) -> usize {
@@ -1595,6 +1594,7 @@ impl<T: Num + Copy> M66<T> {
         }
         result
     }
+
 
     pub fn new_from_vecs(cols: V6<V6<T>>) -> Self {
         let mut result = Self::zeros();

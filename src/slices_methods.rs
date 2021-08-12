@@ -28,8 +28,8 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
-use num::{Num, Float, Signed};
 use crate::utils::nearly_equal;
+use num::{Float, Num, Signed};
 
 // TODO(elsuizo:2020-08-31): implement the Display trait for this type
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -47,11 +47,20 @@ pub fn find_max_min<T: core::cmp::PartialOrd + Copy>(slice: &[T]) -> MaxMin<T> {
     let mut min_pos: usize = 0;
 
     for (index, element) in slice.iter().enumerate().skip(1) {
-        if element < min { min = element; min_pos = index; }
-        if element > max { max = element; max_pos = index; }
+        if element < min {
+            min = element;
+            min_pos = index;
+        }
+        if element > max {
+            max = element;
+            max_pos = index;
+        }
     }
 
-    MaxMin{max: (*max, max_pos), min: (*min, min_pos)}
+    MaxMin {
+        max: (*max, max_pos),
+        min: (*min, min_pos),
+    }
 }
 
 /// calculate the inf-norm of the slice
@@ -72,6 +81,7 @@ pub fn norm2<T: Float>(slice: &[T]) -> T {
 
 /// calculate the dot product of two slices
 pub fn dot<T: Num + Copy + core::iter::Sum>(slice1: &[T], slice2: &[T]) -> T {
+    assert!(slice1.len() == slice2.len());
     slice1.iter().zip(slice2).map(|(&a, &b)| a * b).sum()
 }
 
@@ -104,8 +114,8 @@ pub fn check_elements<T: Float>(v: &[T], tol: T) -> bool {
 #[cfg(test)]
 mod test_slides_methods {
 
-    use crate::vector3::V3;
     use crate::slices_methods::*;
+    use crate::vector3::V3;
 
     #[test]
     fn find_max_min_test() {
@@ -113,21 +123,23 @@ mod test_slides_methods {
 
         let result = find_max_min(&*v);
 
-        let expected = MaxMin{max: (37, 2), min: (1, 0)};
+        let expected = MaxMin {
+            max: (37, 2),
+            min: (1, 0),
+        };
 
         assert_eq!(result, expected);
-
     }
 
     #[test]
     fn dot_tests() {
-       let v1 = V3::new([1, 1, 1]);
-       let v2 = V3::new([1, 1, 3]);
+        let v1 = V3::new([1, 1, 1]);
+        let v2 = V3::new([1, 1, 3]);
 
-       let result = dot(&*v1, &*v2);
-       let expected = 5;
+        let result = dot(&*v1, &*v2);
+        let expected = 5;
 
-       assert_eq!(result, expected);
+        assert_eq!(result, expected);
     }
 
     #[test]

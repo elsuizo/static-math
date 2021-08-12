@@ -267,7 +267,6 @@ impl<T: Float + core::iter::Sum> Quaternion<T> {
 }
 
 impl<T: Float> Quaternion<T> {
-
     /// the euclidean norm of the Quaternion
     pub fn norm2(&self) -> T {
         self.dot(*self).sqrt()

@@ -30,12 +30,12 @@
 //-------------------------------------------------------------------------
 #![macro_use]
 use core::fmt;
-use core::ops::{Add, Mul, Div, Sub, SubAssign, AddAssign, Neg};
+use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 use core::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::traits::LinearAlgebra;
 use crate::utils::nearly_zero;
-use num::{Float, One, Zero, Num, Signed};
+use num::{Float, Num, One, Signed, Zero};
 
 use crate::slices_methods::*;
 use crate::vector3::*;
@@ -101,9 +101,9 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M33<T> {
     /// Calculate the determinant of the matrix
     #[inline(always)]
     fn det(&self) -> T {
-          self[(0, 0)] * (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)])
-        - self[(0, 1)] * (self[(1, 0)] * self[(2, 2)] - self[(1, 2)] * self[(2, 0)])
-        + self[(0, 2)] * (self[(1, 0)] * self[(2, 1)] - self[(1, 1)] * self[(2, 0)])
+        self[(0, 0)] * (self[(1, 1)] * self[(2, 2)] - self[(2, 1)] * self[(1, 2)])
+            - self[(0, 1)] * (self[(1, 0)] * self[(2, 2)] - self[(1, 2)] * self[(2, 0)])
+            + self[(0, 2)] * (self[(1, 0)] * self[(2, 1)] - self[(1, 1)] * self[(2, 0)])
     }
 
     /// Calculate the inverse
@@ -143,8 +143,8 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M33<T> {
                 q[i] = q_tilde;
             }
             let basis = V3::new_from(q[0], q[1], q[2]);
-            let q     = M33::new_from_vecs(basis);
-            let r     = q.transpose() * (*self);
+            let q = M33::new_from_vecs(basis);
+            let r = q.transpose() * (*self);
             Some((q, r))
         } else {
             None
@@ -229,7 +229,6 @@ impl<T: Num + Copy> M33<T> {
         result
     }
 
-
     /// Applies `f` of each element in the M33
     pub fn for_each(&self, f: impl Fn(T) -> T) -> Self {
         let mut result = Self::zeros();
@@ -240,11 +239,9 @@ impl<T: Num + Copy> M33<T> {
         }
         result
     }
-
 }
 
 impl<T: Num + Copy> M33<T> {
-
     /// get the rows of the matrix as a vectors
     pub fn get_rows(self) -> V3<V3<T>> {
         let mut r0 = V3::zeros();
@@ -344,7 +341,6 @@ impl<T: Num + Copy> Mul<V3<T>> for M33<T> {
 
     #[inline(always)]
     fn mul(self, rhs: V3<T>) -> V3<T> {
-
         let a_00 = self[(0, 0)];
         let a_01 = self[(0, 1)];
         let a_02 = self[(0, 2)];
@@ -358,9 +354,11 @@ impl<T: Num + Copy> Mul<V3<T>> for M33<T> {
         let v0 = rhs[0];
         let v1 = rhs[1];
         let v2 = rhs[2];
-        V3::new([a_00 * v0 + a_01 * v1 + a_02 * v2,
-                 a_10 * v0 + a_11 * v1 + a_12 * v2,
-                 a_20 * v0 + a_21 * v1 + a_22 * v2])
+        V3::new([
+            a_00 * v0 + a_01 * v1 + a_02 * v2,
+            a_10 * v0 + a_11 * v1 + a_12 * v2,
+            a_20 * v0 + a_21 * v1 + a_22 * v2,
+        ])
     }
 }
 
@@ -439,7 +437,6 @@ impl Mul<M33<f64>> for f64 {
         M33::new([[a_00, a_01, a_02], [a_10, a_11, a_12], [a_20, a_21, a_22]])
     }
 }
-
 
 // M3 * M3
 impl<T: Num + Copy> Mul for M33<T> {
@@ -531,6 +528,27 @@ impl<T> From<[[T; 3]; 3]> for M33<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        index rows
+//-------------------------------------------------------------------------
+impl<T> Index<usize> for M33<T> {
+    type Output = [T; 3];
+    #[inline(always)]
+    fn index(&self, index: usize) -> &[T; 3] {
+        &self.0[index]
+    }
+}
+
+impl<T> IndexMut<usize> for M33<T> {
+    #[inline(always)]
+    fn index_mut(&mut self, index: usize) -> &mut [T; 3] {
+        &mut self.0[index]
+    }
+}
+
+//-------------------------------------------------------------------------
+//                        index elements
+//-------------------------------------------------------------------------
 impl<T> Index<(usize, usize)> for M33<T> {
     type Output = T;
     #[inline(always)]
@@ -595,10 +613,10 @@ macro_rules! m33_new {
 
 #[cfg(test)]
 mod test_matrix3x3 {
-    use crate::traits::LinearAlgebra;
     use crate::matrix3x3::M33;
-    use crate::utils::nearly_equal;
+    use crate::traits::LinearAlgebra;
     use crate::utils::compare_vecs;
+    use crate::utils::nearly_equal;
     use crate::vector3::*;
 
     const EPS: f32 = 1e-8;
@@ -720,9 +738,7 @@ mod test_matrix3x3 {
 
     #[test]
     fn test_mul_m33_v3() {
-        let m = M33::new([[1.0,  1.0,  1.0],
-                          [3.0,  2.0,  1.0],
-                          [7.0,  3.0,  3.0],]);
+        let m = M33::new([[1.0, 1.0, 1.0], [3.0, 2.0, 1.0], [7.0, 3.0, 3.0]]);
         let v = V3::new([2.0, 7.0, 6.0]);
         let result = m * v;
         let expected = V3::new([15.0, 26.0, 53.0]);
@@ -864,5 +880,4 @@ mod test_matrix3x3 {
                                 7.0, 8.0, 9.0);
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));
     }
-
 }

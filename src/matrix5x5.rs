@@ -979,6 +979,9 @@ impl<T> From<[[T; 5]; 5]> for M55<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        index elements
+//-------------------------------------------------------------------------
 impl<T> Index<(usize, usize)> for M55<T> {
     type Output = T;
     #[inline(always)]
@@ -991,6 +994,24 @@ impl<T> IndexMut<(usize, usize)> for M55<T> {
     #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         &mut self.0[index.0][index.1]
+    }
+}
+
+//-------------------------------------------------------------------------
+//                        index rows
+//-------------------------------------------------------------------------
+impl<T> Index<usize> for M55<T> {
+    type Output = [T; 5];
+    #[inline(always)]
+    fn index(&self, index: usize) -> &[T; 5] {
+        &self.0[index]
+    }
+}
+
+impl<T> IndexMut<usize> for M55<T> {
+    #[inline(always)]
+    fn index_mut(&mut self, index: usize) -> &mut [T; 5] {
+        &mut self.0[index]
     }
 }
 

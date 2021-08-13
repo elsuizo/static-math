@@ -718,6 +718,9 @@ impl<T> From<[[T; 4]; 4]> for M44<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        index elements
+//-------------------------------------------------------------------------
 impl<T> Index<(usize, usize)> for M44<T> {
     type Output = T;
     #[inline(always)]
@@ -730,6 +733,24 @@ impl<T> IndexMut<(usize, usize)> for M44<T> {
     #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         &mut self.0[index.0][index.1]
+    }
+}
+
+//-------------------------------------------------------------------------
+//                        index rows
+//-------------------------------------------------------------------------
+impl<T> Index<usize> for M44<T> {
+    type Output = [T; 4];
+    #[inline(always)]
+    fn index(&self, index: usize) -> &[T; 4] {
+        &self.0[index]
+    }
+}
+
+impl<T> IndexMut<usize> for M44<T> {
+    #[inline(always)]
+    fn index_mut(&mut self, index: usize) -> &mut [T; 4] {
+        &mut self.0[index]
     }
 }
 

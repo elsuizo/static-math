@@ -1809,6 +1809,9 @@ impl<T> From<[[T; 6]; 6]> for M66<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        index elements
+//-------------------------------------------------------------------------
 impl<T> Index<(usize, usize)> for M66<T> {
     type Output = T;
     #[inline(always)]
@@ -1821,6 +1824,24 @@ impl<T> IndexMut<(usize, usize)> for M66<T> {
     #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T {
         &mut self.0[index.0][index.1]
+    }
+}
+
+//-------------------------------------------------------------------------
+//                        index rows
+//-------------------------------------------------------------------------
+impl<T> Index<usize> for M66<T> {
+    type Output = [T; 6];
+    #[inline(always)]
+    fn index(&self, index: usize) -> &[T; 6] {
+        &self.0[index]
+    }
+}
+
+impl<T> IndexMut<usize> for M66<T> {
+    #[inline(always)]
+    fn index_mut(&mut self, index: usize) -> &mut [T; 6] {
+        &mut self.0[index]
     }
 }
 

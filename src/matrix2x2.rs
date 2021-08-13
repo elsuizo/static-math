@@ -92,8 +92,12 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M22<T> {
 
     #[inline(always)]
     fn norm2(&self) -> T {
-        T::sqrt(self[(0, 0)] * self[(0, 0)] + self[(0, 1)] * self[(0, 1)] +
-                self[(1, 0)] * self[(1, 0)] + self[(1, 1)] * self[(1, 1)])
+        T::sqrt(
+            self[(0, 0)] * self[(0, 0)]
+                + self[(0, 1)] * self[(0, 1)]
+                + self[(1, 0)] * self[(1, 0)]
+                + self[(1, 1)] * self[(1, 1)],
+        )
     }
 
     #[inline(always)]
@@ -101,8 +105,10 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M22<T> {
         let det = self.det();
         if !nearly_zero(det) {
             let det_recip = det.recip();
-            Some(M22::new([[self[(1, 1)] * det_recip, -self[(0, 1)] * det_recip],
-                          [-self[(1, 0)] * det_recip, self[(0, 0)] * det_recip]]))
+            Some(M22::new([
+                [self[(1, 1)] * det_recip, -self[(0, 1)] * det_recip],
+                [-self[(1, 0)] * det_recip, self[(0, 0)] * det_recip],
+            ]))
         } else {
             None
         }
@@ -185,8 +191,10 @@ impl<T: Num + Copy> Mul<V2<T>> for M22<T> {
 
     #[inline(always)]
     fn mul(self, rhs: V2<T>) -> V2<T> {
-        V2::new_from(self[(0, 0)] * rhs[0] + self[(0, 1)] * rhs[1],
-                     self[(1, 0)] * rhs[0] + self[(1, 1)] * rhs[1])
+        V2::new_from(
+            self[(0, 0)] * rhs[0] + self[(0, 1)] * rhs[1],
+            self[(1, 0)] * rhs[0] + self[(1, 1)] * rhs[1],
+        )
     }
 }
 
@@ -196,8 +204,10 @@ impl<T: Num + Copy> Add for M22<T> {
 
     #[inline(always)]
     fn add(self, rhs: Self) -> Self {
-        Self::new([[self[(0, 0)] + rhs[(0, 0)], self[(0, 1)] + rhs[(0, 1)]],
-                   [self[(1, 0)] + rhs[(1, 0)], self[(1, 1)] + rhs[(1, 1)]]])
+        Self::new([
+            [self[(0, 0)] + rhs[(0, 0)], self[(0, 1)] + rhs[(0, 1)]],
+            [self[(1, 0)] + rhs[(1, 0)], self[(1, 1)] + rhs[(1, 1)]],
+        ])
     }
 }
 
@@ -215,8 +225,10 @@ impl<T: Num + Copy> Sub for M22<T> {
 
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self {
-        Self::new([[self[(0, 0)] - rhs[(0, 0)], self[(0, 1)] - rhs[(0, 1)]],
-                   [self[(1, 0)] - rhs[(1, 0)], self[(1, 1)] - rhs[(1, 1)]]])
+        Self::new([
+            [self[(0, 0)] - rhs[(0, 0)], self[(0, 1)] - rhs[(0, 1)]],
+            [self[(1, 0)] - rhs[(1, 0)], self[(1, 1)] - rhs[(1, 1)]],
+        ])
     }
 }
 
@@ -294,8 +306,10 @@ impl Mul<M22<f32>> for f32 {
 
     #[inline]
     fn mul(self, rhs: M22<f32>) -> M22<f32> {
-        M22::new([[rhs[(0, 0)] * self, rhs[(0, 1)] * self],
-                  [rhs[(1, 0)] * self, rhs[(1, 1)] * self]])
+        M22::new([
+            [rhs[(0, 0)] * self, rhs[(0, 1)] * self],
+            [rhs[(1, 0)] * self, rhs[(1, 1)] * self],
+        ])
     }
 }
 
@@ -305,8 +319,10 @@ impl<T: Num + Copy> Mul<T> for M22<T> {
 
     #[inline(always)]
     fn mul(self, rhs: T) -> M22<T> {
-        Self::new([[self[(0, 0)] * rhs, self[(0, 1)] * rhs],
-                   [self[(1, 0)] * rhs, self[(1, 1)] * rhs]])
+        Self::new([
+            [self[(0, 0)] * rhs, self[(0, 1)] * rhs],
+            [self[(1, 0)] * rhs, self[(1, 1)] * rhs],
+        ])
     }
 }
 
@@ -315,8 +331,10 @@ impl<T: Num + Copy> Div<T> for M22<T> {
     type Output = Self;
 
     fn div(self, rhs: T) -> Self::Output {
-        Self::new([[self[(0, 0)] / rhs, self[(0, 1)] / rhs],
-                   [self[(1, 0)] / rhs, self[(1, 1)] / rhs]])
+        Self::new([
+            [self[(0, 0)] / rhs, self[(0, 1)] / rhs],
+            [self[(1, 0)] / rhs, self[(1, 1)] / rhs],
+        ])
     }
 }
 
@@ -336,8 +354,10 @@ impl<T: Num + Copy> Mul for M22<T> {
         let c2 = rhs[(1, 0)];
         let d2 = rhs[(1, 1)];
 
-        Self::new([[a1 * a2 + b1 * c2, a1 * b2 + b1 * d2],
-                   [c1 * a2 + d1 * c2, c1 * b2 + d1 * d2]])
+        Self::new([
+            [a1 * a2 + b1 * c2, a1 * b2 + b1 * d2],
+            [c1 * a2 + d1 * c2, c1 * b2 + d1 * d2],
+        ])
     }
 }
 
@@ -347,8 +367,10 @@ impl<T: Num + Copy + Signed> Neg for M22<T> {
 
     #[inline(always)]
     fn neg(self) -> Self {
-        Self::new([[-self[(0, 0)], -self[(0, 1)]],
-                   [-self[(1, 0)], -self[(1, 1)]]])
+        Self::new([
+            [-self[(0, 0)], -self[(0, 1)]],
+            [-self[(1, 0)], -self[(1, 1)]],
+        ])
     }
 }
 
@@ -393,6 +415,27 @@ impl<T> From<[[T; 2]; 2]> for M22<T> {
     }
 }
 
+//-------------------------------------------------------------------------
+//                        index rows
+//-------------------------------------------------------------------------
+impl<T> Index<usize> for M22<T> {
+    type Output = [T; 2];
+    #[inline(always)]
+    fn index(&self, index: usize) -> &[T; 2] {
+        &self.0[index]
+    }
+}
+
+impl<T> IndexMut<usize> for M22<T> {
+    #[inline(always)]
+    fn index_mut(&mut self, index: usize) -> &mut [T; 2] {
+        &mut self.0[index]
+    }
+}
+
+//-------------------------------------------------------------------------
+//                        index elements
+//-------------------------------------------------------------------------
 impl<T> Index<(usize, usize)> for M22<T> {
     type Output = T;
     #[inline(always)]

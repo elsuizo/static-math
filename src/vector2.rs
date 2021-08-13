@@ -29,13 +29,13 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
 use core::fmt;
-use num::{Float, Zero, Num, Signed};
+use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 use core::ops::{Deref, DerefMut};
-use core::ops::{Add, Sub, Div, Mul, SubAssign, AddAssign, Neg};
+use num::{Float, Num, Signed, Zero};
 
 use crate::errors::VectorErrors;
-use crate::slices_methods::{norm_inf, norm_l};
 use crate::matrix2x2::*;
+use crate::slices_methods::{norm_inf, norm_l};
 
 //-------------------------------------------------------------------------
 //                        code
@@ -66,7 +66,6 @@ impl<T: Num + Copy> V2<T> {
         let one = T::one();
         Self::new([one, one])
     }
-
 }
 
 impl<T: Num + Copy + core::cmp::PartialOrd> V2<T> {
@@ -91,7 +90,6 @@ impl<T: Num + Copy + Signed> Neg for V2<T> {
 }
 
 impl<T: Float> V2<T> {
-
     /// calculate the euclidean norm of the V2
     pub fn norm2(&self) -> T {
         T::sqrt(self[0] * self[0] + self[1] * self[1])
@@ -169,8 +167,10 @@ impl<T: Num + Copy> Mul<M22<T>> for V2<T> {
 
     #[inline]
     fn mul(self, rhs: M22<T>) -> V2<T> {
-        Self::new_from(self[0] * rhs[(0, 0)] + self[1] * rhs[(1, 0)],
-                     self[0] * rhs[(0, 1)] + self[1] * rhs[(1, 1)])
+        Self::new_from(
+            self[0] * rhs[(0, 0)] + self[1] * rhs[(1, 0)],
+            self[0] * rhs[(0, 1)] + self[1] * rhs[(1, 1)],
+        )
     }
 }
 
@@ -235,6 +235,11 @@ impl<T> DerefMut for V2<T> {
     }
 }
 
+impl<T> From<[T; 2]> for V2<T> {
+    fn from(data: [T; 2]) -> V2<T> {
+        V2(data)
+    }
+}
 //-------------------------------------------------------------------------
 //                        Display impl
 //-------------------------------------------------------------------------
@@ -330,7 +335,6 @@ mod vector2_test {
             &result[..],
             &expected[..]
         );
-
     }
 
     #[test]

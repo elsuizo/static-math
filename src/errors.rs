@@ -44,4 +44,3 @@ pub enum VectorErrors {
 pub enum EigenvalueError {
     MaxIterations,
 }
-

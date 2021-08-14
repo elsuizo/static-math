@@ -314,6 +314,63 @@ impl<T: Float + core::iter::Sum> LinearAlgebra<T> for M55<T> {
     }
 }
 
+impl<T: Float> M55<T> {
+    /// compute the LU factorization
+    pub fn lu(&self) -> (Self, T, V5<usize>) {
+        const N: usize = 5;
+        let tiny = T::from(1e-40).unwrap();
+        let mut indx: V5<usize> = V5::zeros();
+        let mut lu = *self;
+        let mut vv = V5::zeros();
+        let mut d = T::one();
+        let mut big = T::zero();
+        for i in 0..N {
+            for j in 0..N {
+                let temp = T::abs(lu[(i, j)]);
+                if temp > big {
+                    big = temp;
+                }
+            }
+            if big == T::zero() {
+                panic!("the matrix should be non zero")
+            }
+            vv[i] = big.recip();
+        }
+        for k in 0..N {
+            big = T::zero();
+            let mut i_max = k;
+            for i in k..N {
+                let temp = vv[i] * T::abs(lu[(i, k)]);
+                if temp > big {
+                    big = temp;
+                    i_max = i;
+                }
+            }
+            if k != i_max {
+                for j in 0..N {
+                    let temp = lu[(i_max, j)];
+                    lu[(i_max, j)] = lu[(k, j)];
+                    lu[(k, j)] = temp;
+                }
+                d = -d;
+                vv[i_max] = vv[k];
+            }
+            indx[k] = i_max;
+            if lu[(k, k)] == T::zero() {
+                lu[(k, k)] = tiny;
+            }
+            for i in (k + 1)..N {
+                lu[(i, k)] = lu[(i, k)] / lu[(k, k)];
+                for j in (k + 1)..N {
+                    lu[(i, j)] = lu[(i, j)] - lu[(i, k)] * lu[(k, j)];
+                }
+            }
+        }
+        let det = d * lu[(0, 0)] * lu[(1, 1)] * lu[(2, 2)] * lu[(3, 3)] * lu[(4, 4)];
+        // return
+        (lu, det, indx)
+    }
+}
 
 impl<T: Num + Copy> Add for M55<T> {
     type Output = Self;

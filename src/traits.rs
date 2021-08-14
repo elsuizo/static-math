@@ -64,4 +64,5 @@ pub trait LinearAlgebra<T> {
     fn qr(&self) -> Option<(Self, Self)>
     where
         Self: Sized;
+
 }

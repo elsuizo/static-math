@@ -11,6 +11,8 @@ stack memory.
 
 - We use a tuple to indexing elements: `m[(i, j)]` allowing nice interface with the `match` feature of Rust
 
+- You could index the rows of the matrix with simply: `m[i]`
+
 - No `unsafe` code :ballot_box_with_check:
 
 - Could be optimize more with the use of SIMD

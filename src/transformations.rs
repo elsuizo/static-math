@@ -28,20 +28,20 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //-------------------------------------------------------------------------
+use crate::m44_new;
 use crate::matrix2x2::M22;
 use crate::matrix3x3::M33;
 use crate::matrix4x4::M44;
 use crate::matrix6x6::M66;
-use crate::m44_new;
+use crate::quaternion::Quaternion;
+use crate::slices_methods::norm2;
+use crate::traits::LinearAlgebra;
+use crate::utils::{nearly_equal, nearly_zero};
 use crate::vector3::V3;
 use crate::vector4::V4;
 use crate::vector6::V6;
-use crate::quaternion::Quaternion;
-use crate::traits::LinearAlgebra;
-use crate::utils::{nearly_zero, nearly_equal};
-use num::{Float, Signed, Zero};
 use num::traits::FloatConst;
-use crate::slices_methods::norm2;
+use num::{Float, Signed, Zero};
 
 /// Euler sequences conventions of rotations
 pub enum EulerSeq {
@@ -54,7 +54,7 @@ pub enum EulerSeq {
     YZX,
     YZY,
     ZXY,
-    ZXZ
+    ZXZ,
 }
 //-------------------------------------------------------------------------
 //                        transformations
@@ -144,7 +144,7 @@ pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq
         Some(EulerSeq::YZY) => roty(yay) * rotz(pitch) * roty(roll),
         Some(EulerSeq::ZXY) => rotz(yay) * rotx(pitch) * roty(roll),
         Some(EulerSeq::ZXZ) => rotz(yay) * rotx(pitch) * rotz(roll),
-        None                => rotz(yay) * roty(pitch) * rotx(roll)
+        None => rotz(yay) * roty(pitch) * rotx(roll),
     }
 }
 
@@ -161,23 +161,26 @@ pub fn euler_to_rotation<T: Float>(yay: T, pitch: T, roll: T, s: Option<EulerSeq
 /// Euler angles: (yay, pitch, roll)
 ///
 pub fn rotation_to_euler<T: Float + FloatConst>(r: &M33<T>) -> (T, T, T) {
-    let one   = T::one();
-    let pitch = T::atan2(-r[(2, 0)], (r[(0, 0)] * r[(0, 0)] + r[(1, 0)] * r[(1, 0)]).sqrt());
+    let one = T::one();
+    let pitch = T::atan2(
+        -r[(2, 0)],
+        (r[(0, 0)] * r[(0, 0)] + r[(1, 0)] * r[(1, 0)]).sqrt(),
+    );
 
     // singularity
     if nearly_equal(pitch, -one * T::FRAC_PI_2(), T::epsilon()) {
-        let yay  = T::atan2(-r[(1, 2)], -r[(0, 2)]);
+        let yay = T::atan2(-r[(1, 2)], -r[(0, 2)]);
         let roll = T::zero();
         (yay, pitch, roll)
     // singularity
     } else if nearly_equal(pitch, T::FRAC_PI_2(), T::epsilon()) {
-        let yay  = T::atan2(r[(1, 2)], r[(0, 2)]);
+        let yay = T::atan2(r[(1, 2)], r[(0, 2)]);
         let roll = T::zero();
         (yay, pitch, roll)
     // normal case
     } else {
-        let yay   = T::atan2(r[(1, 0)], r[(0, 0)]);
-        let roll  = T::atan2(r[(2, 1)], r[(2, 2)]);
+        let yay = T::atan2(r[(1, 0)], r[(0, 0)]);
+        let roll = T::atan2(r[(2, 1)], r[(2, 2)]);
         (yay, pitch, roll)
     }
 }
@@ -194,7 +197,7 @@ pub fn rotation_to_euler<T: Float + FloatConst>(r: &M33<T>) -> (T, T, T) {
 ///
 pub fn homogeneous_from_rotation<T: Float>(r: &M33<T>, p: &V3<T>) -> M44<T> {
     let zero = T::zero();
-    let one  = T::one();
+    let one = T::one();
     m44_new!(r[(0, 0)], r[(0, 1)], r[(0, 2)], p[0];
              r[(1, 0)], r[(1, 1)], r[(1, 2)], p[1];
              r[(2, 0)], r[(2, 1)], r[(2, 2)], p[2];
@@ -275,7 +278,7 @@ pub fn get_parts_raw<T: Float>(r: &M44<T>) -> (M33<T>, V3<T>) {
 pub fn homogeneous_inverse<T: Float + core::iter::Sum + Signed>(r: &M44<T>) -> M44<T> {
     let (rot, p) = get_parts_raw(r);
     let rot_new = rot.transpose();
-    let p_new   = -rot_new * p;
+    let p_new = -rot_new * p;
     homogeneous_from_rotation(&rot_new, &p_new)
 }
 
@@ -288,7 +291,7 @@ pub fn homogeneous_inverse<T: Float + core::iter::Sum + Signed>(r: &M44<T>) -> M
 ///
 pub fn homogeneous_inverse_transform<T>(r: &M44<T>, p: &V3<T>) -> V3<T>
 where
-    T: Float + core::iter::Sum + FloatConst + Signed
+    T: Float + core::iter::Sum + FloatConst + Signed,
 {
     let (_, translation) = get_parts(r);
     let p_trans = *p - translation;
@@ -403,7 +406,7 @@ pub fn translation_3d<T: Float>(x: T, y: T, z: T) -> M44<T> {
 /// Compute the matrix exponential for omega theta(exponential coordinates): so(3) ---> SO(3)
 /// with the Rodriguez formula
 pub fn rotation_from_axis_angle<T: Float>(omega: &V3<T>, theta: T) -> M33<T> {
-    let skew       = skew_from_vec(omega);
+    let skew = skew_from_vec(omega);
     let (sin, cos) = theta.sin_cos();
     M33::identity() + skew * sin + skew * skew * (T::one() - cos)
 }
@@ -448,13 +451,16 @@ pub fn matrix_log<T: Float + core::iter::Sum + FloatConst>(r: &M33<T>) -> M33<T>
         M33::zeros()
     } else if angle <= -one {
         if !nearly_zero(one + r[(2, 2)]) {
-            let omega = V3::new_from(r[(0, 2)], r[(1, 2)], one + r[(2, 2)]) * (one / T::sqrt(two * (one + r[(2, 2)])));
+            let omega = V3::new_from(r[(0, 2)], r[(1, 2)], one + r[(2, 2)])
+                * (one / T::sqrt(two * (one + r[(2, 2)])));
             skew_from_vec(&(omega * T::PI()))
         } else if !nearly_zero(one + r[(1, 1)]) {
-            let omega = V3::new_from(r[(0, 1)], one + r[(1, 1)], r[(2, 1)]) * (one / T::sqrt(two * (one + r[(1, 1)])));
+            let omega = V3::new_from(r[(0, 1)], one + r[(1, 1)], r[(2, 1)])
+                * (one / T::sqrt(two * (one + r[(1, 1)])));
             skew_from_vec(&(omega * T::PI()))
         } else {
-            let omega = V3::new_from(one + r[(0, 0)], one + r[(1, 0)], r[(2, 0)]) * (one / T::sqrt(two * (one + r[(0, 0)])));
+            let omega = V3::new_from(one + r[(0, 0)], one + r[(1, 0)], r[(2, 0)])
+                * (one / T::sqrt(two * (one + r[(0, 0)])));
             skew_from_vec(&(omega * T::PI()))
         }
     } else {
@@ -491,7 +497,14 @@ pub fn twist_to_se3<T: Float>(twist: &V6<T>) -> M44<T> {
 /// V3<Float>: representing spatial velocity vector("twist")
 ///
 pub fn se3_to_twist<T: Float>(se3: &M44<T>) -> V6<T> {
-    V6::new_from(se3[(2, 1)], se3[(0, 2)], se3[(1, 0)], se3[(0, 3)], se3[(1, 3)], se3[(2, 3)])
+    V6::new_from(
+        se3[(2, 1)],
+        se3[(0, 2)],
+        se3[(1, 0)],
+        se3[(0, 3)],
+        se3[(1, 3)],
+        se3[(2, 3)],
+    )
 }
 
 /// Compute the adjoint representation of a homogeneous transformation matrix
@@ -543,7 +556,7 @@ pub fn axis_angle6<T: Float>(exp: &V6<T>) -> (V6<T>, T) {
     let theta = norm2(&exp[0..3]);
     if nearly_zero(theta) {
         let theta = norm2(&exp[3..6]);
-        return (*exp / theta, theta)
+        return (*exp / theta, theta);
     }
     (*exp / theta, theta)
 }
@@ -558,7 +571,7 @@ pub fn axis_angle6<T: Float>(exp: &V6<T>) -> (V6<T>, T) {
 ///
 pub fn matrix_exponential6<T: Float>(se3: &M44<T>) -> M44<T> {
     let zero = T::zero();
-    let one  = T::one();
+    let one = T::one();
     let (skew_omega, v) = se3_get_parts(se3);
     let omega_theta = skew_to_vec(&skew_omega);
     // NOTE(elsuizo:2021-05-11): if w = 0 ---> "pitch" == infinity and |v| = 1 ---> theta represents only a linear distance
@@ -574,7 +587,8 @@ pub fn matrix_exponential6<T: Float>(se3: &M44<T>) -> M44<T> {
         let omega = skew_omega / theta;
         let mat_exp = matrix_exponential(&skew_omega);
         let (s, c) = theta.sin_cos();
-        let v_t = (M33::identity() * theta + omega * (one - c) + omega * omega * (theta - s)) * v / theta;
+        let v_t =
+            (M33::identity() * theta + omega * (one - c) + omega * omega * (theta - s)) * v / theta;
 
         m44_new!(mat_exp[(0, 0)], mat_exp[(0, 1)], mat_exp[(0, 2)], v_t[0];
                  mat_exp[(1, 0)], mat_exp[(1, 1)], mat_exp[(1, 2)], v_t[1];
@@ -606,13 +620,13 @@ pub fn matrix_log6<T: Float + core::iter::Sum + FloatConst>(t: &M44<T>) -> M44<T
     } else {
         let theta = T::acos((r.trace() - one) / two);
         let cot = one / T::tan(theta / two);
-        let v = (M33::identity() - omega / two + omega * omega * (one / theta - cot / two) / theta) * p;
+        let v =
+            (M33::identity() - omega / two + omega * omega * (one / theta - cot / two) / theta) * p;
         m44_new!(omega[(0, 0)], omega[(0, 1)], omega[(0, 2)], v[0];
                  omega[(1, 0)], omega[(1, 1)], omega[(1, 2)], v[1];
                  omega[(2, 0)], omega[(2, 1)], omega[(2, 2)], v[2];
                       zero    ,     zero     ,      zero    , zero)
     }
-
 }
 
 /// Returns the Frobenius norm to describe the distance of the transformation from the SO(3)
@@ -637,21 +651,22 @@ pub fn distance_to_manifold<T: Float + core::iter::Sum>(m: &M33<T>) -> T {
 #[cfg(test)]
 mod test_transformations {
 
-    use super::{rotation_to_euler, euler_to_rotation, rotx, roty, rotz,
-                homogeneous_from_quaternion, homogeneous_inverse,
-                homogeneous_inverse_transform, matrix_log, matrix_exponential, skew_from_vec,
-                twist_to_se3, se3_to_twist, adjoint, screw_to_axis, axis_angle6, matrix_exponential6,
-                matrix_log6, distance_to_manifold};
+    use super::{
+        adjoint, axis_angle6, distance_to_manifold, euler_to_rotation, homogeneous_from_quaternion,
+        homogeneous_inverse, homogeneous_inverse_transform, matrix_exponential,
+        matrix_exponential6, matrix_log, matrix_log6, rotation_to_euler, rotx, roty, rotz,
+        screw_to_axis, se3_to_twist, skew_from_vec, twist_to_se3,
+    };
 
-    use crate::utils::{nearly_equal, is_rotation, is_rotation_h, compare_vecs};
-    use crate::quaternion::Quaternion;
-    use crate::vector3::V3;
-    use crate::matrix4x4::M44;
     use crate::m44_new;
-    use crate::matrix6x6::M66;
     use crate::m66_new;
-    use crate::vector6::V6;
     use crate::matrix3x3::M33;
+    use crate::matrix4x4::M44;
+    use crate::matrix6x6::M66;
+    use crate::quaternion::Quaternion;
+    use crate::utils::{compare_vecs, is_rotation, is_rotation_h, nearly_equal};
+    use crate::vector3::V3;
+    use crate::vector6::V6;
     const EPS: f32 = 1e-6;
 
     #[test]
@@ -728,7 +743,7 @@ mod test_transformations {
     fn matrix_exponential_test() {
         let so3 = skew_from_vec(&V3::new_from(1.0, 2.0, 3.0));
         let result = matrix_exponential(&so3);
-        let expected  = m33_new!(-0.69492056,  0.71352099,  0.08929286;
+        let expected = m33_new!(-0.69492056,  0.71352099,  0.08929286;
                                  -0.19200697, -0.30378504,  0.93319235;
                                   0.69297817,  0.6313497 ,  0.34810748);
         assert!(compare_vecs(&result.as_vec(), &expected.as_vec(), EPS));

@@ -28,19 +28,18 @@
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //--------------------------------------------------------------------------
-use core::fmt;
-use crate::quaternion::Quaternion;
-use crate::vector4::V4;
-use crate::matrix4x4::M44;
 use crate::matrix3x3::M33;
-use crate::vector3::V3;
-use crate::utils::{nearly_zero, nearly_equal};
+use crate::matrix4x4::M44;
+use crate::quaternion::Quaternion;
 use crate::transformations::{get_parts_raw, homogeneous_from_rotation};
-use core::ops::{Mul, Add, Sub, Neg, Div};
-use num::{Num, Float, Signed, Zero, One};
+use crate::utils::{nearly_equal, nearly_zero};
+use crate::vector3::V3;
+use crate::vector4::V4;
+use core::fmt;
+use core::ops::{Add, Div, Mul, Neg, Sub};
 use num::traits::FloatConst;
+use num::{Float, Num, One, Signed, Zero};
 
-// TODO(elsuizo:2021-05-17): maybe we need a flag to the norm
 #[derive(Copy, Debug, Clone, PartialEq)]
 pub struct DualQuaternion<T> {
     /// the real part
@@ -48,12 +47,16 @@ pub struct DualQuaternion<T> {
     /// the dual part
     q_dual: Quaternion<T>,
     /// normalized flag
-    normalized: bool
+    normalized: bool,
 }
 
 impl<T> DualQuaternion<T> {
     pub const fn new(q_real: Quaternion<T>, q_dual: Quaternion<T>) -> Self {
-        Self{q_real, q_dual, normalized: false}
+        Self {
+            q_real,
+            q_dual,
+            normalized: false,
+        }
     }
 }
 
@@ -70,15 +73,22 @@ impl<T: Num + Copy> DualQuaternion<T> {
 
     /// Create a pure rotation transformation from a given Quaternion
     pub fn new_from_rotation(r: &Quaternion<T>) -> Self {
-        Self{q_real: *r, q_dual: Quaternion::zero(), normalized: true}
+        Self {
+            q_real: *r,
+            q_dual: Quaternion::zero(),
+            normalized: true,
+        }
     }
 
     /// Create a Dual Quaternion that represent a point when the real part is a unit and the dual
     /// part is a pure Quaternion
     pub fn new_from_point(v: &V3<T>) -> Self {
-        Self{q_real: Quaternion::one(), q_dual: Quaternion::new_imag(v), normalized: true}
+        Self {
+            q_real: Quaternion::one(),
+            q_dual: Quaternion::new_imag(v),
+            normalized: true,
+        }
     }
-
 }
 
 // dq + dq
@@ -132,8 +142,8 @@ impl<T: Float + Signed> Div for DualQuaternion<T> {
 
     fn div(self, rhs: Self) -> Self::Output {
         let rhs_real_sqr = rhs.q_real * rhs.q_real;
-        let prod_real    = self.q_real * rhs.q_real / rhs_real_sqr;
-        let prod_dual    = (rhs.q_real * self.q_dual - self.q_real * rhs.q_dual) / rhs_real_sqr;
+        let prod_real = self.q_real * rhs.q_real / rhs_real_sqr;
+        let prod_dual = (rhs.q_real * self.q_dual - self.q_real * rhs.q_dual) / rhs_real_sqr;
         Self::new(prod_real, prod_dual)
     }
 }
@@ -150,7 +160,10 @@ impl<T: Float + Signed> DualQuaternion<T> {
         if self.normalized {
             self.conj()
         } else {
-            let q_real_inv = self.q_real.inverse().expect("the zero Quaternion cannot be inverted");
+            let q_real_inv = self
+                .q_real
+                .inverse()
+                .expect("the zero Quaternion cannot be inverted");
             Self::new(q_real_inv, -q_real_inv * self.q_dual * q_real_inv)
         }
     }
@@ -233,12 +246,15 @@ impl<T: Float + Signed> DualQuaternion<T> {
             Self::new_from_point(&(self.get_translation() * exponent))
         } else {
             let s0 = self.real().imag() / s;
-            let d  = self.dual().real() * -two / s;
+            let d = self.dual().real() * -two / s;
             let se = (self.dual().imag() - s0 * (d / two) * c) / s;
 
             let (s_exp, c_exp) = (exponent * theta / two).sin_cos();
             let q_real = Quaternion::new(c_exp, s0 * s_exp);
-            let q_dual = Quaternion::new(s_exp * -exponent * d / two, s0 * c_exp * exponent * d / two + se * s_exp);
+            let q_dual = Quaternion::new(
+                s_exp * -exponent * d / two,
+                s0 * c_exp * exponent * d / two + se * s_exp,
+            );
             Self::new(q_real, q_dual)
         }
     }
@@ -281,7 +297,6 @@ impl<T: Float + Signed> DualQuaternion<T> {
 }
 
 impl<T: Float> DualQuaternion<T> {
-
     /// Create a `DualQuaternion` from an array that encodes a Quaternion and a 3d vecto (V3<Float>)
     pub fn new_from_array(array: [T; 7]) -> Self {
         let one = T::one();
@@ -297,7 +312,11 @@ impl<T: Float> DualQuaternion<T> {
     pub fn new_from_translation(t: &V3<T>) -> Self {
         let one = T::one();
         let two = one + one;
-        Self{q_real: Quaternion::one(), q_dual: Quaternion::new_imag(&V3::new_from(t[0]/two, t[1]/two, t[2]/two)), normalized: true}
+        Self {
+            q_real: Quaternion::one(),
+            q_dual: Quaternion::new_imag(&V3::new_from(t[0] / two, t[1] / two, t[2] / two)),
+            normalized: true,
+        }
     }
 
     /// Create a new DualQuaternion from a rotation(Quaternion) and translation(V3)
@@ -306,7 +325,11 @@ impl<T: Float> DualQuaternion<T> {
         let half = one / (one + one);
         let q_real = rot.normalize().expect("the quaternion it can't be zero!!!");
         let q_dual = (Quaternion::new_imag(translation) * half) * q_real;
-        Self{q_real, q_dual, normalized: true}
+        Self {
+            q_real,
+            q_dual,
+            normalized: true,
+        }
     }
 
     pub fn is_normalized(&self) -> bool {
@@ -314,22 +337,20 @@ impl<T: Float> DualQuaternion<T> {
             true
         } else {
             if nearly_zero(self.real().norm2()) {
-                return true
+                return true;
             }
             let check1 = nearly_equal(self.real().norm2(), T::one(), T::epsilon());
             let dual_norm = self.dual() / self.real().norm2();
-            let check2 = nearly_equal(dual_norm.real(), self.dual().real(), T::epsilon()) &&
-                         nearly_equal(dual_norm.imag()[0], self.dual().imag()[0], T::epsilon()) &&
-                         nearly_equal(dual_norm.imag()[1], self.dual().imag()[1], T::epsilon()) &&
-                         nearly_equal(dual_norm.imag()[2], self.dual().imag()[2], T::epsilon());
+            let check2 = nearly_equal(dual_norm.real(), self.dual().real(), T::epsilon())
+                && nearly_equal(dual_norm.imag()[0], self.dual().imag()[0], T::epsilon())
+                && nearly_equal(dual_norm.imag()[1], self.dual().imag()[1], T::epsilon())
+                && nearly_equal(dual_norm.imag()[2], self.dual().imag()[2], T::epsilon());
             check1 && check2
         }
     }
-
 }
 
 impl<T: Float + FloatConst + core::iter::Sum> DualQuaternion<T> {
-
     /// Normalize the `DualQuaternion` only if necessary
     pub fn normalize(&self) -> Option<Self> {
         if self.normalized {
@@ -353,13 +374,19 @@ impl<T: Float + FloatConst + core::iter::Sum> DualQuaternion<T> {
     /// Create a new `DualQuaternion` from a homogeneous transformation matrix in SE(3)
     pub fn new_from_homogeneous(t: &M44<T>) -> Self {
         let (rot, p) = get_parts_raw(t);
-        let q = Quaternion::from_rotation(&rot).normalize().expect("the quaternion it can't be zero!!!");
+        let q = Quaternion::from_rotation(&rot)
+            .normalize()
+            .expect("the quaternion it can't be zero!!!");
         Self::new_from_rot_trans(&q, &p)
     }
 
     /// Create a `DualQuaternion` that represent a rotation pure transformation
     pub fn new_from_rotation_matrix(m: &M33<T>) -> Self {
-        Self{q_real: Quaternion::from_rotation(m), q_dual: Quaternion::zero(), normalized: true}
+        Self {
+            q_real: Quaternion::from_rotation(m),
+            q_dual: Quaternion::zero(),
+            normalized: true,
+        }
     }
 }
 
@@ -416,10 +443,12 @@ impl<T: Num + Copy + Signed> DualQuaternion<T> {
 }
 
 impl<T: Num + Copy> DualQuaternion<T> {
-
     /// Construct a new DualQuaternion from two V4
     pub fn new_from_vecs(q_real: &V4<T>, q_dual: &V4<T>) -> Self {
-        Self::new(Quaternion::new_from_vec(q_real), Quaternion::new_from_vec(q_dual))
+        Self::new(
+            Quaternion::new_from_vec(q_real),
+            Quaternion::new_from_vec(q_dual),
+        )
     }
 
     /// construct a zero DualQuaternion
@@ -448,7 +477,11 @@ impl<T: Num + Copy> Zero for DualQuaternion<T> {
 impl<T: Num + Copy> One for DualQuaternion<T> {
     /// Create an identity DualQuaternion
     fn one() -> Self {
-        Self{q_real: Quaternion::one(), q_dual: Quaternion::zero(), normalized: true}
+        Self {
+            q_real: Quaternion::one(),
+            q_dual: Quaternion::zero(),
+            normalized: true,
+        }
     }
 }
 
@@ -468,14 +501,14 @@ impl<T: Num + fmt::Display> fmt::Display for DualQuaternion<T> {
 #[cfg(test)]
 mod test_dual_quaternion {
     use crate::dual_quaternion::DualQuaternion;
-    use crate::quaternion::Quaternion;
-    use crate::vector3::V3;
-    use crate::vector4::V4;
+    use crate::m44_new;
     use crate::matrix3x3::M33;
     use crate::matrix4x4::M44;
-    use crate::m44_new;
-    use crate::utils::{nearly_equal, nearly_zero, compare_vecs, compare_dual_quaternions};
-    use crate::transformations::{homogeneous_from_quaternion, euler_to_rotation};
+    use crate::quaternion::Quaternion;
+    use crate::transformations::{euler_to_rotation, homogeneous_from_quaternion};
+    use crate::utils::{compare_dual_quaternions, compare_vecs, nearly_equal, nearly_zero};
+    use crate::vector3::V3;
+    use crate::vector4::V4;
     const EPS: f32 = 1e-4;
 
     #[test]
@@ -525,8 +558,11 @@ mod test_dual_quaternion {
     fn dual_quaternion_test_norm() {
         // let q = Quaternion::rotation(1.78, &V3::x_axis());
         // let dq = DualQuaternion::new_from_rot_trans(&q, &V3::y_axis());
-        let dq = DualQuaternion::new_from_vecs(&V4::new_from(1.0, 2.0, 3.0, 4.0), &V4::new_from(5.0, 6.0, 7.0, 8.0));
-        let one:DualQuaternion<f32> = DualQuaternion::one();
+        let dq = DualQuaternion::new_from_vecs(
+            &V4::new_from(1.0, 2.0, 3.0, 4.0),
+            &V4::new_from(5.0, 6.0, 7.0, 8.0),
+        );
+        let one: DualQuaternion<f32> = DualQuaternion::one();
         let normalized = dq.normalize().unwrap();
         assert!(normalized.is_normalized());
         assert!(one.is_normalized());
@@ -536,7 +572,11 @@ mod test_dual_quaternion {
     // NOTE(elsuizo:2021-05-18): homogeneous ---> DualQuaternion ---> homogeneous
     #[test]
     fn homogeneous_conversions() {
-        let q  = Quaternion::from_euler_angles(10f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let q = Quaternion::from_euler_angles(
+            10f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+        );
         let expected = homogeneous_from_quaternion(&q, &V3::new_from(1.0, 2.0, 3.0));
         let result = DualQuaternion::new_from_homogeneous(&expected).to_homogeneous();
 
@@ -545,8 +585,16 @@ mod test_dual_quaternion {
 
     #[test]
     fn conjugate_product_test() {
-        let q1  = Quaternion::from_euler_angles(10f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
-        let q2  = Quaternion::from_euler_angles(30f32.to_radians(), 10f32.to_radians(), 30f32.to_radians());
+        let q1 = Quaternion::from_euler_angles(
+            10f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+        );
+        let q2 = Quaternion::from_euler_angles(
+            30f32.to_radians(),
+            10f32.to_radians(),
+            30f32.to_radians(),
+        );
         let dq1 = DualQuaternion::new_from_rot_trans(&q1, &V3::x_axis());
         let dq2 = DualQuaternion::new_from_rot_trans(&q2, &V3::z_axis());
 
@@ -559,8 +607,17 @@ mod test_dual_quaternion {
     // NOTE(elsuizo:2021-05-19): rot_pure * traslation_pure == normal_dual
     #[test]
     fn combined_transformations_tests() {
-        let rot = euler_to_rotation(10f32.to_radians(), 10f32.to_radians(), 10f32.to_radians(), None);
-        let q  = Quaternion::from_euler_angles(10f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let rot = euler_to_rotation(
+            10f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+            None,
+        );
+        let q = Quaternion::from_euler_angles(
+            10f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+        );
 
         let t_pure = DualQuaternion::new_from_translation(&V3::x_axis());
         let r_pure = DualQuaternion::new_from_rotation(&q);
@@ -580,7 +637,11 @@ mod test_dual_quaternion {
     #[test]
     fn dual_quaternion_inverse_test() {
         // let dq = DualQuaternion::new_from_vecs(&V4::new_from(1.0, 2.0, 3.0, 4.0), &V4::new_from(5.0, 6.0, 7.0, 8.0));
-        let q  = Quaternion::from_euler_angles(10f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let q = Quaternion::from_euler_angles(
+            10f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+        );
         let dq = DualQuaternion::new_from_rot_trans(&q, &V3::x_axis());
         let result = dq.inverse() * dq;
         let expected = DualQuaternion::one();
@@ -604,13 +665,25 @@ mod test_dual_quaternion {
         let dq_1_2 = DualQuaternion::new_from_homogeneous(&t_1_2);
         let dq_2_1 = DualQuaternion::new_from_homogeneous(&t_2_1);
 
-        assert!(compare_vecs(&dq_2_1.to_homogeneous().as_vec(), &dq_1_2.inverse().to_homogeneous().as_vec(), EPS));
-        assert!(compare_vecs(&dq_1_2.to_homogeneous().as_vec(), &dq_2_1.inverse().to_homogeneous().as_vec(), EPS));
+        assert!(compare_vecs(
+            &dq_2_1.to_homogeneous().as_vec(),
+            &dq_1_2.inverse().to_homogeneous().as_vec(),
+            EPS
+        ));
+        assert!(compare_vecs(
+            &dq_1_2.to_homogeneous().as_vec(),
+            &dq_2_1.inverse().to_homogeneous().as_vec(),
+            EPS
+        ));
     }
 
     #[test]
     fn dual_quaternion_transform_point_test() {
-        let q  = Quaternion::from_euler_angles(10f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let q = Quaternion::from_euler_angles(
+            10f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+        );
         let t = homogeneous_from_quaternion(&q, &V3::new_from(1.0, 2.0, 3.0));
 
         let p = V4::new_from(1.0, 2.0, 3.0, 0.0);
@@ -650,7 +723,11 @@ mod test_dual_quaternion {
 
     #[test]
     fn dual_quaternion_screw_params_rotation_test() {
-        let q  = Quaternion::from_euler_angles(73f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let q = Quaternion::from_euler_angles(
+            73f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+        );
         let r_pure = DualQuaternion::new_from_rotation(&q);
         let (l_result, m_result, theta_result, d_result) = r_pure.get_screw_parameters();
         // NOTE(elsuizo:2021-05-22): l should be a unit vector
@@ -696,7 +773,11 @@ mod test_dual_quaternion {
 
     #[test]
     fn dual_quaternion_pow_test() {
-        let q  = Quaternion::from_euler_angles(73f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let q = Quaternion::from_euler_angles(
+            73f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+        );
         let trans = V3::new_from(0.0, 0.0, 7.0);
         let dq_full = DualQuaternion::new_from_rot_trans(&q, &trans);
         let expected = dq_full * dq_full * dq_full;
@@ -708,16 +789,22 @@ mod test_dual_quaternion {
     #[test]
     fn dual_quaternion_interpolation_test() {
         let taus = [0.0, 0.37, 0.73, 1.0];
-        let q  = Quaternion::from_euler_angles(73f32.to_radians(), 10f32.to_radians(), 10f32.to_radians());
+        let q = Quaternion::from_euler_angles(
+            73f32.to_radians(),
+            10f32.to_radians(),
+            10f32.to_radians(),
+        );
         let trans = V3::new_from(0.0, 0.0, 7.0);
-        let dq = DualQuaternion::new_from_rot_trans(&q, &trans).normalize().unwrap();
+        let dq = DualQuaternion::new_from_rot_trans(&q, &trans)
+            .normalize()
+            .unwrap();
         let (l, m, theta, d) = dq.get_screw_parameters();
 
         for tau in &taus {
             let result = DualQuaternion::screw_lerp(&DualQuaternion::one(), &dq, *tau);
-            let expected = DualQuaternion::new_from_screw_parameters(&l, &m, *tau * theta, *tau * d);
+            let expected =
+                DualQuaternion::new_from_screw_parameters(&l, &m, *tau * theta, *tau * d);
             assert!(compare_dual_quaternions(expected, result, EPS));
         }
-
     }
 }

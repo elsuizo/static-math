@@ -36,44 +36,44 @@
 //!
 #![cfg_attr(all(feature = "no-std"), no_std)]
 #![deny(unsafe_code)]
-pub mod traits;
+pub mod dual_quaternion;
+pub mod errors;
 pub mod matrix2x2;
 pub mod matrix3x3;
 pub mod matrix4x4;
 pub mod matrix5x5;
 pub mod matrix6x6;
+pub mod quaternion;
+pub mod slices_methods;
+pub mod traits;
+pub mod transformations;
+pub mod utils;
 pub mod vector2;
 pub mod vector3;
 pub mod vector4;
 pub mod vector5;
 pub mod vector6;
-pub mod utils;
-pub mod errors;
-pub mod slices_methods;
-pub mod quaternion;
-pub mod dual_quaternion;
-pub mod transformations;
 
 //-------------------------------------------------------------------------
 //                        export types
 //-------------------------------------------------------------------------
+pub use dual_quaternion::DualQuaternion;
 pub use matrix2x2::M22;
 pub use matrix3x3::M33;
 pub use matrix4x4::M44;
 pub use matrix5x5::M55;
 pub use matrix6x6::M66;
+pub use quaternion::Quaternion;
 pub use vector2::V2;
 pub use vector2::V2_ZEROS;
 pub use vector3::V3;
+pub use vector3::V3_ZEROS;
 pub use vector3::X_AXIS;
 pub use vector3::Y_AXIS;
 pub use vector3::Z_AXIS;
-pub use vector3::V3_ZEROS;
 pub use vector4::V4;
 pub use vector4::V4_ZEROS;
 pub use vector5::V5;
 pub use vector5::V5_ZEROS;
 pub use vector6::V6;
 pub use vector6::V6_ZEROS;
-pub use quaternion::Quaternion;
-pub use dual_quaternion::DualQuaternion;

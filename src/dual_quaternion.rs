@@ -50,6 +50,7 @@ pub struct DualQuaternion<T> {
     normalized: bool,
 }
 
+/// Dual Quaternion inplementation
 impl<T> DualQuaternion<T> {
     pub const fn new(q_real: Quaternion<T>, q_dual: Quaternion<T>) -> Self {
         Self {
